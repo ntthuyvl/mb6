@@ -1,0 +1,128 @@
+<#include "../header.ftl">
+<SCRIPT>
+	var curtab = '#tab1';
+	var dataLoad = {
+		"#tab1" : 0
+	};
+	var app = 3;
+	function load_tab_data() {
+		if (dataLoad[curtab] == 0) {//Tab chua load du lieu
+			bcct();
+			dataLoad[curtab] = 1;
+
+		}
+	};
+
+	function resetSEE() {
+		//$('buttonbar').hide();
+		//$('div#item_detail ul.SEE').show();		
+		$('input:submit').hide()
+		$('#pro_add').val("Thêm");
+		$('#pro_add').show();
+		$('#isdn_add').val("Thêm");
+		$('section textarea').attr('readonly', 'readonly');
+		//$("<textarea readonly></textarea>").replaceAll("textarea");
+	}
+
+	function getData() {
+		$('input').attr('disabled', 'disabled');
+		$('section h').html("Tạm tính hệ số rời mạng tháng hiện thời");
+
+		var dataObj = {
+			"donvi" : $('select#donvi').val(),
+			"level" : $('select#level').val(),
+			"app" : app
+		}
+
+		dataObj = {
+			"json" : JSON.stringify(dataObj)
+		};
+
+		$.post("list", dataObj, function(data2, status) {
+			call_back_ajax(data2, status);
+		});
+	}
+
+	$(document).ready(
+			function() {
+				tab_present();
+				$('input#find').click(function() {
+					getData();
+				});
+
+				var dataObj = {
+					"app" : app
+				};
+
+				dataObj = {
+					"json" : JSON.stringify(dataObj)
+				};
+				$.getJSON("/khdt/khsxkd/donvi", dataObj, function(data,
+						textStatus) {
+					$('select#donvi option').remove();
+					var row;
+					/*
+					 row = "<option value=\"" + "0" + "\">" + "Chọn đơn vị"							+ "</option>"
+					 $(row).appendTo("select#donvi");
+					 */
+					for (i = 1; i < data.length; i++) {
+						row = "<option value=\""
+								+ data[i]['001'].replace('<td>', '') + "\">"
+								+ data[i]['002'] + "</option>";
+						$(row).appendTo("select#donvi");
+					}
+				});
+
+				$(document).on('click', 'input#table2excel', function() {
+					$(curtab + ' table#datarp').table2excel({
+						// exclude CSS class			
+						exclude : ".noExl",
+						name : "TraThuong"
+					});
+				});
+
+				$('input#bcct').click(
+						function() {
+							var dataObj = {
+								"app" : app
+							}
+							var x = window.open("no3k3d?json="
+									+ JSON.stringify(dataObj), "MyWindow");
+							x.focus();
+
+						});
+
+			})
+</SCRIPT>
+
+<section2 class="session" style="width: 98%"> <header>Tạm
+	tính hệ số rời mạng tháng hiện thời</header>
+<ul id="tabs">
+
+	<in id="donvi"> <select id="donvi" value="" style="height: 25px">
+		<option value="">-- Chọn đơn vị--</option>
+	</select> </in>
+	<in id="level"> <select id="level" value="" style="height: 25px">
+		<option value="0">-- Cấp đơn vị--</option>
+		<option value="1">-- Cấp tỉnh--</option>
+		<option value="2">-- Cấp huyện-</option>
+	</select> </in>
+	<input type="submit" id="find" value="Lấy số liệu"
+		style="width: 120px;" />
+
+	<input type="submit" id="table2excel" value="Excel"
+		style="width: 120px;" />
+	<input type="submit" id="bcct"
+		value="Chi tiết các thuê bao chưa đạt 3K3D" />
+
+</ul>
+
+<div id="content">
+	<div id="tab1">
+		<table id="datarp" class="CSSTableGenerator">
+			<tbody></tbody>
+		</table>
+	</div>
+</div>
+</section2>
+<#include "/footer.ftl">

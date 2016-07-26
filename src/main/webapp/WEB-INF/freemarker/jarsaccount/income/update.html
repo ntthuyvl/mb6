@@ -1,0 +1,83 @@
+<#import "/spring.ftl" as spring />
+<html>
+	<head>
+		<title>The AK Application</title>
+		<META  http-equiv="Content-Type"  content="text/html;charset=UTF-8">
+		<link rel="stylesheet" href="../../../styles/petclinic3.css"
+			type="text/css">
+	</head>
+	<body>
+		<div id="main">
+			<h1>
+				Sửa Hồ Sơ Thu Nhập
+			</h1>
+			<hr />
+			<form action="" method="POST">
+				<@spring.bind "pojoMode"/>
+				<table>
+					<tr>
+						<th ALIGN=left>
+							Ngày
+						</th>
+						<td>
+							<@spring.formInput "pojoMode.pojo.incomeDate"/>
+							<@spring.showErrors "
+							</br>
+							"/>
+						</td>
+					</tr>
+					<tr>
+						<th ALIGN=left>
+							Diễn giải
+						</th>
+						<td>
+							<@spring.formInput "pojoMode.pojo.label"/> <@spring.showErrors "
+							</br>
+							"/>
+						</td>
+					</tr>
+					<tr>
+						<th ALIGN=left>
+							Số lượng
+						</th>
+						<td>
+							<@spring.formInput "pojoMode.pojo.amount"/><@spring.showErrors"
+							<br>
+							"/>
+						</td>
+					</tr>
+					<tr>
+						<th ALIGN=left>
+							Loại thu nhập
+						</th>
+						<td>
+							<@spring.formSingleSelect "pojoMode.pojo.incomePlan.id"
+							incomPlanMap/>
+						</td>
+					</tr>
+					<tr>
+						<th ALIGN=left>
+							Thu từ
+						</th>
+						<td>
+							<@spring.formSingleSelect "pojoMode.pojo.partner.id" partnerMap/>
+						</td>
+					</tr>
+					<tr>
+						<th ALIGN=left>
+							Tài khoản tài sản
+						</th>
+						<td>
+							<@spring.formSingleSelect "pojoMode.pojo.financeAccount.id"
+							financeAccountMap/>
+						</td>
+					</tr>
+				</table>
+				<p>
+					<input type="submit" value="Xác nhận" />
+				</p>
+			</form>
+			<hr>
+		</div>
+	</body>
+</html>

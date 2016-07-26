@@ -1,0 +1,53 @@
+<#include "/header.ftl">
+<h1>Đại Lý Bán Lẻ</h1>
+<form action="" method="POST" class="entry">
+<@spring.bind "pojoMode"/>
+<h3>${pojoMode.pojo.label}</h3>
+<@spring.formHiddenInput "pojoMode.pojo.name"/>
+<label>Tên đại lý</label> <@spring.formInput
+"pojoMode.pojo.label"/> <@spring.showErrors " </br>
+"/><br />
+
+<label>Tên chủ đại lý</label> <@spring.formInput
+"pojoMode.pojo.mannager.user.label"/> <@spring.showErrors " </br>
+"/><br />
+
+<label>Địa chỉ</label> <@spring.formInput "pojoMode.pojo.address"/>
+<@spring.showErrors " </br>
+"/><br />
+
+<label>Địa chỉ gmap</label><@spring.formInput "pojoMode.pojo.googelAddress"/> <@spring.showErrors " </br> "/><br />
+
+<label>Liên hệ</label> <@spring.formInput "pojoMode.pojo.contact"/>
+<@spring.showErrors " </br>
+"/><br />
+
+
+<label>Hoa hồng ô tô</label> <@spring.formInput
+"pojoMode.pojo.commission_car"/> <@spring.showErrors " </br>
+"/><br />
+
+
+<label>Hoa hồng xe máy</label> <@spring.formInput
+"pojoMode.pojo.commission_moto"/> <@spring.showErrors " </br>
+"/><br />
+
+		<label>Hoa hồng vật chất xe ôtô</label>
+		<@spring.formInput "pojoMode.pojo.commission_vcx"/>
+		<@spring.showErrors " </br>
+		"/><br />
+	<label>Hoa hồng vật chất xe máy</label> <@spring.formInput "pojoMode.pojo.commission_vcxmoto"/> <@spring.showErrors " </br> "/><br />		
+		
+<label>Ngày bắt đầu</label> <@spring.formInput
+"pojoMode.pojo.startDate"/> <@spring.showErrors " </br>
+"/><br />
+
+<label>Cán bộ chăm sóc</label> <@spring.formInput
+"pojoMode.pojo.careEmp.name"/> <@spring.showErrors " </br>
+"/><br />
+<label>Người giới thiệu</label> <@spring.formInput
+"pojoMode.pojo.broker.name"/> <@spring.showErrors " </br>
+"/>
+<p><input type="submit" value="Xác nhận" /></p>
+</form>
+<#include "/footer.ftl">

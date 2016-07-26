@@ -1,0 +1,163 @@
+﻿SELECT   a.id,
+         a.block_type,
+         a.supplier_id,
+         a.serial,
+         a.status a_status,
+         CASE
+             WHEN b.status IN (10, 20, 12) THEN 0
+             WHEN b.status IN (11, 21) THEN 1
+             WHEN b.status IN (30) THEN 2
+             WHEN b.status IN (31) THEN 3
+             ELSE b.status
+         END
+             b_status,
+         a.act_date,
+         b.act_date,
+         a.employee_id,
+         b.employee_id,
+         a.reference_emp_id,
+         b.reference_emp_id,
+         a.department_id,
+         b.department_id
+  FROM       anchi a
+         INNER JOIN
+             anchiblock b
+         ON     a.act_date < b.act_date
+            AND b.sta_serial <= a.serial
+            AND b.end_serial >= a.serial
+            AND b.TYPE = a.block_type
+ WHERE   b.act_date >= str_to_date ('20120101', '%Y%m%d');
+drop table tmp1;
+
+
+
+create table tmp1 as
+select aa.* from
+(
+/* Nhap kho - tra lai */
+SELECT   *
+  FROM   anchi a
+ WHERE   creat_date < '2011-12-01 00:00:00' and     block_type=1
+         AND ((EXISTS
+                         (SELECT   1
+                            FROM   anchiblock b
+                           WHERE       act_date >= '2011-11-01 00:00:00'
+                                   AND act_date < '2011-12-01 00:00:00'
+                                   AND TYPE = a.block_type
+                                   AND sta_serial <= a.serial
+                                   AND end_serial >= a.serial
+                                   AND department_id like '1.%' AND status = '20'
+                                   AND NOT EXISTS
+                                          (SELECT   1
+                                             FROM   anchiblock
+                                            WHERE       act_date >= b.act_date
+                                                    AND act_date < '2011-12-01 00:00:00'
+                                                    AND TYPE = a.block_type
+                                                    AND sta_serial <=
+                                                           a.serial
+                                                    AND end_serial >=
+                                                           a.serial
+                                                    AND department_id = b.department_id
+                                                         AND status = '21'))))
+union
+
+/* Ton kho - tra lai */
+SELECT   a.*
+  FROM   anchi a inner join anchiton b on a.id=b.an_chi_ton_id
+ WHERE   a.block_type=1
+         AND b.bangketoncuoiky_id IN
+                    (SELECT   id
+                       FROM   bangketonghop
+                      WHERE   month = '2011-10-01 00:00:00'
+                              AND department_id LIKE '1.%')
+         AND not EXISTS
+                (SELECT   1
+                   FROM   anchiblock
+                  WHERE       act_date >= '2011-11-01 00:00:00'
+                          AND act_date < '2011-12-01 00:00:00'
+                          AND TYPE = a.block_type
+                          AND sta_serial <= a.serial
+                          AND end_serial >= a.serial
+                          AND (department_id = b.department_id
+                               AND status = '21'))
+) aa left join
+
+/* Mat hong */
+(
+SELECT   a.*
+  FROM   anchi a
+ WHERE       act_date >= '2011-11-01 00:00:00'
+         AND act_date < '2011-12-01 00:00:00'
+         AND block_type=1
+          AND (department_id LIKE '1.%')
+         AND (status IN ('2','3'))
+                  AND EXISTS
+                         (SELECT   1
+                            FROM   anchiblock b
+                           WHERE       act_date >= '2011-11-01 00:00:00'
+                                   AND act_date < '2011-12-01 00:00:00'
+                                   AND TYPE = a.block_type
+                                   AND sta_serial <= a.serial
+                                   AND end_serial >= a.serial
+                                   AND status in ('30','31'))
+
+/* Da cap */
+union
+SELECT   b.*
+  FROM       anchidacap a
+         inner JOIN
+             (SELECT   *
+                FROM   anchi
+               WHERE       act_date >= '2011-11-01 00:00:00'
+                       AND act_date < '2011-12-01 00:00:00'
+                       AND block_type=1
+                       AND (status IN ('4'))
+                       AND department_id LIKE '1.%') b
+         ON a.id = b.id
+) bb on aa.id=bb.id
+where bb.id is null;
+
+
+select aa.* from tmp1 aa left join
+/* Ton cuoi ky */
+(SELECT   a.*
+  FROM   anchi a
+ WHERE   creat_date < '2011-12-01 00:00:00' AND block_type = 1
+         AND (     status = 0
+                AND act_date < '2011-12-01 00:00:00'
+                AND department_id LIKE '1.%'
+              OR (act_date >= '2011-12-01 00:00:00'
+                  AND EXISTS
+                         (SELECT   1
+                            FROM   anchiblock b
+                           WHERE       act_date < '2011-12-01 00:00:00'
+                                   AND TYPE = a.block_type
+                                   AND sta_serial <= a.serial
+                                   AND end_serial >= a.serial
+                                   AND department_id LIKE '1.%'
+                                   AND status = '20'
+                                   AND NOT EXISTS
+                                          (SELECT   1
+                                             FROM   anchiblock
+                                            WHERE   act_date >= b.act_date
+                                                    AND act_date <
+                                                           '2011-12-01 00:00:00'
+                                                    AND TYPE = a.block_type
+                                                    AND sta_serial <=
+                                                           a.serial
+                                                    AND end_serial >=
+                                                           a.serial
+                                                    AND department_id =
+                                                           b.department_id
+                                                    AND status = '21'))))) bb
+on aa.id=bb.id where aa.id is null;
+
+-- 91805671,91805680 2011-11-28 22:50:10
+  SELECT   *
+    FROM   anchiblock b
+   WHERE   TYPE = 1 AND sta_serial <= 91805671 AND end_serial >= 91805671
+ORDER BY   act_date;
+
+
+select * from tmp1;
+

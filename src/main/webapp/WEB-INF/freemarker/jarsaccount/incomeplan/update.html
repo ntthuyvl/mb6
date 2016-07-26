@@ -1,0 +1,66 @@
+<#import "/spring.ftl" as spring />
+<html>
+	<head>
+		<title>The AK Application</title>
+		<META  http-equiv="Content-Type"  content="text/html;charset=UTF-8">
+		<link rel="stylesheet" href="../../../styles/petclinic3.css"
+			type="text/css">
+	</head>
+	<body>
+		<div id="main">
+			<h1>
+				Sửa Loại Hình Thu Nhập
+			</h1>
+			<hr />
+			<form action="" method="POST">
+				<@spring.bind "pojoMode"/>
+				<table>
+					<tr>
+						<th ALIGN=left>
+							Diễn giải
+						</th>
+						<td>
+							<@spring.formInput "pojoMode.incomePlan.label"/>
+							<@spring.showErrors "
+							</br>
+							"/>
+						</td>
+					</tr>
+					<tr>
+						<th ALIGN=left>
+							Số tiền
+						</th>
+						<td>
+							<@spring.formInput
+							"pojoMode.incomePlan.amount"/><@spring.showErrors"
+							<br>
+							"/>
+						</td>
+					</tr>
+					<tr>
+						<th ALIGN=left>
+							Định kỳ
+						</th>
+						<td>
+							<@spring.formSingleSelect "pojoMode.incomePlan.periodicType"
+							incomeTimeMap />
+						</td>
+					</tr>
+					<tr>
+						<th ALIGN=left>
+							Vào Tài Khoản
+						</th>
+						<td>
+							<@spring.formSingleSelect "pojoMode.incomePlan.jarsAccountType"
+							jarsAccountTypeMap/>
+						</td>
+					</tr>
+				</table>
+				<p>
+					<input type="submit" value="Xác nhận" />
+				</p>
+			</form>
+			<hr>
+		</div>
+	</body>
+</html>

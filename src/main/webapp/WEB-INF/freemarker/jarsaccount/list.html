@@ -1,0 +1,115 @@
+<#import "/spring.ftl" as spring />
+<HTML>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" href="../styles/petclinic3.css" type="text/css">
+	</head>
+	<table class="table_sub">
+		<caption class=caption_table_sub>
+			<h1>
+				Tài Khoản JARS
+			</h1>
+			<a href="update">Cấu hình lại</a>
+			<br />
+			<hr />
+		</caption>
+		<TR>
+			<th ALIGN=center rowspan="2">
+				Diễn Giải
+			</th>
+			<th ALIGN=center rowspan="2">
+				%
+			</th>
+			<th ALIGN=center colspan="3">
+				Kế Hoạch
+			</th>
+			<th ALIGN=center colspan="3">
+				Thực Tế
+			</th>
+		</TR>
+		<TR>
+			<th ALIGN=center>
+				Thu
+			</th>
+			<th ALIGN=center>
+				Chi
+			</th>
+			<th ALIGN=center>
+				Dư
+			</th>
+			<th ALIGN=center>
+				Thu
+			</th>
+			<th ALIGN=center>
+				Chi
+			</th>
+			<th ALIGN=center>
+				Dư
+			</th>
+		</TR>
+		<@spring.bind "pojoMode"/> <#assign percentValue = 0> <#assign
+		planIncome = 0> <#assign planSpend = 0> <#assign income = 0> <#assign
+		spend = 0> <#list pojoMode.jarsAccountList as jarsAccount>
+		<TR>
+			<#assign percentValue = percentValue+jarsAccount.percentValue>
+			<#assign planIncome = planIncome+jarsAccount.planIncome> <#assign
+			planSpend = planSpend+jarsAccount.planSpend> <#assign income =
+			income+jarsAccount.income> <#assign spend = spend+jarsAccount.spend>
+
+
+			<td ALIGN=left>
+				${jarsAccountMap[jarsAccount.accountType?string]}
+			</td>
+			<td ALIGN=right>
+				${jarsAccount.percentValue}
+			</td>
+			<td ALIGN=right>
+				${jarsAccount.planIncome}
+			</td>
+			<td ALIGN=right>
+				${jarsAccount.planSpend}
+			</td>
+			<td ALIGN=right>
+				${jarsAccount.planIncome-jarsAccount.planSpend}
+			</td>
+			<td ALIGN=right>
+				${jarsAccount.income}
+			</td>
+			<td ALIGN=right>
+				${jarsAccount.spend}
+			</td>
+			<td ALIGN=right>
+				${jarsAccount.income-jarsAccount.spend}
+			</td>
+		</TR>
+		</#list>
+		<TR>
+			<th ALIGN=center>
+				Tổng
+			</th>
+			<th ALIGN=right>
+				${percentValue}
+			</th>
+			<th ALIGN=right>
+				${planIncome}
+			</th>
+			<th ALIGN=right>
+				${planSpend}
+			</th>
+			<th ALIGN=right>
+				${planIncome-planSpend}
+			</th>
+			<th ALIGN=right>
+				${income}
+			</th>
+			<th ALIGN=right>
+				${spend}
+			</th>
+			<th ALIGN=right>
+				${income-spend}
+			</th>
+
+		</TR>
+
+	</table>
+</HTML>

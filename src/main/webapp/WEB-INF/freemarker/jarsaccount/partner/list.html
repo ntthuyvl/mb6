@@ -1,0 +1,53 @@
+<#import "/spring.ftl" as spring />
+<HTML>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" href="../../styles/petclinic3.css" type="text/css">
+	</head>
+	<table class="table_sub">
+		<caption class=caption_table_sub>
+			<h1>
+				Đối Tác
+			</h1>
+			<a href=add>@Thêm mới</a>
+			<br />
+			<hr />
+		</caption>
+		<TR>
+			<th ALIGN=left>
+				Diễn Giải
+			</th>
+			<th ALIGN=left>
+				Tên
+			</th>
+			<th ALIGN=left>
+				Địa chỉ
+			</th>
+
+			<th ALIGN=left>
+				Số điện thoại
+			</th>
+		</TR>
+		<@spring.bind "pojoModeList" />
+		<font size="1"> <#list pojoModeList as pojoMode> 
+		<TR>
+			<td ALIGN=left>
+				${pojoMode.partner.label}
+			</td>
+			<td ALIGN=left>
+				${pojoMode.partner.name}
+			</td>
+			<td ALIGN=left>
+				${pojoMode.partner.address}
+			</td>
+			<td ALIGN=left>
+				${pojoMode.partner.number}
+			</td>
+			<td ALIGN=center>
+				<a href=update/${pojoMode.partner.id}>Sửa</a>
+				<a href=delete/${pojoMode.partner.id}>Xóa</a>
+			</td>
+		</TR>
+		</#list>
+	</table>
+</HTML>

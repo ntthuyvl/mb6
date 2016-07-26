@@ -1,0 +1,146 @@
+<#include "../header.ftl">
+<SCRIPT>
+	var curtab = '#tab1';
+	var app=1;
+	function resetSEE() {
+		//$('buttonbar').hide();
+		//$('div#item_detail ul.SEE').show();		
+		$('input:submit').hide()
+		$('#pro_add').val("Thêm");
+		$('#pro_add').show();
+		$('#isdn_add').val("Thêm");
+		$('section textarea').attr('readonly', 'readonly');
+		//$("<textarea readonly></textarea>").replaceAll("textarea");
+	}
+
+	function bcth() {
+		$('input').attr('disabled', 'disabled');
+		$('section h').html("Tổng hợp thuê bao phát triển mới");
+		var header = "<tr><th>Tỉnh</th><th>Loại TB</th><th>Số Lượng</th></tr>";
+		var dataObj = {
+			"from_date" : $('input#from_date').val(),
+			"to_date" : $('input#to_date').val(),"app":app
+		}
+		$.post("/khdn/banhang/list", dataObj, function(data, status) {
+
+			$('table thead').html(header);
+			$('tbody').html("");
+			var error = "";
+			try {
+				error = data[0].error;
+			} catch (Exception) {
+				error = null;
+			}
+
+			if (error != null) {
+				alert(error);
+				self.location = "/login";
+			}
+			var row;
+
+			for (i = 0; i < data.length; i++) {
+				row = '<tr>' + '<td align="left">'
+						+ (data[i].province == null ? 'ALL' : data[i].province)
+						+ '<td align="left">'
+						+ (data[i].sub_type == null ? 'ALL' : data[i].sub_type)
+						+ '<td align="right" class="canclick thc1" province="'
+						+ (data[i].province == null ? 'ALL' : data[i].province)
+						+ '" sub_type="'
+						+ (data[i].sub_type == null ? 'ALL' : data[i].sub_type)
+						+ '">' + data[i].tot_sub + '</td></tr>';
+				$(row).appendTo('table tbody');
+			}
+
+			$('input').prop('disabled', false);
+		});
+	}
+	$(function() {
+		$('#keywords').tablesorter();
+	});
+	$(document).ready(
+			function() {
+				bcth();
+				$(document).on('click', 'input#table2excel', function() {
+					$("table#datarp").table2excel({
+						// exclude CSS class			
+						exclude : ".noExl",
+						name : "Excel Document Name"
+					});
+				});
+
+				$("#content").find("[id^='tab']").hide(); // Hide all content
+				$("#tabs li:first").attr("id", "current"); // Activate the first tab
+				$("#content #tab1").fadeIn(); // Show first tab's content						
+				$('#tabs a').click(function(e) {
+					e.preventDefault();
+					if ($(this).closest("li").attr("id") == "current") { //detection for current tab
+						return;
+					} else {
+						$("#content").find("[id^='tab']").hide(); // Hide all content
+						$("#tabs li").attr("id", ""); //Reset id's
+						$(this).parent().attr("id", "current"); // Activate this
+						$('#' + $(this).attr('name')).fadeIn(); // Show content for the current tab
+					}
+				});
+				//$('input#from_date').val("${from_date?string["yyyy-MM-dd"]}");
+				//$('input#to_date').val("${to_date?string["yyyy-MM-dd"]}");
+				//$('input#from_date').val("2015-07-01");
+				$('input#xembc').click(function() {
+					bcth();
+				});
+
+				$(document).on(
+						'click',
+						'td.thc1',
+						function() {
+							var dataObj = {
+								"from_date" : $('input#from_date').val(),
+								"to_date" : $('input#to_date').val(),
+								"province" : $(this).attr('province'),
+								"sub_type" : $(this).attr('sub_type'),"app":app
+							}
+							//alert(JSON.stringify(dataObj));	
+							$('input').attr('disabled', 'disabled');
+							//	$('#pro_add').prop('disabled',false);
+
+							var x = window.open("listdetail?json="
+									+ JSON.stringify(dataObj), "MyWindow");
+							x.focus();
+
+							// 				table_amar = curtab;
+							//                 $.post("/khdn/banhang/listdetail",
+							//                     dataObj,
+							//                     function(data,
+							//                         status) {
+							//                 		call_back_ajax2(data, status, table_amar);                        
+							//                         $('section h').html("Chi tiết thuê bao phát triển mới");                        
+							//                         $('input').prop('disabled', false);
+							//                     });
+						});
+			})
+</SCRIPT>
+
+<section2 class="session" style="width: 98%"> <header>
+	Tổng hợp thuê bao phát triển mới </header>
+
+<ul id="tabs">
+	<li><a href="#" name="tab1">Trả trước</a></li>
+	<in id="from_date"> <label id="from_date">Từ ngày</label> <input
+		type="date" id="from_date" value="${from_date?string["yyyy-MM-dd"]}">
+	</in>
+	<in id="to_date"> <label id="to_date">Đến ngày</label> <input
+		type="date" id="to_date" value="${to_date?string["yyyy-MM-dd"]}">
+	</in>
+	<input type="submit" id="xembc" value="Báo cáo tổng hợp" />
+	<input type="submit" id="table2excel" value="Export to excel" />
+</ul>
+<hr />
+<div id="content">
+	<div id="tab1">
+		<table id="datarp" class="CSSTableGenerator">
+			<tbody></tbody>
+		</table>
+	</div>
+</div>
+</section2>
+<#include "/footer.ftl">

@@ -1,0 +1,66 @@
+<#include "../header.ftl">
+<SCRIPT>
+	var curtab = '#tab1';
+	var type = 1;
+	var table_amar = 'div#list';
+	var isdn_list = '';
+	var id_changeds = [];
+	var contents
+	var app = 3;
+
+	function getData() {
+		$('input').attr('disabled', 'disabled');
+
+		var dataObj = {
+			"isdn_list" : $('textarea#isdns').val(),
+			"app" : app
+		}
+		dataObj = {
+			"json" : JSON.stringify(dataObj)
+		};
+		$.post("donle", dataObj, function(data2, status) {
+			call_back_ajax(data2, status);
+			$('div#content table').fadeIn()
+			$('textarea#isdns').hide();
+			$('section2 header').html("CÁC THÔNG TIN TRONG KHO SỐ");
+			$('input#getdata').val("Tìm lô khác");
+		});
+		
+	}
+
+	function reload() {
+		location.reload();
+	}
+
+	$(document).ready(function() {
+		$('div#content table').hide();
+		$('input#getdata').click(function() {
+			if ($('input#getdata').val() == "Tra cứu")
+				getData();
+			else
+				reload();
+		});
+		tab_present();
+
+	})
+</SCRIPT>
+<section2 class="session" style="width: 98%"> <header>
+	CÁC THÔNG TIN TRONG KHO SỐ </header>
+<ul id="tabs">
+	<li><a href="#" name="tab1">Lô số cần tra cứu thông tin</a></li>
+	
+	<input type="submit" id="getdata" value="Tra cứu"
+		style="width: 110px; float: right" />
+
+</ul>
+
+<div id="content">
+	<div id="tab1">
+		<table id="datarp" class="CSSTableGenerator">
+			<tbody></tbody>
+		</table>
+		<textarea id="isdns"></textarea>
+	</div>
+</div>
+</section2>
+<#include "/footer.ftl">

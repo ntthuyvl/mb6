@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd">
+
+	<!-- You don't need declarative transactions. By declaring <tx:annotation-driven...> 
+		only, you just annotate your repositories with @Transaction -->
+	<aop:aspectj-autoproxy />
+	<context:component-scan base-package="com.springhibernate.integration.aspects" />
+	<tx:annotation-driven mode="aspectj" />
+
+
+	<!-- Put your often-changing configuration values outside spring configuration 
+		anywhere and let spring bring those changes in -->
+
+	<context:property-placeholder
+		location="classpath*:/META-INF/properties/*.properties" />
+	<bean id="dataSource" class="org.apache.tomcat.jdbc.pool.DataSource"
+		destroy-method="close">
+		<property name="driverClassName" value="${database.driverClassName}" />
+		<property name="url" value="${database.url}" />
+		<property name="username" value="${database.username}" />
+		<property name="password" value="${database.password}" />
+		<property name="defaultAutoCommit" value="false" />
+		<!-- property name="defaultTransactionIsolation" value="2" /> -->
+		<property name="maxActive" value="10" />
+		<property name="maxIdle" value="1" />
+		<property name="minIdle" value="1" />
+		<property name="initialSize" value="1" />
+
+
+
+		<!-- <property name="driverClassName" value="${ORACLEdatabase.driverClassName}" 
+			/> <property name="url" value="${ORACLEdatabase.url}" /> <property name="username" 
+			value="${ORACLEdatabase.username}" /> <property name="password" value="${ORACLEdatabase.password}" 
+			/> -->
+	</bean>
+	<!-- To spring, communication with a database must take place in a transactional 
+		context -->
+
+	<!-- If you change this bean's id to any string other than "transactionManager", 
+		you'll have to specify that id to <tx:annotation-driven...>'s transaction-manager 
+		attribute. This is an example of convention over configuration which makes 
+		your work easier -->
+
+
+	<!-- repository initialization <bean id="repository.actors" class="pojobase.hibernate.HibernateActorBase" 
+		/> <bean id="repository.accounts" class="pojobase.hibernate.HibernateAccountBase" 
+		/> -->
+	<bean id="accountBase" class="pojobase.oracle.AccountOracleBase" />
+	<bean id="msaleBase" class="pojobase.oracle.MsaleOracleBase" />
+
+	<!-- bean id="userService" class="springsecurity.HibernateUserBase" > </bean -->
+	<bean id="formattingConverters" class="formater.FormattingConverters" />
+
+</beans>

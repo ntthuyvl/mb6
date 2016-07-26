@@ -1,0 +1,332 @@
+<#include "../header.ftl">
+<SCRIPT>
+	var curtab = '#tab1';
+	var add = 0;
+	var tu_ngay = "";
+	var den_ngay = "";
+	var cpgt_id = "0";
+	var org_cpgt_id = "0";
+	var org_cpgt_txt = "";
+	var donvi = "0";
+	var level = "0";
+	function getDesList() {
+		var dataObj = {
+			"tu_ngay" : tu_ngay,
+			"den_ngay" : den_ngay,
+			"cpgt_id" : cpgt_id,
+			"app" : app
+		}
+		dataObj = {
+			"json" : JSON.stringify(dataObj)
+		};
+		$.getJSON("getCpgtDesList", dataObj, function(data, textStatus) {
+			$('select#des option').remove();
+			var row;
+			row = "<option value=\"" + "-2" + "\">"
+					+ "-- Đánh giá chi phí--" + "</option>"
+			$(row).appendTo("select#des");
+			if (cpgt_id != "-2" && cpgt_id != "0") {
+				row = "<option value=\"" + "-1" + "\">"
+						+ "-- Sửa mô tả chi phí--" + "</option>"
+				$(row).appendTo("select#des");
+			}
+			row = "<option value=\"" + "0" + "\">" + "-- Tìm mục chi phí--"
+					+ "</option>"
+			$(row).appendTo("select#des");
+
+			for (i = 1; i < data.length; i++) {
+				row = "<option value=\"" + data[i]['001'].replace('<td>', '')
+						+ "\">" + data[i]['002'] + "</option>";
+				$(row).appendTo("select#des");
+			}
+
+			$('input#des').hide();
+			$('select#des').val(cpgt_id);
+			org_cpgt_txt = $("select#des option:selected").text();
+			$('select#des').fadeIn();
+		});
+
+	}
+
+	function getData() {
+		//alert(": "+$("select#des").val() );		
+
+		if (tu_ngay != null && tu_ngay != "" && den_ngay != null
+				&& den_ngay != "") {
+
+			getDesList();
+			$('section2 header').html("Đang load dữ liệu. Vui lòng chờ....");
+			$(curtab + ' tbody').html("");
+			$('input , select').attr('disabled', 'disabled');
+			if (cpgt_id == "-2") {//Đánh giá chi phí
+				var dataObj = {
+					"tu_ngay" : tu_ngay,
+					"den_ngay" : den_ngay,
+					"donvi" : $('select#donvi').val(),
+					"level" : $('select#level').val(),
+					"app" : app
+				}
+				dataObj = {
+					"json" : JSON.stringify(dataObj)
+				};
+				$.post("danhGiaChiPhiGianTiep", dataObj,
+						function(data2, status) {
+							call_back_ajax(data2, status);
+							$('section2 header').html("CHI PHÍ GIÁN TIẾP");
+							$('input#update').attr('disabled', 'disabled');
+						});
+
+			} else if (cpgt_id != "0") {////Load chi phí để xem hoặc cập nhật 
+				var dataObj = {
+					"cpgt_id" : cpgt_id,
+					"donvi" : $('select#donvi').val(),
+					"level" : $('select#level').val(),
+					"app" : app
+				}
+				dataObj = {
+					"json" : JSON.stringify(dataObj)
+				};
+				$.post("getChiPhiGianTiep", dataObj,
+						function(data, textStatus) {
+							$('input#tu_ngay').val(
+									data[1]['001'].replace('<td>', ''));
+							$('input#den_ngay').val(
+									data[1]['002'].replace('<td>', ''));
+						});
+
+				$
+						.post(
+								"getChiPhiGianTiepArea",
+								dataObj,
+								function(data2, status) {
+									call_back_ajax(data2, status);
+									var total = 0;
+									$('div#tab1 tr').each(
+											function() {
+												total = total
+														+ Number($(this).find(
+																"td#amount")
+																.text()
+																.replace(/,/g,
+																		""));
+											});
+									var total_row = '<tr> <td colspan="4"> Tổng <td style="text-align: right" id="total">'
+											+ addCommas(Number(total))
+											+ '</td>';
+									$(total_row).appendTo(curtab + " tbody");
+									$('section2 header').html(
+											"CHI PHÍ GIÁN TIẾP");
+								});
+			} else {//Tìm mục chi phí
+				$('section2 header').html("CHI PHÍ GIÁN TIẾP");
+				$('input, select').prop('disabled', false);
+				$('input#update').attr('disabled', 'disabled');
+			}
+		}
+
+		//window.location.replace("/khdt/danhgiachiphi/update_cpgt?json="	+ JSON.stringify(dataObj));
+
+	}
+
+	function updateData() {
+		$('input').attr('disabled', 'disabled');
+		var cpgt_area = [];
+		var area_code, amount;
+		var o;
+
+		$('div#tab1 tr').each(function() {
+			area_code = $(this).find("td#area_number").text();
+			amount = $(this).find("td#amount").text();
+			if (area_code != "") {
+				o = {
+					"area_code" : area_code,
+					"amount" : amount.replace(/,/g,"")
+				};
+				cpgt_area.push(o);
+			}
+		});
+		var dataObj = {
+			"cpgt_id" : cpgt_id,
+			"des" : $('input#des').val(),
+			"tu_ngay" : tu_ngay,
+			"den_ngay" : den_ngay,
+			"cpgt_area" : cpgt_area,
+			"app" : app
+		}
+
+		dataObj = {
+			"json" : JSON.stringify(dataObj)
+		};
+
+		$.post("updateChiPhiGianTiep", dataObj, function(data, status) {
+			var error = "";
+			try {
+				error = data[0].error;
+			} catch (Exception) {
+				error = null;
+			}
+
+			if (error != null) {
+				alert(error);
+				self.location = "/j_spring_security_logout";
+			} else {
+				cpgt_id = data[1]["001"].substring(4);
+				//alert("cpgt_id: "+cpgt_id.substring(4));
+				getData();
+			}
+
+		});
+
+	}
+
+	$(document).ready(
+			function() {
+				$(document).on('click', 'input#table2excel', function() {
+					$("table#datarp").table2excel({
+						// exclude CSS class			
+						exclude : ".noExl",
+						name : "Excel Document Name"
+					});
+				});
+
+				var dataObj = {
+					"app" : app
+				};
+
+				dataObj = {
+					"json" : JSON.stringify(dataObj)
+				};
+				$.getJSON("/khdt/khsxkd/donvi", dataObj, function(data,
+						textStatus) {
+					$('select#donvi option').remove();
+					var row;
+					/*
+					 row = "<option value=\"" + "0" + "\">" + "Chọn đơn vị"							+ "</option>"
+					 $(row).appendTo("select#donvi");
+					 */
+					for (i = 1; i < data.length; i++) {
+						row = "<option value=\""
+								+ data[i]['001'].replace('<td>', '') + "\">"
+								+ data[i]['002'] + "</option>";
+						$(row).appendTo("select#donvi");
+					}
+				});
+				$('input#update, input#find').attr('disabled', 'disabled');
+				$('input#des').hide();
+
+				$('input#update').click(function() {
+					updateData();
+				});
+				$('input#find').click(function() {
+					getData();
+				});
+				$('input#add').click(function() {
+					add = 1;
+					$('input#find, input#add').attr('disabled', 'disabled');
+					$('select#des').hide();
+					$('input#des').fadeIn();
+					$('input#update').prop('disabled', false);
+					$('select').attr('disabled', 'disabled');
+					$(curtab + ' tbody').html("");
+				});
+				$('select#des').change(function() {
+					org_cpgt_id = cpgt_id;
+					cpgt_id = $("select#des").val();
+					//alert("cpgt_id: "+cpgt_id.substring(4));
+					if (cpgt_id == "-1") {
+						$('select#des').hide();
+						$('input#des').val(org_cpgt_txt);
+						$('input#des').fadeIn();
+						$('input#update').prop('disabled', false);
+						cpgt_id = org_cpgt_id;
+					} else {
+						getData();
+					}
+				});
+				$('input#tu_ngay').change(function() {
+					tu_ngay = $('input#tu_ngay').val();
+					den_ngay = $('input#den_ngay').val();
+					if (den_ngay != "")
+						$('input#find').prop('disabled', false);
+				});
+				$('input#den_ngay').change(function() {
+					den_ngay = $('input#den_ngay').val();
+					tu_ngay = $('input#tu_ngay').val();
+					if (tu_ngay != "")
+						$('input#find').prop('disabled', false);
+				});
+
+				$(document).on(
+						'blur',
+						'td.cnumber',
+						function() {
+							var cur_contents = $(this).html();
+							var content = $(this).text().replace(/,/g, "");
+							//alert(content);
+							if (content.length > 0) {
+								$(this).text(addCommas(Number(content)));
+							}
+							var total = 0;
+							$('div#tab1 tr').each(
+									function() {
+										total = total
+												+ Number($(this).find(
+														"td#amount").text()
+														.replace(/,/g, ""));
+									});
+							//var total_row='<tr> <td colspan="4"> Tổng <td style="text-align: right" id="totol">'+addCommas(Number(total))+'</td>';					
+							$('td#total').text(addCommas(Number(total)));
+
+						});
+
+				/*
+				$(document).on('click', 'td.thc2', function() {
+					$(this).css("padding", "0px 0px 0px 0px");
+					//$(this).html("<input style =\"height:100%; margin: 0px 0px 0px 0px\" type=\"text\" class=\"ez_deal\" value=\""+$(this).html()+"\">");
+					$(this).attr('contenteditable', 'true');
+					contents = $(this).html();
+					$('input#update').fadeIn();
+
+				});
+				 */
+				//				tab_present();
+			})
+</SCRIPT>
+<section2 class="session" style="width: 98%"> <header>
+	CHI PHÍ GIÁN TIẾP</header>
+<ul id="tabs">
+	<in id="tu_ngay"> <label id="tu_ngay" style="">Từ ngày</label> <input
+		type="date" id="tu_ngay"> </in>
+	<in id="den_ngay"> <label id="den_ngay" style="">đến ngày</label>
+	<input type="date" id="den_ngay"> </in>
+	<in id="donvi"> <select id="donvi" value="" style="height: 25px">
+		<option value="">-- Chọn đơn vị--</option>
+	</select> </in>
+	<in id="level"> <select id="level" value="" style="height: 25px">
+		<option value="0">-- Cấp đơn vị--</option>
+		<option value="1">-- Cấp tỉnh--</option>
+		<option value="2">-- Cấp huyện-</option>
+	</select> </in>
+	<in id="des"> <label id="des" style="">Mo ta</label> <input
+		type="text" id="des" style="height: 21px; width: 275px"> <select
+		id="des" value="" style="height: 25px; width: 280px">
+		<option value="0">-- Tìm mục chi phí --</option>
+		<option value="-2">-- Đánh giá chi phí --</option>
+	</select> </in>
+	<input type="submit" id="find" value="Tìm" style="width: 60px;" />
+	<input type="submit" id="add" value="Thêm" style="width: 60px;" />
+	<input type="submit" id="update" value="Cập nhật"
+		style="width: 65px;" />
+	<input type="submit" id="table2excel" value="Excel"
+		style="width: 60px;" />
+</ul>
+
+<div id="content">
+	<div id="tab1">
+		<table id="datarp" class="CSSTableGenerator">
+			<tbody></tbody>
+		</table>
+	</div>
+</div>
+</section2>
+<#include "/footer.ftl">

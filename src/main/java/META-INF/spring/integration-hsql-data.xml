@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+http://www.springframework.org/schema/jdbc  http://www.springframework.org/schema/jdbc/spring-jdbc-3.0.xsd">
+
+
+
+	<!--
+		You don't need declarative transactions. By declaring
+		<tx:annotation-driven...> only, you just annotate your repositories
+		with @Transaction
+	-->
+	<aop:aspectj-autoproxy />
+	<context:component-scan base-package="com.springhibernate.integration.aspects" />
+	<tx:annotation-driven mode="aspectj" />
+
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="configLocation">
+			<value>classpath:mappings/class.hbm.xml
+			</value>
+		</property>
+		<property name="configurationClass">
+			<value>org.hibernate.cfg.AnnotationConfiguration
+			</value>
+		</property>
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">
+					org.hibernate.dialect.HSQLDialect
+				</prop>
+				<prop key="hibernate.show_sql">true</prop>
+				<prop key="hibernate.format_sql">true</prop>
+
+				<!-- JDBC connection pool (use the built-in) -->
+				<prop key="hibernate.connection.pool_size">3</prop>
+
+				<!-- Enable Hibernate's automatic session context management -->
+				<prop key="hibernate.current_session_context_class">
+					thread
+				</prop>
+
+				<!-- Disable the second-level cache  -->
+				<prop key="hibernate.cache.provider_class">
+					org.hibernate.cache.NoCacheProvider
+				</prop>
+				<prop key="hibernate.hbm2ddl.auto">
+					update
+				</prop>
+			</props>
+		</property>
+		<!-- Drop and re-create the database schema on startup -->
+		<!-- property name="hibernate.hbm2ddl.auto" value="create" /-->
+		<!--
+			property name="mappingResources"> <list>
+			<value>mappings/class.hbm.xml</value> </list> </property
+		-->
+	</bean>
+
+
+
+
+
+
+	<!--
+		Put your often-changing configuration values outside spring
+
+		configuration anywhere and let spring bring those changes in
+	-->
+
+	<!--
+		context:property-placeholder
+		location="classpath*:/META-INF/properties/*.properties" /> <bean
+		id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+		<property name="driverClassName" value="${database.driverClassName}"
+		/> <property name="url" value="${database.url}" /> <property
+		name="username" value="${database.username}" /> <property
+		name="password" value="${database.password}" /> </bean
+	-->
+	<jdbc:embedded-database id="dataSource" type="HSQL">
+	</jdbc:embedded-database>
+	<!--
+		To spring, communication with a database must take place in a
+		transactional context
+	-->
+
+	<!--
+		If you change this bean's id to any string other than
+		"transactionManager", you'll have to specify that id to
+		<tx:annotation-driven...>'s transaction-manager attribute. This is an
+		example of convention over configuration which makes your work easier
+	-->
+
+	<bean id="transactionManager"
+		class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+
+		<property name="sessionFactory" ref="sessionFactory" />
+
+	</bean>
+	<!--repository initialization-->
+
+	<bean id="userBase" class="pojobase.hibernate.UserHibernateBase" />
+	<bean id="actorBase" class="pojobase.hibernate.ActorHibernateBase" />
+	<bean id="accountBase" class="pojobase.hibernate.AccountHibernateBase" />
+	<bean id="jarsAccountBase" class="pojobase.hibernate.JarsAccountHibernateBase" />
+	<bean id="incomePlanBase" class="pojobase.hibernate.IncomePlanHibernateBase" />
+	<bean id="incomeBase" class="pojobase.hibernate.IncomeHibernateBase" />
+	<bean id="spendPlanBase." class="pojobase.hibernate.SpendPlanHibernateBase" />
+	<bean id="spendBase" class="pojobase.hibernate.SpendHibernateBase" />
+	<bean id="partnerBase" class="pojobase.hibernate.PartnerHibernateBase" />
+	<bean id="pjicoEmployeeBase" class="pojobase.hibernate.PjicoEmployeeHibernateBase" />
+	<bean id="pjicoCarBase" class="pojobase.hibernate.PjicoCarHibernateBase" />
+	<bean id="pjicoCarOwnerBase" class="pojobase.hibernate.PjicoCarOwnerHibernateBase" />
+	<bean id="pjicoCarDriverBase" class="pojobase.hibernate.PjicoCarDriverHibernateBase" />
+	<bean id="pjicoInsuranceFileBase" class="pojobase.hibernate.PjicoInsuranceFileHibernateBase" />
+	<bean id="pjicoContractBase" class="pojobase.hibernate.PjicoContractHibernateBase" />
+</beans>

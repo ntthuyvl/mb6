@@ -1,0 +1,49 @@
+<#import "/spring.ftl" as spring />
+<html>
+	<head>
+		<META  http-equiv="Content-Type"  content="text/html;charset=UTF-8">
+		<link rel="stylesheet" href="../styles/petclinic3.css" type="text/css">
+	</head>
+	<body>
+		<div id="main">
+			<h1>
+				Cấu hình lại tài khoản JARS
+			</h1>
+			<hr />
+			<form action="" method="POST">
+				<table>
+					<tr>
+						<th ALIGN=left>
+							Diễn Giải
+						</th>
+						<th ALIGN=left>
+							%
+						</th>
+					</TR>
+					<#list pojoMode.jarsAccountList as jarsAccount>
+					<TR>
+						<td ALIGN=left>
+							${jarsAccountMap[jarsAccount.accountType?string]}
+							<@spring.formHiddenInput
+							"pojoMode.jarsAccountList[${jarsAccount_index}].accountType"/>
+							<@spring.formHiddenInput
+							"pojoMode.jarsAccountList[${jarsAccount_index}].id"/>
+						</td>
+						<td ALIGN=left>
+							<@spring.formInput
+							"pojoMode.jarsAccountList[${jarsAccount_index}].percentValue",
+							"size=5, ALIGN=right"/><@spring.showErrors"
+							<br>
+							"/>
+						</td>
+					</TR>
+					</#list>
+				</table>
+				<p>
+					<input type="submit" value="Xác nhận" />
+				</p>
+			</form>
+			<hr>
+		</div>
+	</body>
+</html>

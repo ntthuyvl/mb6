@@ -1,0 +1,276 @@
+<#include "../header.ftl">
+<SCRIPT>
+	var curtab = '#tab1';
+	var dataLoad = {
+		"#tab1" : 0
+	};
+	var app = 3;
+	var sub_id = "";
+	var input_date = "";
+	var act_date = "";
+	var act_des_element;
+	var user_name = "";
+	// Get the <span> element that closes the modal
+	var span = document.getElementsByClassName("close")[0];
+
+	function load_tab_data() {
+		if (dataLoad[curtab] == 0) {//Tab chua load du lieu
+			bcct();
+			dataLoad[curtab] = 1;
+
+		}
+	};
+
+	function resetSEE() {
+	}
+
+	function load_donvi_list() {
+		var dataObj = {
+			"app" : app
+		};
+
+		dataObj = {
+			"json" : JSON.stringify(dataObj)
+		};
+		$.getJSON("/khdt/khsxkd/donvi", dataObj, function(data, textStatus) {
+			$('select#donvi option').remove();
+			var row;
+			/*
+			 row = "<option value=\"" + "0" + "\">" + "Chọn đơn vị"							+ "</option>"
+			 $(row).appendTo("select#donvi");
+			 */
+			for (i = 1; i < data.length; i++) {
+				row = "<option value=\"" + data[i]['001'].replace('<td>', '')
+						+ "\">" + data[i]['002'] + "</option>";
+				$(row).appendTo("select#donvi");
+			}
+			getData();
+		});
+		load_act_list();
+	}
+
+	function load_act_list() {
+		var dataObj = {
+			"app" : app
+		};
+
+		dataObj = {
+			"json" : JSON.stringify(dataObj)
+		};
+		$.getJSON("/care/lncc_roimang/actlist", dataObj, function(data,
+				textStatus) {
+			$('select#act option').remove();
+			var row;
+			/*
+			 row = "<option value=\"" + "0" + "\">" + "Chọn đơn vị"							+ "</option>"
+			 $(row).appendTo("select#donvi");
+			 */
+			for (i = 1; i < data.length; i++) {
+				row = "<option value=\"" + data[i]['001'].replace('<td>', '')
+						+ "\">" + data[i]['002'] + "</option>";
+				$(row).appendTo("select#act");
+			}
+		});
+
+	}
+
+	function tracuu() {
+		$('input').attr('disabled', 'disabled');
+		$('section h').html("THUÊ BAO LÂU NĂM CƯỚC CAO CÓ NGUY CƠ RỜI MẠNG");
+		var dataObj = {
+			"isdn" : $('input#isdn').val(),
+			"app" : app
+		}
+
+		dataObj = {
+			"json" : JSON.stringify(dataObj)
+		};
+
+		$.post("list", dataObj, function(data2, status) {
+			call_back_ajax(data2, status);
+		});
+	}
+
+	function getData() {
+		$('input').attr('disabled', 'disabled');
+		$('section h').html("THUÊ BAO LÂU NĂM CƯỚC CAO CÓ NGUY CƠ RỜI MẠNG");
+		var dataObj = {
+			"donvi" : $('select#donvi').val(),
+			"app" : app
+		}
+
+		dataObj = {
+			"json" : JSON.stringify(dataObj)
+		};
+
+		$.post("list", dataObj, function(data2, status) {
+			call_back_ajax(data2, status);
+		});
+	}
+
+	function getCareHistory() {
+		var dataObj = {
+			"sub_id" : sub_id,
+			"input_date" : input_date,
+			"app" : app
+		}
+
+		dataObj = {
+			"json" : JSON.stringify(dataObj)
+		};
+
+		$.post("sub_care_history", dataObj, function(data2, status) {
+			call_back_ajax2(data2, status, '#act_rp');
+		});
+	}
+
+	function addCareHistory() {
+		var dataObj = {
+			"act" : $('select#act').val(),
+			"status" : $('select#status_act_care').val(),
+			"comment" : $('input#comment').val(),
+			"sub_id" : sub_id,
+			"input_date" : input_date,
+			"app" : app
+		}
+
+		dataObj = {
+			"json" : JSON.stringify(dataObj)
+		};
+
+		$.post("add_care_history", dataObj, function(data, status) {
+			act_date = data[1]['001'].replace('<td>', '');
+			user_name = data[1]['002'].replace('<td>', '');
+			var act_des = act_date + "-" + user_name + "-"
+					+ $('select#act option:selected').text() + "-"
+					+ $('select#status_act_care option:selected').text()
+					+ "    " + $('input#comment').val()
+			act_des_element.text(act_des);
+		});
+
+	}
+
+	$(document).ready(
+			function() {
+				tab_present();
+				load_donvi_list();
+				$('input#find').click(function() {
+					tracuu();
+				});
+
+				$('input#get_data').click(function() {
+					getData();
+				});
+
+				$(document).on('click', 'input#table2excel', function() {
+					$(curtab + ' table#datarp').table2excel({
+						// exclude CSS class			
+						exclude : ".noExl",
+						name : "TraThuong"
+					});
+				});
+
+				$(document).on(
+						'click',
+						'td.canclick',
+						function() {
+							act_des_element = $(this);
+							sub_id = $(this).closest("tr") // Finds the closest row <tr> 
+							.find("td#sub_id") // Gets a descendent with id="id"
+							.text();
+							input_date = $(this).closest("tr") // Finds the closest row <tr> 
+							.find("td#input_date") // Gets a descendent with id="id"
+							.html();
+							getCareHistory();
+							$('h2#his_head').html(
+									"LỊCH SỬ HOẠT ĐỘNG CHĂM SÓC KHÁCH HÀNG "
+											+ $(this).closest("tr") // Finds the closest row <tr> 
+											.find("td#isdn") // Gets a descendent with id="id"
+											.text() + " SUB_ID " + sub_id);
+							$('#myModal').show();
+						});
+				$(document).on('click', 'span.close', function() {
+					$('#myModal').hide();
+				});
+
+				$('input#bcth').click(function() {
+					//var x = window.open("ketqua");	x.focus();
+					window.location.href = "ketqua"
+
+				});
+
+				$('input#ok').click(function() {
+					addCareHistory();
+					$('#myModal').hide();
+				});
+			})
+</SCRIPT>
+
+<section2 class="session" style="width: 98%"> <header>THUÊ
+	BAO LÂU NĂM CƯỚC CAO CÓ NGUY CƠ RỜI MẠNG</header>
+<ul id="tabs">
+
+	<in id="donvi"> <select id="donvi" value="" style="height: 25px">
+		<option value="666666">-- Chọn đơn vị--</option>
+	</select> </in>
+	<input type="submit" id="get_data" value="Lấy số liệu"
+		style="width: 120px;" />
+
+	<input type="submit" id="table2excel" value="Excel"
+		style="width: 120px;" />
+
+	<in id="isdn" style="float: right"> <label id="isdn" style="">ISDN
+	</label> <input type="text" id="isdn" style="width: 100px; height: 20px">
+	<input type="submit" id="find" value="Tra cứu" style="width: 120px;" />
+	<input type="submit" id="bcth" value="Báo cáo tổng hợp"
+		style="width: 120px;" /> </in>
+
+
+</ul>
+
+<div id="content">
+	<div id="tab1">
+		<table id="datarp" class="CSSTableGenerator">
+			<tbody></tbody>
+		</table>
+	</div>
+</div>
+</section2>
+<!-- The Modal -->
+<div id="myModal" class="modal">
+
+	<!-- Modal content -->
+	<div class="modal-content">
+		<div class="modal-header">
+			<span class="close">×</span>
+			<h2 id="his_head">LỊCH SỬ HOẠT ĐỘNG CSTB</h2>
+		</div>
+		<div class="modal-body">
+
+			<in id="act"> <label id="act" style="">Hành động </label> <select
+				id="act" value="0" style="height: 25px">
+				<option value="0">-- Thêm ghi chú--</option>
+			</select> </in>
+			<in id="status_act_care"> <label id="status_act_care" style="">Trạng
+				thái </label> <select id="status_act_care" value="1" style="height: 25px">
+				<option value="1">-- Đã xong--</option>
+				<option value="0">-- Đang thực hiện--</option>
+			</select> </in>
+			<in id="comment"> <label id="comment" style="">Ghi chú </label>
+			<input type="text" id="comment" style="width: 400px; height: 21px;">
+			</in>
+
+			<input type="submit" id="ok" value="Thêm" style="width: 120px;" />
+
+			<table id="act_rp" class="CSSTableGenerator"
+				style="margin: 30px 0px 20px 0;">
+				<tbody></tbody>
+			</table>
+		</div>
+		<div class="modal-footer">
+			<h3></h3>
+		</div>
+	</div>
+</div>
+
+<#include "/footer.ftl">

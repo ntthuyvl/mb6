@@ -1,0 +1,1123 @@
+
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<link type="text/css" rel="stylesheet"
+	href="http://dktt.mobifone.vn/javax.faces.resource/theme.css.xhtml?ln=primefaces-kat" />
+<link type="text/css" rel="stylesheet"
+	href="http://dktt.mobifone.vn/javax.faces.resource/./css/default.css.xhtml" />
+<link type="text/css" rel="stylesheet"
+	href="http://dktt.mobifone.vn/javax.faces.resource/./css/cssLayout.css.xhtml" />
+<script type="text/javascript"
+	src="http://dktt.mobifone.vn/javax.faces.resource/jquery/jquery.js.xhtml?ln=primefaces&amp;v=3.5.22-UR2"></script>
+<script type="text/javascript"
+	src="http://dktt.mobifone.vn/javax.faces.resource/primefaces.js.xhtml?ln=primefaces&amp;v=3.5.22-UR2"></script>
+<link type="text/css" rel="stylesheet"
+	href="http://dktt.mobifone.vn/javax.faces.resource/primefaces.css.xhtml?ln=primefaces&amp;v=3.5.22-UR2" />
+<script type="text/javascript"
+	src="http://dktt.mobifone.vn/javax.faces.resource/jquery/jquery-plugins.js.xhtml?ln=primefaces&amp;v=3.5.22-UR2"></script>
+<link type="text/css" rel="stylesheet"
+	href="http://dktt.mobifone.vn/javax.faces.resource/watermark/watermark.css.xhtml?ln=primefaces&amp;v=3.5.22-UR2" />
+<script type="text/javascript"
+	src="http://dktt.mobifone.vn/javax.faces.resource/watermark/watermark.js.xhtml?ln=primefaces&amp;v=3.5.22-UR2"></script>
+<link type="text/css" rel="stylesheet"
+	href="http://dktt.mobifone.vn/javax.faces.resource/fileupload/fileupload.css.xhtml?ln=primefaces&amp;v=3.5.22-UR2" />
+<script type="text/javascript"
+	src="http://dktt.mobifone.vn/javax.faces.resource/fileupload/fileupload.js.xhtml?ln=primefaces&amp;v=3.5.22-UR2"></script>
+<link type="text/css" rel="stylesheet"
+	href="http://dktt.mobifone.vn/javax.faces.resource/./css/tbl-style-01.css.xhtml" />
+<link type="text/css" rel="stylesheet"
+	href="http://dktt.mobifone.vn/javax.faces.resource/./css/css_prepaidISDN.css.xhtml" />
+<link type="text/css" rel="stylesheet"
+	href="http://dktt.mobifone.vn/javax.faces.resource/./css/primefacesFix.css.xhtml" />
+<script type="text/javascript"
+	src="http://dktt.mobifone.vn/javax.faces.resource/./js/keyFilter.js.xhtml"></script>
+<script type="text/javascript"
+	src="http://dktt.mobifone.vn/javax.faces.resource/./js/convertMobileNumber.js.xhtml"></script>
+<script type="text/javascript"
+	src="http://dktt.mobifone.vn/javax.faces.resource/./js/previewFileUpload.js.xhtml"></script>
+<title>Trang đăng ký thông tin thuê bao trả trước MobiFone</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="stylesheet" type="text/css" href="/resources/css/icon.css" />
+</head>
+<body>
+	<div id="ajaxStatusPanel">
+		<div id="ajaxStatusPanel_start" style="display: none">
+			<div
+				style="width: 100%; height: 100%; position: fixed; background: #FFF; display: block; top: 0px; text-align: center; z-index: 999; opacity: 0.9; filter: alpha(Opacity = 90);">
+				<br />
+				<br />
+				<br />
+				<img src="http://dktt.mobifone.vn/../resources/images/loading-9.gif" /><br /> Hệ thống
+				đang xử lý ...
+			</div>
+		</div>
+		<div id="ajaxStatusPanel_complete" style="display: none"></div>
+	</div>
+	<script id="ajaxStatusPanel_s" type="text/javascript">
+		PrimeFaces.cw('AjaxStatus', 'widget_ajaxStatusPanel', {
+			id : 'ajaxStatusPanel'
+		});
+		widget_ajaxStatusPanel.bindFacet('ajaxStart', 'start');
+		widget_ajaxStatusPanel.bindFacet('ajaxComplete', 'complete');
+	</script>
+	<div id="config-check" class="config-check">
+		<!--{wrapper.CheckConfig()}-->
+	</div>
+	<div id="wrapper" class="wrapper"
+		style="max-width: 1000px; margin: auto;">
+		<form id="main-body" name="main-body" method="post"
+			action="http://dktt.mobifone.vn/client/prepaidISDN.xhtml" enctype="multipart/form-data">
+			<input type="hidden" name="main-body" value="main-body" />
+
+			<div id="pnlTop">
+				<?xml version='1.0' encoding='UTF-8' ?>
+				<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+				<html xmlns="http://www.w3.org/1999/xhtml">
+<body>
+
+	<img src="http://dktt.mobifone.vn/resources/images/mobifone-logo.png" style="float: left;" />
+	<div
+		style="padding-top: 50px; padding-left: 300px; font-size: 22px; text-shadow: -1px 2px 6px #000; text-align: center; color: #FFF;">
+		TRANG ĐĂNG KÝ THÔNG TIN THUÊ BAO TRẢ TRƯỚC<br /> DÀNH RIÊNG CHO ĐẠI
+		LÝ MOBIFONE
+	</div>
+</body>
+				</html>
+			</div>
+			<div id="pnlBody">
+				<div id="pnlLeftBody">
+					<?xml version='1.0' encoding='UTF-8' ?>
+					<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+					<html xmlns="http://www.w3.org/1999/xhtml">
+<body>
+	<button id="main-body:j_idt28" name="main-body:j_idt28"
+		class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only"
+		onclick="PrimeFaces.ab({source:'main-body:j_idt28'});return false;"
+		style="display: none;" type="submit">
+		<span class="ui-button-text ui-c"> </span>
+	</button>
+	<script id="main-body:j_idt28_s" type="text/javascript">
+		PrimeFaces.cw('CommandButton', 'widget_main_body_j_idt28', {
+			id : 'main-body:j_idt28'
+		});
+	</script>
+	<div id="main-body:j_idt29"
+		class="ui-panel ui-widget ui-widget-content ui-corner-all">
+		<div id="main-body:j_idt29_header"
+			class="ui-panel-titlebar ui-widget-header ui-helper-clearfix ui-corner-all">
+			<span class="ui-panel-title">Thông tin đại lý</span>
+		</div>
+		<div id="main-body:j_idt29_content"
+			class="ui-panel-content ui-widget-content">
+			Xin chào quý khách,<br />
+			<span style="font-weight: bold;">0932389375</span>
+			<hr />
+			<button id="main-body:btnLogout" name="main-body:btnLogout"
+				class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-left"
+				onclick="pnlConfirmLogout.show();;PrimeFaces.ab({source:'main-body:btnLogout',process:'main-body:btnLogout'});return false;"
+				style="color: red; font-weight: bold; text-decoration: none; width: 100%;"
+				title="Đăng xuất" type="submit">
+				<span class="ui-button-icon-left ui-icon ui-c btnExit"></span><span
+					class="ui-button-text ui-c">Thoát</span>
+			</button>
+			<script id="main-body:btnLogout_s" type="text/javascript">
+				PrimeFaces.cw('CommandButton', 'widget_main_body_btnLogout', {
+					id : 'main-body:btnLogout'
+				});
+			</script>
+			<br />
+			<button id="main-body:j_idt35" name="main-body:j_idt35"
+				class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-left"
+				onclick="window.location.assign('https://www.mobifone.com.vn/portal/vn/users/profiles/accountProfile.jsp');;PrimeFaces.ab({source:'main-body:j_idt35',process:'@none'});return false;"
+				style="text-decoration: none; width: 100%;"
+				title="Thay đổi mật khẩu đăng nhập" type="submit">
+				<span class="ui-button-icon-left ui-icon ui-c btnEdit"></span><span
+					class="ui-button-text ui-c">Đổi mật khẩu</span>
+			</button>
+			<script id="main-body:j_idt35_s" type="text/javascript">
+				PrimeFaces.cw('CommandButton', 'widget_main_body_j_idt35', {
+					id : 'main-body:j_idt35'
+				});
+			</script>
+		</div>
+	</div>
+	<script id="main-body:j_idt29_s" type="text/javascript">
+		PrimeFaces.cw('Panel', 'widget_main_body_j_idt29', {
+			id : 'main-body:j_idt29'
+		});
+	</script>
+	<div id="main-body:j_idt36"
+		class="ui-panel ui-widget ui-widget-content ui-corner-all">
+		<div id="main-body:j_idt36_header"
+			class="ui-panel-titlebar ui-widget-header ui-helper-clearfix ui-corner-all">
+			<span class="ui-panel-title">Đăng ký thông tin</span>
+		</div>
+		<div id="main-body:j_idt36_content"
+			class="ui-panel-content ui-widget-content">
+			<a class="li_A" href="/client/searchReged.xhtml">Danh sách các
+				thuê bao đã đăng ký</a> <a class="li_A"
+				href="/client/searchTransReg.xhtml">Tra cứu giao dịch đăng ký
+				bởi đại lý</a> <a class="li_A" href="/client/searchRegList.xhtml">Tra
+				cứu thông tin thuê bao đã đăng ký</a> <a class="li_A"
+				href="/client/prepaidISDN.xhtml">Ðăng ký thông tin thuê bao</a>
+		</div>
+	</div>
+	<script id="main-body:j_idt36_s" type="text/javascript">
+		PrimeFaces.cw('Panel', 'widget_main_body_j_idt36', {
+			id : 'main-body:j_idt36'
+		});
+	</script>
+	<div id="main-body:j_idt39"
+		class="ui-panel ui-widget ui-widget-content ui-corner-all">
+		<div id="main-body:j_idt39_header"
+			class="ui-panel-titlebar ui-widget-header ui-helper-clearfix ui-corner-all">
+			<span class="ui-panel-title">Hướng dẫn hỗ trợ</span>
+		</div>
+		<div id="main-body:j_idt39_content"
+			class="ui-panel-content ui-widget-content">
+			<a class="li_A" href="/client/helpResizeImg.xhtml">Hướng dẫn thu
+				nhỏ file ảnh</a> <a class="li_A" href="/client/helpPaper.xhtml">Quy
+				trình quản lí thuê bao di động trả trước</a>
+		</div>
+	</div>
+	<script id="main-body:j_idt39_s" type="text/javascript">
+		PrimeFaces.cw('Panel', 'widget_main_body_j_idt39', {
+			id : 'main-body:j_idt39'
+		});
+	</script>
+	<div id="main-body:j_idt42"
+		class="ui-panel ui-widget ui-widget-content ui-corner-all">
+		<div id="main-body:j_idt42_header"
+			class="ui-panel-titlebar ui-widget-header ui-helper-clearfix ui-corner-all">
+			<span class="ui-panel-title">Báo cáo</span>
+		</div>
+		<div id="main-body:j_idt42_content"
+			class="ui-panel-content ui-widget-content">
+			<a class="li_A" href="/client/reportViewer.xhtml">Danh sách báo
+				cáo</a>
+		</div>
+	</div>
+	<script id="main-body:j_idt42_s" type="text/javascript">
+		PrimeFaces.cw('Panel', 'widget_main_body_j_idt42', {
+			id : 'main-body:j_idt42'
+		});
+	</script>
+	<div id="main-body:pnlConfirmLogout"
+		class="ui-dialog ui-widget ui-widget-content ui-overlay-hidden ui-corner-all ui-shadow"
+		style="text-align: center; padding: 15px;">
+		<div
+			class="ui-dialog-titlebar ui-widget-header ui-helper-clearfix ui-corner-top">
+			<span id="main-body:pnlConfirmLogout_title" class="ui-dialog-title">Bạn
+				có chắc chắn muốn đăng xuất không?</span><a href="#"
+				class="ui-dialog-titlebar-icon ui-dialog-titlebar-close ui-corner-all"><span
+				class="ui-icon ui-icon-closethick"></span></a>
+		</div>
+		<div class="ui-dialog-content ui-widget-content">
+			<br />
+			<button id="main-body:j_idt46" name="main-body:j_idt46"
+				class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-left"
+				onclick="PrimeFaces.ab({source:'main-body:j_idt46',process:'main-body:j_idt46'});return false;"
+				style="width: 120px;" type="submit">
+				<span class="ui-button-icon-left ui-icon ui-c btnAccept"></span><span
+					class="ui-button-text ui-c">Xác nhận</span>
+			</button>
+			<script id="main-body:j_idt46_s" type="text/javascript">
+				PrimeFaces.cw('CommandButton', 'widget_main_body_j_idt46', {
+					id : 'main-body:j_idt46'
+				});
+			</script>
+			<button id="main-body:j_idt47" name="main-body:j_idt47"
+				class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-left"
+				onclick="pnlConfirmLogout.hide();;PrimeFaces.ab({source:'main-body:j_idt47',process:'@none'});return false;"
+				style="width: 120px;" type="submit">
+				<span class="ui-button-icon-left ui-icon ui-c btnBack"></span><span
+					class="ui-button-text ui-c">Quay lại</span>
+			</button>
+			<script id="main-body:j_idt47_s" type="text/javascript">
+				PrimeFaces.cw('CommandButton', 'widget_main_body_j_idt47', {
+					id : 'main-body:j_idt47'
+				});
+			</script>
+			<br />
+		</div>
+	</div>
+	<script id="main-body:pnlConfirmLogout_s" type="text/javascript">
+		$(function() {
+			PrimeFaces.cw('Dialog', 'pnlConfirmLogout', {
+				id : 'main-body:pnlConfirmLogout',
+				resizable : false,
+				modal : true
+			});
+		});
+	</script>
+</body>
+					</html>
+				</div>
+				<div id="pnlRightBody">
+
+
+					<!--<h:outputScript name="./js/checkIEVersion.js"/>-->
+					<!--<h:outputScript target="head" name="./js/PrimeFacesLocales.js"/>-->
+					<div id="main-body:pnl_Register"
+						class="ui-panel ui-widget ui-widget-content ui-corner-all"
+						style="border-bottom: none">
+						<div id="main-body:pnl_Register_header"
+							class="ui-panel-titlebar ui-widget-header ui-helper-clearfix ui-corner-all">
+							<span class="ui-panel-title">Đăng ký thuê bao trả trước</span>
+						</div>
+						<div id="main-body:pnl_Register_content"
+							class="ui-panel-content ui-widget-content">
+							<div id="main-body:opnl_Register"
+								class="ui-outputpanel ui-widget">
+								<font size="2">Nhập thông tin thuê bao trả trước cần đăng
+									ký</font>
+								<div class="tbl_ISDN">
+									<div class="tbl_ISDN_l">
+										Số CMND: <a style="color: red;">(*)</a>
+									</div>
+									<div class="tbl_ISDN_r1">
+										<input id="main-body:txtIdentityCard"
+											name="main-body:txtIdentityCard" type="text" maxlength="12"
+											title="Số CMND phải có độ dài từ 6 đến 12"
+											class="ui-inputfield ui-inputtext ui-widget ui-state-default ui-corner-all" />
+										<script id="main-body:txtIdentityCard_s"
+											type="text/javascript">
+											PrimeFaces
+													.cw(
+															'InputText',
+															'widget_main_body_txtIdentityCard',
+															{
+																id : 'main-body:txtIdentityCard'
+															});
+										</script>
+										<script id="main-body:j_idt59_s" type="text/javascript">
+											$(function() {
+												PrimeFaces
+														.cw(
+																'Watermark',
+																'widget_main_body_j_idt59',
+																{
+																	id : 'main-body:j_idt59',
+																	value : '(Nhấn nút kiểm tra để xem số lượng thuê bao đăng ký)',
+																	target : '#main-body\\:txtIdentityCard'
+																}, 'watermark');
+											});
+										</script>
+										<button id="main-body:j_idt60" name="main-body:j_idt60"
+											class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-left"
+											onclick="blockOnSubmit.show();;PrimeFaces.ab({source:'main-body:j_idt60',process:'main-body:opnl_Register main-body:j_idt60',oncomplete:function(xhr,status,args){blockOnSubmit.hide();;}});return false;"
+											type="submit">
+											<span class="ui-button-icon-left ui-icon ui-c btnSearch"></span><span
+												class="ui-button-text ui-c">Kiểm tra</span>
+										</button>
+										<script id="main-body:j_idt60_s" type="text/javascript">
+											PrimeFaces
+													.cw(
+															'CommandButton',
+															'widget_main_body_j_idt60',
+															{
+																id : 'main-body:j_idt60'
+															});
+										</script>
+									</div>
+								</div>
+								<div class="tbl_ISDN">
+									<div class="tbl_ISDN_l">
+										Thuê bao cần kích hoạt: <a style="color: red;">(*)</a>
+									</div>
+									<div class="tbl_ISDN_r3">
+										<input id="main-body:txtPrepaid" name="main-body:txtPrepaid"
+											type="text" maxlength="15"
+											title="Thuê bao cần kích hoạt phải có độ dài từ 9 đến 12
+Thuê bao cần kích hoạt không đúng đầu số 0120, 0121, 0122, 0126, 0128, 090, 093"
+											onblur="convertMNF('#main-body\\:txtPrepaid');"
+											class="ui-inputfield ui-inputtext ui-widget ui-state-default ui-corner-all" />
+										<script id="main-body:txtPrepaid_s" type="text/javascript">
+											PrimeFaces
+													.cw(
+															'InputText',
+															'widget_main_body_txtPrepaid',
+															{
+																id : 'main-body:txtPrepaid'
+															});
+										</script>
+										<script id="main-body:j_idt62_s" type="text/javascript">
+											$(function() {
+												PrimeFaces
+														.cw(
+																'Watermark',
+																'widget_main_body_j_idt62',
+																{
+																	id : 'main-body:j_idt62',
+																	value : '(Nhập dạng 090x, 093x, 012x)',
+																	target : '#main-body\\:txtPrepaid'
+																}, 'watermark');
+											});
+										</script>
+									</div>
+								</div>
+								<div class="tbl_ISDN">
+									<div class="tbl_ISDN_l">
+										Seri SIM: <a style="color: red;">(*)</a>
+									</div>
+									<div class="tbl_ISDN_r3">
+										<input id="main-body:txtSeriSIM" name="main-body:txtSeriSIM"
+											type="text" maxlength="16"
+											title="Seri SIM chỉ được nhập 16 số hoặc 4 số"
+											class="ui-inputfield ui-inputtext ui-widget ui-state-default ui-corner-all" />
+										<script id="main-body:txtSeriSIM_s" type="text/javascript">
+											PrimeFaces
+													.cw(
+															'InputText',
+															'widget_main_body_txtSeriSIM',
+															{
+																id : 'main-body:txtSeriSIM'
+															});
+										</script>
+										<script id="main-body:j_idt64_s" type="text/javascript">
+											$(function() {
+												PrimeFaces
+														.cw(
+																'Watermark',
+																'widget_main_body_j_idt64',
+																{
+																	id : 'main-body:j_idt64',
+																	value : '(Nhập đủ 16 chữ số hoặc chỉ cần nhập 4 số cuối)',
+																	target : '#main-body\\:txtSeriSIM'
+																}, 'watermark');
+											});
+										</script>
+									</div>
+								</div>
+								<div class="tbl_ISDN">
+									<div class="tbl_ISDN_l">
+										Họ và tên: <a style="color: red;">(*)</a>
+									</div>
+									<div class="tbl_ISDN_r3">
+										<input id="main-body:txtFullname" name="main-body:txtFullname"
+											type="text" maxlength="50"
+											title="Họ và tên phải có ít nhất 2 chữ và mỗi chữ phải có ít nhất 2 kí tự"
+											class="ui-inputfield ui-inputtext ui-widget ui-state-default ui-corner-all" />
+										<script id="main-body:txtFullname_s" type="text/javascript">
+											PrimeFaces
+													.cw(
+															'InputText',
+															'widget_main_body_txtFullname',
+															{
+																id : 'main-body:txtFullname'
+															});
+										</script>
+										<script id="main-body:j_idt66_s" type="text/javascript">
+											$(function() {
+												PrimeFaces
+														.cw(
+																'Watermark',
+																'widget_main_body_j_idt66',
+																{
+																	id : 'main-body:j_idt66',
+																	value : '(Tiếng việt có dấu)',
+																	target : '#main-body\\:txtFullname'
+																}, 'watermark');
+											});
+										</script>
+									</div>
+								</div>
+								<div class="tbl_ISDN">
+									<div class="tbl_ISDN_l">
+										Ngày sinh: <a style="color: red;">(*)</a>
+									</div>
+									<div class="tbl_ISDN_r2">
+										<span id="main-body:cldBirthday"><input
+											id="main-body:cldBirthday_input"
+											name="main-body:cldBirthday_input" type="text"
+											class="ui-inputfield ui-widget ui-state-default ui-corner-all"
+											maxlength="10"
+											title="Tuổi không được vượt quá 100
+Tuổi không được nhỏ hơn 14" /></span>
+										<script id="main-body:cldBirthday_s" type="text/javascript">
+											$(function() {
+												PrimeFaces
+														.cw(
+																'Calendar',
+																'widget_main_body_cldBirthday',
+																{
+																	id : 'main-body:cldBirthday',
+																	popup : true,
+																	locale : 'vi',
+																	dateFormat : 'dd/mm/yy',
+																	yearRange : 'c-100:c',
+																	changeMonth : true,
+																	changeYear : true,
+																	showOn : 'button'
+																});
+											});
+										</script>
+										<script id="main-body:j_idt68_s" type="text/javascript">
+											$(function() {
+												PrimeFaces
+														.cw(
+																'Watermark',
+																'widget_main_body_j_idt68',
+																{
+																	id : 'main-body:j_idt68',
+																	value : 'dd/MM/yyyy',
+																	target : '#main-body\\:cldBirthday'
+																}, 'watermark');
+											});
+										</script>
+									</div>
+								</div>
+								<div class="tbl_ISDN">
+									<div class="tbl_ISDN_l">
+										Nơi cấp: <a style="color: red;">(*)</a>
+									</div>
+									<div class="tbl_ISDN_r1">
+										<div id="main-body:slPlace"
+											class="ui-selectonemenu ui-widget ui-state-default ui-corner-all ui-helper-clearfix"
+											style="width: 250px">
+											<div class="ui-helper-hidden-accessible">
+												<select id="main-body:slPlace_input"
+													name="main-body:slPlace_input"><option value="0">(Chọn
+														nơi cấp)</option>
+													<option value="AGI">An Giang</option>
+													<option value="BDI">Bình Định</option>
+													<option value="BDU">Bình Dương</option>
+													<option value="BGI">Bắc Giang</option>
+													<option value="BKA">Bắc Cạn</option>
+													<option value="BLI">Bạc Liêu</option>
+													<option value="BNI">Bắc Ninh</option>
+													<option value="BPH">Bình Phước</option>
+													<option value="BRV">Bà Rịa Vũng Tàu</option>
+													<option value="BTH">Bình Thuận</option>
+													<option value="BTR">Bến Tre</option>
+													<option value="CBA">Cao Bằng</option>
+													<option value="CMA">Cà Mau</option>
+													<option value="CTH">Cần Thơ</option>
+													<option value="DBI">Điện Biên</option>
+													<option value="DLA">Đắc lắc</option>
+													<option value="DNA">Đà Nẵng</option>
+													<option value="DNI">Đồng Nai</option>
+													<option value="DNO">Đắc Nông</option>
+													<option value="DTH">Đồng Tháp</option>
+													<option value="GLA">Gia Lai</option>
+													<option value="HBI">Hòa Bình</option>
+													<option value="HCM">Hồ Chí Minh</option>
+													<option value="HDU">Hải Dương</option>
+													<option value="HGA">Hà Giang</option>
+													<option value="HGI">Hậu Giang</option>
+													<option value="HNA">Hà Nam</option>
+													<option value="HNO">Hà Nội</option>
+													<option value="HPH">Hải Phòng</option>
+													<option value="HTA">Hà Tây</option>
+													<option value="HTI">Hà Tĩnh</option>
+													<option value="HYE">Hưng Yên</option>
+													<option value="KGI">Kiên Giang</option>
+													<option value="KHO">Khánh Hòa</option>
+													<option value="KON">Kon Tum</option>
+													<option value="LAN">Long An</option>
+													<option value="LCA">Lào Cai</option>
+													<option value="LCH">Lai Châu</option>
+													<option value="LDO">Lâm Đồng</option>
+													<option value="LSO">Lạng Sơn</option>
+													<option value="NAN">Nghệ An</option>
+													<option value="NBI">Ninh Bình</option>
+													<option value="NDI">Nam Định</option>
+													<option value="NTH">Ninh Thuận</option>
+													<option value="PTH">Phú Thọ</option>
+													<option value="PYE">Phú Yên</option>
+													<option value="QBI">Quảng Bình</option>
+													<option value="QNA">Quảng Nam</option>
+													<option value="QNG">Quảng Ngãi</option>
+													<option value="QNI">Quảng Ninh</option>
+													<option value="QTR">Quảng Trị</option>
+													<option value="SLA">Sơn La</option>
+													<option value="STR">Sóc Trăng</option>
+													<option value="TBI">Thái Bình</option>
+													<option value="TGI">Tiền Giang</option>
+													<option value="THO">Thanh Hóa</option>
+													<option value="TNG">Thái Nguyên</option>
+													<option value="TNI">Tây Ninh</option>
+													<option value="TQU">Tuyên Quang</option>
+													<option value="TTH">Thừa Thiên Huế</option>
+													<option value="TVI">Trà Vinh</option>
+													<option value="VLO">Vĩnh Long</option>
+													<option value="VPH">Vĩnh Phúc</option>
+													<option value="YBA">Yên Bái</option>
+													<option value="XNC">Cục QLXNC</option></select>
+											</div>
+											<div class="ui-helper-hidden-accessible">
+												<input id="main-body:slPlace_focus"
+													name="main-body:slPlace_focus" type="text"
+													readonly="readonly" />
+											</div>
+											<label id="main-body:slPlace_label"
+												class="ui-selectonemenu-label ui-inputfield ui-corner-all">&nbsp;</label>
+											<div
+												class="ui-selectonemenu-trigger ui-state-default ui-corner-right">
+												<span class="ui-icon ui-icon-triangle-1-s ui-c"></span>
+											</div>
+											<div id="main-body:slPlace_panel"
+												class="ui-selectonemenu-panel ui-widget-content ui-corner-all ui-helper-hidden ui-shadow">
+												<div class="ui-selectonemenu-items-wrapper"
+													style="height: 200px">
+													<ul
+														class="ui-selectonemenu-items ui-selectonemenu-list ui-widget-content ui-widget ui-corner-all ui-helper-reset">
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="(Chọn nơi cấp)">(Chọn nơi cấp)</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="An Giang">An Giang</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Bình Định">Bình Định</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Bình Dương">Bình Dương</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Bắc Giang">Bắc Giang</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Bắc Cạn">Bắc Cạn</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Bạc Liêu">Bạc Liêu</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Bắc Ninh">Bắc Ninh</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Bình Phước">Bình Phước</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Bà Rịa Vũng Tàu">Bà Rịa Vũng Tàu</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Bình Thuận">Bình Thuận</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Bến Tre">Bến Tre</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Cao Bằng">Cao Bằng</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Cà Mau">Cà Mau</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Cần Thơ">Cần Thơ</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Điện Biên">Điện Biên</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Đắc lắc">Đắc lắc</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Đà Nẵng">Đà Nẵng</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Đồng Nai">Đồng Nai</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Đắc Nông">Đắc Nông</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Đồng Tháp">Đồng Tháp</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Gia Lai">Gia Lai</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Hòa Bình">Hòa Bình</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Hồ Chí Minh">Hồ Chí Minh</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Hải Dương">Hải Dương</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Hà Giang">Hà Giang</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Hậu Giang">Hậu Giang</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Hà Nam">Hà Nam</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Hà Nội">Hà Nội</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Hải Phòng">Hải Phòng</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Hà Tây">Hà Tây</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Hà Tĩnh">Hà Tĩnh</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Hưng Yên">Hưng Yên</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Kiên Giang">Kiên Giang</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Khánh Hòa">Khánh Hòa</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Kon Tum">Kon Tum</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Long An">Long An</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Lào Cai">Lào Cai</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Lai Châu">Lai Châu</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Lâm Đồng">Lâm Đồng</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Lạng Sơn">Lạng Sơn</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Nghệ An">Nghệ An</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Ninh Bình">Ninh Bình</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Nam Định">Nam Định</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Ninh Thuận">Ninh Thuận</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Phú Thọ">Phú Thọ</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Phú Yên">Phú Yên</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Quảng Bình">Quảng Bình</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Quảng Nam">Quảng Nam</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Quảng Ngãi">Quảng Ngãi</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Quảng Ninh">Quảng Ninh</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Quảng Trị">Quảng Trị</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Sơn La">Sơn La</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Sóc Trăng">Sóc Trăng</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Thái Bình">Thái Bình</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Tiền Giang">Tiền Giang</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Thanh Hóa">Thanh Hóa</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Thái Nguyên">Thái Nguyên</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Tây Ninh">Tây Ninh</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Tuyên Quang">Tuyên Quang</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Thừa Thiên Huế">Thừa Thiên Huế</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Trà Vinh">Trà Vinh</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Vĩnh Long">Vĩnh Long</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Vĩnh Phúc">Vĩnh Phúc</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Yên Bái">Yên Bái</li>
+														<li
+															class="ui-selectonemenu-item ui-selectonemenu-list-item ui-corner-all"
+															data-label="Cục QLXNC">Cục QLXNC</li>
+													</ul>
+												</div>
+											</div>
+										</div>
+										<script id="main-body:slPlace_s" type="text/javascript">
+											$(function() {
+												PrimeFaces
+														.cw(
+																'SelectOneMenu',
+																'widget_main_body_slPlace',
+																{
+																	id : 'main-body:slPlace'
+																});
+											});
+										</script>
+									</div>
+								</div>
+								<div class="tbl_ISDN">
+									<div class="tbl_ISDN_l">
+										Ngày cấp: <a style="color: red;">(*)</a>
+									</div>
+									<div class="tbl_ISDN_r2">
+										<span id="main-body:cldDate"><input
+											id="main-body:cldDate_input" name="main-body:cldDate_input"
+											type="text"
+											class="ui-inputfield ui-widget ui-state-default ui-corner-all"
+											maxlength="10"
+											title="Ngày cấp không được nhỏ hơn ngày sinh
+Ngày cấp không được lớn hơn ngày hiện tại" /></span>
+										<script id="main-body:cldDate_s" type="text/javascript">
+											$(function() {
+												PrimeFaces
+														.cw(
+																'Calendar',
+																'widget_main_body_cldDate',
+																{
+																	id : 'main-body:cldDate',
+																	popup : true,
+																	locale : 'vi',
+																	dateFormat : 'dd/mm/yy',
+																	yearRange : 'c-100:c',
+																	changeMonth : true,
+																	changeYear : true,
+																	showOn : 'button'
+																});
+											});
+										</script>
+										<script id="main-body:j_idt73_s" type="text/javascript">
+											$(function() {
+												PrimeFaces
+														.cw(
+																'Watermark',
+																'widget_main_body_j_idt73',
+																{
+																	id : 'main-body:j_idt73',
+																	value : 'dd/MM/yyyy',
+																	target : '#main-body\\:cldDate'
+																}, 'watermark');
+											});
+										</script>
+									</div>
+								</div>
+								<div class="tbl_ISDN">
+									<div class="tbl_ISDN_l">
+										File Scan CMT mặt trước: <a style="color: red;">(*)</a> <br />(Kích
+										thước tối đa 300.000 bytes) <br />(Kích thước tối thiểu 100
+										bytes)
+									</div>
+									<div class="tbl_ISDN_r3">
+										<div id="main-body:fileUploadFront"
+											class="ui-fileupload ui-widget"
+											style="width: 300px; float: left;">
+											<div
+												class="ui-fileupload-buttonbar ui-widget-header ui-corner-top">
+												<span
+													class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-left ui-fileupload-choose"><span
+													class="ui-button-icon-left ui-icon ui-c ui-icon-plusthick"></span><span
+													class="ui-button-text ui-c">Chọn ảnh</span><input
+													type="file" id="main-body:fileUploadFront_input"
+													name="main-body:fileUploadFront_input"
+													style="width: 300px; float: left;" /></span>
+											</div>
+											<div
+												class="ui-fileupload-content ui-widget-content ui-corner-bottom">
+												<table class="ui-fileupload-files">
+													<tbody></tbody>
+												</table>
+											</div>
+										</div>
+										<script id="main-body:fileUploadFront_s"
+											type="text/javascript">
+											$(function() {
+												PrimeFaces
+														.cw(
+																'FileUpload',
+																'widget_main_body_fileUploadFront',
+																{
+																	id : 'main-body:fileUploadFront',
+																	auto : true,
+																	update : '@none',
+																	process : '@none',
+																	maxFileSize : 300000.0,
+																	invalidFileMessage : 'File không đúng định dạng: /(\.|\/)(gif|jpe?g|png|bmp)$/',
+																	invalidSizeMessage : 'Kích cỡ CMT mặt trước tối đa 300.000 bytes',
+																	allowTypes : /(\.|\/)(gif|jpe?g|png|bmp)$/
+																}, 'fileupload');
+											});
+										</script>
+										<img id="previewFileUploadFront" width="145px" height="100px"
+											style="float: right; margin-right: 60px;" />
+									</div>
+								</div>
+								<div class="tbl_ISDN">
+									<div class="tbl_ISDN_l">
+										File Scan CMT mặt sau: <a style="color: red;">(*)</a> <br />(Kích
+										thước tối đa 300.000 bytes) <br />(Kích thước tối thiểu 100
+										bytes)
+									</div>
+									<div class="tbl_ISDN_r3">
+										<div id="main-body:fileUploadBack"
+											class="ui-fileupload ui-widget"
+											style="width: 300px; float: left;">
+											<div
+												class="ui-fileupload-buttonbar ui-widget-header ui-corner-top">
+												<span
+													class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-left ui-fileupload-choose"><span
+													class="ui-button-icon-left ui-icon ui-c ui-icon-plusthick"></span><span
+													class="ui-button-text ui-c">Chọn ảnh</span><input
+													type="file" id="main-body:fileUploadBack_input"
+													name="main-body:fileUploadBack_input"
+													style="width: 300px; float: left;" /></span>
+											</div>
+											<div
+												class="ui-fileupload-content ui-widget-content ui-corner-bottom">
+												<table class="ui-fileupload-files">
+													<tbody></tbody>
+												</table>
+											</div>
+										</div>
+										<script id="main-body:fileUploadBack_s" type="text/javascript">
+											$(function() {
+												PrimeFaces
+														.cw(
+																'FileUpload',
+																'widget_main_body_fileUploadBack',
+																{
+																	id : 'main-body:fileUploadBack',
+																	auto : true,
+																	update : '@none',
+																	process : '@none',
+																	maxFileSize : 300000.0,
+																	invalidFileMessage : 'File không đúng định dạng: /(\.|\/)(gif|jpe?g|png|bmp)$/',
+																	invalidSizeMessage : 'Kích cỡ CMT mặt sau tối đa 300.000 bytes',
+																	allowTypes : /(\.|\/)(gif|jpe?g|png|bmp)$/
+																}, 'fileupload');
+											});
+										</script>
+										<img id="previewFileUploadBack" width="145px" height="100px"
+											style="float: right; margin-right: 60px;" />
+									</div>
+								</div>
+								<div class="tbl_ISDN" style="height: 100px">
+									<div class="tbl_ISDN_l">
+										File Scan phiếu đăng ký: <a style="color: red;">(*)</a> <br />(Kích
+										thước tối đa 300.000 bytes) <br />(Kích thước tối thiểu 100
+										bytes)
+									</div>
+									<div class="tbl_ISDN_r3">
+										<div id="main-body:fileUploadRegistration"
+											class="ui-fileupload ui-widget"
+											style="width: 300px; float: left;">
+											<div
+												class="ui-fileupload-buttonbar ui-widget-header ui-corner-top">
+												<span
+													class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-left ui-fileupload-choose"><span
+													class="ui-button-icon-left ui-icon ui-c ui-icon-plusthick"></span><span
+													class="ui-button-text ui-c">Chọn ảnh</span><input
+													type="file" id="main-body:fileUploadRegistration_input"
+													name="main-body:fileUploadRegistration_input"
+													style="width: 300px; float: left;" /></span>
+											</div>
+											<div
+												class="ui-fileupload-content ui-widget-content ui-corner-bottom">
+												<table class="ui-fileupload-files">
+													<tbody></tbody>
+												</table>
+											</div>
+										</div>
+										<script id="main-body:fileUploadRegistration_s"
+											type="text/javascript">
+											$(function() {
+												PrimeFaces
+														.cw(
+																'FileUpload',
+																'widget_main_body_fileUploadRegistration',
+																{
+																	id : 'main-body:fileUploadRegistration',
+																	auto : true,
+																	update : '@none',
+																	process : '@none',
+																	maxFileSize : 300000.0,
+																	invalidFileMessage : 'File không đúng định dạng: /(\.|\/)(gif|jpe?g|png|bmp)$/',
+																	invalidSizeMessage : 'Kích cỡ phiếu đăng ký tối đa 300.000 bytes',
+																	allowTypes : /(\.|\/)(gif|jpe?g|png|bmp)$/
+																}, 'fileupload');
+											});
+										</script>
+										<img id="previewFileUploadRegistration" width="145px"
+											height="100px" style="float: right; margin-right: 60px;" />
+									</div>
+								</div>
+								<div class="tbl_ISDN">
+									<div class="tbl_ISDN_l">Đăng ký nhận tin nhắn quảng cáo:
+									</div>
+									<div class="tbl_ISDN_r3">
+										<div id="main-body:j_idt78" class="ui-chkbox ui-widget">
+											<div class="ui-helper-hidden-accessible">
+												<input id="main-body:j_idt78_input"
+													name="main-body:j_idt78_input" type="checkbox"
+													checked="checked" />
+											</div>
+											<div
+												class="ui-chkbox-box ui-widget ui-corner-all ui-state-default ui-state-active">
+												<span
+													class="ui-chkbox-icon ui-c ui-chkbox-icon ui-icon ui-icon-check ui-c"></span>
+											</div>
+										</div>
+										<script id="main-body:j_idt78_s" type="text/javascript">
+											PrimeFaces
+													.cw(
+															'SelectBooleanCheckbox',
+															'widget_main_body_j_idt78',
+															{
+																id : 'main-body:j_idt78'
+															});
+										</script>
+									</div>
+								</div>
+							</div>
+
+							<!-- 1/10/2014 -->
+							<!-- END 1/10/2014 -->
+						</div>
+					</div>
+					<script id="main-body:pnl_Register_s" type="text/javascript">
+						PrimeFaces.cw('Panel', 'widget_main_body_pnl_Register',
+								{
+									id : 'main-body:pnl_Register'
+								});
+					</script>
+					<div id="main-body:j_idt97"
+						class="ui-panel ui-widget ui-widget-content ui-corner-all"
+						style="border-top: none;">
+						<div id="main-body:j_idt97_content"
+							class="ui-panel-content ui-widget-content">
+							<img id="main-body:j_idt98" width="100%" height="20px" alt=""
+								src="/javax.faces.resource/spacer/dot_clear.gif.xhtml?ln=primefaces&amp;v=3.5.22-UR2" />
+							<div class="btnButton">
+								<button id="main-body:btnAccept" name="main-body:btnAccept"
+									class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-left"
+									onclick="blockOnSubmit.show();;PrimeFaces.ab({source:'main-body:btnAccept',process:'main-body:pnl_Register main-body:btnAccept',oncomplete:function(xhr,status,args){blockOnSubmit.hide();;}});return false;"
+									type="submit">
+									<span class="ui-button-icon-left ui-icon ui-c btnAccept"></span><span
+										class="ui-button-text ui-c">Đăng ký thuê bao</span>
+								</button>
+								<script id="main-body:btnAccept_s" type="text/javascript">
+									PrimeFaces.cw('CommandButton',
+											'widget_main_body_btnAccept', {
+												id : 'main-body:btnAccept'
+											});
+								</script>
+								<div id="main-body:j_idt100"
+									class="ui-blockui-content ui-widget ui-widget-content ui-corner-all ui-helper-hidden ui-shadow"></div>
+								<script id="null_s" type="text/javascript">
+									$(function() {
+										PrimeFaces.cw('BlockUI',
+												'blockOnSubmit', {
+													id : 'main-body:j_idt100',
+													block : 'main-body'
+												});
+									});
+								</script>
+							</div>
+							<img id="main-body:j_idt102" width="100%" height="30px" alt=""
+								src="/javax.faces.resource/spacer/dot_clear.gif.xhtml?ln=primefaces&amp;v=3.5.22-UR2" />
+							<div>
+								<a style="color: red;">Chú ý:</a>
+							</div>
+							Trường hợp khách hàng sử dụng hộ chiếu còn trong thời hạn sử dụng
+							để đăng ký thông tin, chủ điểm giao dịch sử dụng số chứng minh
+							thư được ghi trên hộ chiếu, không sử dụng hộ chiếu; nơi cấp chọn
+							QL XNC (ở cuối cùng trong danh sách tỉnh thành phố)
+						</div>
+					</div>
+					<script id="main-body:j_idt97_s" type="text/javascript">PrimeFaces.cw('Panel','widget_main_body_j_idt97',{id:'main-body:j_idt97'});</script>
+					<div id="main-body:dlgCheck"
+						class="ui-dialog ui-widget ui-widget-content ui-overlay-hidden ui-corner-all ui-shadow"
+						style="width: 350px !important">
+						<div
+							class="ui-dialog-titlebar ui-widget-header ui-helper-clearfix ui-corner-top">
+							<span id="main-body:dlgCheck_title" class="ui-dialog-title">Kết
+								quả tra cứu CMND</span><a href="#"
+								class="ui-dialog-titlebar-icon ui-dialog-titlebar-close ui-corner-all"><span
+								class="ui-icon ui-icon-closethick"></span></a>
+						</div>
+						<div class="ui-dialog-content ui-widget-content">
+							<span id="display_content"></span><br />
+							<br /> <span id="display_detail"></span>
+							<div id="main-body:j_idt105" class="ui-datalist ui-widget">
+								<div id="main-body:j_idt105_content"
+									class="ui-datalist-content ui-widget-content">
+									<div class="ui-datalist-empty-message"></div>
+								</div>
+							</div>
+							<script id="main-body:j_idt105_s" type="text/javascript">PrimeFaces.cw('DataList','widget_main_body_j_idt105',{id:'main-body:j_idt105'});</script>
+							<div class="btnButton"
+								style="border-top: solid 1px #55aef4; padding: 5px; margin-top: 10px;">
+								<button id="main-body:j_idt108" name="main-body:j_idt108"
+									class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-left"
+									onclick="wgCheck.hide();;PrimeFaces.ab({source:'main-body:j_idt108',process:'main-body:j_idt108'});return false;"
+									style="width: 120px !important" type="submit">
+									<span class="ui-button-icon-left ui-icon ui-c btnBack"></span><span
+										class="ui-button-text ui-c">Đóng</span>
+								</button>
+								<script id="main-body:j_idt108_s" type="text/javascript">PrimeFaces.cw('CommandButton','widget_main_body_j_idt108',{id:'main-body:j_idt108'});</script>
+							</div>
+						</div>
+					</div>
+					<script id="main-body:dlgCheck_s" type="text/javascript">$(function(){PrimeFaces.cw('Dialog','wgCheck',{id:'main-body:dlgCheck',resizable:false,modal:true});});</script>
+					<span id="main-body:grow_message"></span>
+					<script id="main-body:grow_message_s" type="text/javascript">$(function(){PrimeFaces.cw('Growl','widget_main_body_grow_message',{id:'main-body:grow_message',sticky:false,life:6000,escape:true,msgs:[]});});</script>
+					<script type="text/javascript">rmtFixUpload_01 = function() {PrimeFaces.ab({source:'main-body:rmtFixUpload_01',formId:'main-body',process:'main-body:rmtFixUpload_01',update:'main-body:rmtFixUpload_01',params:arguments[0]});}</script>
+					<script type="text/javascript">rmtFixUpload_02 = function() {PrimeFaces.ab({source:'main-body:rmtFixUpload_02',formId:'main-body',process:'main-body:rmtFixUpload_02',update:'main-body:rmtFixUpload_02',params:arguments[0]});}</script>
+					<script type="text/javascript">rmtFixUpload_03 = function() {PrimeFaces.ab({source:'main-body:rmtFixUpload_03',formId:'main-body',process:'main-body:rmtFixUpload_03',update:'main-body:rmtFixUpload_03',params:arguments[0]});}</script>
+				</div>
+			</div>
+			<div id="pnlBottom">
+				<?xml version='1.0' encoding='UTF-8' ?>
+				<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+				<html xmlns="http://www.w3.org/1999/xhtml">
+<body>
+	<center>
+		Công ty thông tin di động (VMS) - MobiFone <br /> <img height="15"
+			src="../resources/images/ie.png" title="Hỗ trợ IE 10 hoặc cao hơn" />
+		<img height="15" src="../resources/images/firefox.png"
+			title="Hỗ trợ FireFox 28 hoặc cao hơn" /> <img height="15"
+			src="../resources/images/chrome.png"
+			title="Hỗ trợ Chrome 31 hoặc cao hơn" />
+	</center>
+</body>
+				</html>
+			</div>
+			<input type="hidden" name="javax.faces.ViewState"
+				id="javax.faces.ViewState"
+				value="668667828818002901:2102538840928416642" autocomplete="off" />
+		</form>
+	</div>
+</body>
+</html>

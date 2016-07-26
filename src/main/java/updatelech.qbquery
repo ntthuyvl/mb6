@@ -1,0 +1,176 @@
+﻿select * from AnChi a
+where act_date is null;
+
+
+/*Cap nhat cac an chi trang thai da cap ma thuc ra chua cap*/
+select * from AnChi a
+where status=4 and not exists (
+select 1 from
+AnChiDaCap
+where id=a.id);
+
+update AnChi a set status=0
+where status=4 and not exists (
+select 1 from
+AnChiDaCap
+where id=a.id);
+
+/*Cap nhat cac an chi trang thai bi mat(hong) ma khong co action bao mat(hong)*/
+select * from AnChi a
+ WHERE  status IN (2, 3)
+         AND NOT EXISTS
+                (SELECT   1
+                   FROM   AnChiBlock
+                  WHERE       act_date = a.act_date
+                          AND status IN (30, 31)
+                          AND (department_id =a.department_id)
+                          AND TYPE = a.block_type
+                          AND sta_serial <= a.serial
+                          AND end_serial >= a.serial);
+
+
+
+update AnChi a set status=0
+ WHERE  status IN (2, 3)
+         AND NOT EXISTS
+                (SELECT   1
+                   FROM   AnChiBlock
+                  WHERE       act_date = a.act_date
+                          AND status IN (30, 31)
+                          AND (department_id =a.department_id)
+                          AND TYPE = a.block_type
+                          AND sta_serial <= a.serial
+                          AND end_serial >= a.serial);
+
+
+
+
+/*Cap nhat cac an chi dang o kho dai ly ma ngay khac voi ngay nhan cuoi cung cua dai ly*/
+select a.act_date, (SELECT max(act_date)
+                   FROM   AnChiBlock
+                  WHERE TYPE = a.block_type
+                          AND sta_serial <= a.serial
+                          AND end_serial >= a.serial
+                          AND (department_id =a.department_id AND status = '20')) max_act_date,a.* from AnChi a
+where (act_date <>
+(SELECT max(act_date)
+                   FROM   anchiblock
+                  WHERE TYPE = a.block_type
+                          AND sta_serial <= a.serial
+                          AND end_serial >= a.serial
+                          AND (department_id =a.department_id AND status = '20'))
+and  status =0 and department_id not LIKE '0%') or act_date is null;
+
+
+update anchi a
+set act_date =
+(SELECT max(act_date)
+                   FROM   anchiblock
+                  WHERE TYPE = a.block_type
+                          AND sta_serial <= a.serial
+                          AND end_serial >= a.serial
+                          AND (department_id =a.department_id AND status = '20'))
+where  status =0 and department_id not LIKE '0%'
+and act_date <>
+(SELECT max(act_date)
+                   FROM   anchiblock
+                  WHERE TYPE = a.block_type
+                          AND sta_serial <= a.serial
+                          AND end_serial >= a.serial
+                          AND (department_id =a.department_id AND status = '20'));
+
+
+
+
+/*Cap nhat cac an chi trang thai chua cap ma thuc te da cap*/
+select * from AnChi a
+where status<>4 and exists (
+select 1 from AnChiDaCap
+where id=a.id);
+
+
+update AnChi a
+set status=4
+where status<>4 and exists (
+select 1 from AnChiDaCap
+where id=a.id);
+
+
+
+/*Cap nhat cac department_id bi sai lech voi employee_id*/
+
+select * from AnChiBlock
+where department_id<>employee_id
+and department_id not like '0%';
+
+update AnChiBlock
+set department_id=employee_id
+where department_id<>employee_id
+and department_id not like '0%';
+
+
+/*Cap nhat cac department_id bi sai lech voi employee_id*/
+SELECT   *
+  FROM   AnChi a
+where department_id<>employee_id
+and department_id like '1.%';
+
+/*Cap nhat ngay bat dau department muon hon action date trong anchiblock*/
+
+select * from  pjicodepartment p
+where exists
+(  SELECT   1
+    FROM   anchiblock b
+ where department_id=p.name
+ and act_date < p.startDate);
+
+
+update  pjicodepartment p
+set startDate = adddate(startDate,-1)
+where exists
+(  SELECT   1
+    FROM   anchiblock b
+ where department_id=p.name
+ and act_date < p.startDate);
+
+
+select * from  pjicodepartment p
+where exists
+(  SELECT   1
+    FROM   anchi b
+ where department_id=p.name
+ and creat_date < p.startDate);
+
+update  pjicodepartment p
+set startDate = (  SELECT min(creat_date)
+    FROM   anchi b
+ where department_id=p.name
+ and creat_date < p.startDate)
+where exists
+(  SELECT   1
+    FROM   anchi b
+ where department_id=p.name
+ and creat_date < p.startDate);
+
+commit;
+
+select * from BangKeTongHop
+where month >='2011-11-01 00:00:00';
+
+select * from AnChiTon
+where bangkeTonCuoiKy_id in
+(
+select id from BangKeTongHop
+where month >='2011-11-01 00:00:00'
+);
+
+
+delete from AnChiTon
+where bangkeTonCuoiKy_id in
+(
+select id from BangKeTongHop
+where month >='2011-11-01 00:00:00'
+);
+
+delete from BangKeTongHop
+where month >='2011-11-01 00:00:00';

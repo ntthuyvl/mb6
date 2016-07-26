@@ -1,0 +1,120 @@
+<#include "../header.ftl">
+<SCRIPT>
+	var curtab = '#tab1';
+	var app = '3';
+	var dataLoad = {
+		"#tab1" : 0,
+		"#tab2" : 0,
+		"#tab3" : 0
+	};
+	function load_tab_data() {
+		if (dataLoad[curtab] == 0) {//Tab chua load du lieu
+			bcth();
+			dataLoad[curtab] = 1;
+
+		}
+	};
+
+	function bcth() {
+		$('input').attr('disabled', 'disabled');
+		var dataObj = {
+			"month" : $('input#act_month').val(),
+			"type" : curtab,
+			"donvi" : $('select#donvi').val(),
+			"level" : $('select#level').val(),
+			"app" : app
+		}
+		dataObj = {
+			"json" : JSON.stringify(dataObj)
+		};
+		$.post("list", dataObj, function(data2, status) {
+			call_back_ajax(data2, status);
+		});
+	}
+
+	$(document).ready(
+			function() {
+				var dataObj = {
+					"app" : app
+				};
+
+				dataObj = {
+					"json" : JSON.stringify(dataObj)
+				};
+				$.getJSON("/khdt/khsxkd/donvi", dataObj, function(data,
+						textStatus) {
+					$('select#donvi option').remove();
+					var row;
+					/*
+					 row = "<option value=\"" + "0" + "\">" + "Chọn đơn vị"							+ "</option>"
+					 $(row).appendTo("select#donvi");
+					 */
+					for (i = 1; i < data.length; i++) {
+						row = "<option value=\""
+								+ data[i]['001'].replace('<td>', '') + "\">"
+								+ data[i]['002'] + "</option>";
+						$(row).appendTo("select#donvi");
+					}
+				});
+				tab_present();
+				$(document).on('click', 'input#table2excel', function() {
+					$(curtab + ' table#datarp').table2excel({
+						// exclude CSS class			
+						exclude : ".noExl",
+						name : "data"
+					});
+				});
+
+				$('input#bcth').click(function() {
+					bcth();
+				});
+				$('input#bcct').click(
+						function() {
+							var dataObj = {
+								"month" : $('input#act_month').val(),
+								"donvi" : $('select#donvi').val(),
+								"level" : $('select#level').val(),
+								"app" : app
+							};
+
+							var x = window.open("chitiet?json="
+									+ JSON.stringify(dataObj), "MyWindow");
+							x.focus();
+
+						});
+
+			})
+</SCRIPT>
+
+<section2 class="session" style="width: 98%"> <header>
+	BÁO CÁO TÌNH TRẠNG CHẶN MỞ</header>
+<ul id="tabs">
+	<li><a href="#" name="tab1">Trả sau</a></li>
+	<div>
+		<in id="act_month"> <label id="act_month">Tháng phân tích</label>
+		<input type="month" id="act_month" value="${act_month?string["yyyy-MM"]}"></in>
+		<in id="donvi"> <select id="donvi" value="" style="height: 25px">
+			<option value="">-- Chọn đơn vị--</option>
+		</select> </in>
+		<in id="level"> <select id="level" value="" style="height: 25px">
+			<option value="0">-- Cấp đơn vị--</option>
+			<option value="1">-- Cấp tỉnh--</option>
+			<option value="2">-- Cấp huyện-</option>
+		</select> </in>
+
+		<input type="submit" id="table2excel" value="Excel"
+			style="width: 60px;" /> <input type="submit" id="bcth"
+			value="Tổng hợp" style="width: 60px;" /> <input type="submit"
+			id="bcct" value="Chi tiết các thuê bao chặn cắt" />
+	</div>
+</ul>
+
+<div id="content">
+	<div id="tab1">
+		<table id="datarp" class="CSSTableGenerator">
+			<tbody></tbody>
+		</table>
+	</div>
+</div>
+</section2>
+<#include "/footer.ftl">

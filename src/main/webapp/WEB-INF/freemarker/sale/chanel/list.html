@@ -1,0 +1,126 @@
+<#include "/header.ftl">
+<Script language=javascript>
+	function doAction(button) {
+		if (button.value == 'Xem') {
+			document.frm.action = "list?type=xem";
+			document.frm.submit();
+		} else if (button.value == "In BC pdf") {
+			document.frm.action = "list?type=pdf";
+			document.frm.submit();
+		} else if (button.value == "In BC excel") {
+			document.frm.action = "list?type=xls";
+			document.frm.submit();
+		}
+
+	}
+</Script>
+<h1>Bảo Hiểm Đã Cấp</h1>
+<#if user_roles?? && !user_roles?seq_contains("PJICO_MAN_KC")>
+<a href=add>@Thêm mới</a>
+</#if>
+<form name=frm method="POST">
+	<table>
+		<tr>
+			<th ALIGN=left>Loại</th>
+			<td><@spring.formSingleSelect "pojoMode.search.type"
+				blockTypeMap/></td>
+			<th ALIGN=left>Biển số</th>
+			<td><@spring.formInput "pojoMode.search.bienso"/></td>
+			<th ALIGN=left>Serial</th>
+			<td><@spring.formInput "pojoMode.search.serial"/></td>
+		</tr>
+		<tr>
+			<th>Từ ngày:</th>
+			<td><@spring.formInput "pojoMode.search.fromDate"/>
+				<@spring.showErrors " </br> "/></td>
+			<th>Đến ngày:</th>
+			<td><@spring.formInput "pojoMode.search.toDate"/>
+				<@spring.showErrors " </br> "/></td> <#if employee.department.reseller ||
+			(user_roles?? && user_roles?seq_contains("PJICO_MAN_KC"))>
+			<td colspan="2" align="center"><INPUT type=button value='Xem'
+				onclick="doAction(this)"> <INPUT type=button value="In BC"
+				onclick="doAction(this)">
+				<INPUT type=button value="In BC excel" onclick="doAction(this)">
+			</td> <#else> <#if user_roles?? &&
+			!user_roles?seq_contains("PJICO_MAN_KC")>
+			<th>Đại lý:</th>
+			<td><@spring.formSingleSelect "pojoMode.search.department.name"
+				departmentChildMap/></td>
+			<td align="center">
+				<INPUT type=button value='Xem' onclick="doAction(this)">
+				<INPUT type=button value="In BC pdf" onclick="doAction(this)">
+				<INPUT type=button value="In BC excel" onclick="doAction(this)">
+			</td> </#if> </#if>
+		</tr>
+	</table>
+</form>
+<#if (pojoModeList?size > 0)>
+<hr />
+<table style="font-size: 16px;">
+	<TR>
+		<th ALIGN=left>Loại</th>
+		<th ALIGN=right>Serial</th>
+		<th ALIGN=center>Ngày cấp</th>
+		<th ALIGN=left>Biển số</th>
+		<th ALIGN=center>Từ ngày</th>
+		<th ALIGN=center>Đến ngày</th>
+		<th ALIGN=right>Tiền TNDS</th>
+		<th ALIGN=right>Tự nguyện</th>
+		<th ALIGN=right>Hoa hồng</th>
+		<th ALIGN=right>Phải nộp</th> <#if user_roles?? &&
+		(user_roles?seq_contains("KC_MAN") ||
+		user_roles?seq_contains("KC_ACC"))>
+		<th ALIGN=right>Hoa hồng ĐL</th>
+		<th ALIGN=right>Phải thu</th> </#if>
+
+	</TR>
+	<@spring.bind "pojoModeList" /> <#assign tnds = 0> <#assign tn = 0>
+	<#assign hh = 0> <#assign hhdl = 0> <#list pojoModeList as pojoMode>
+	<TR>
+		<td ALIGN=left>${typeMap[pojoMode.pojo.type?string]}</td>
+		<td ALIGN=right>${pojoMode.pojo.anchi.serial?string("########")}</td>
+		<td ALIGN=center>${pojoMode.pojo.anchi.act_date.toString("dd/MM/yy
+			HH:mm")}</td>
+		<td ALIGN=left>${pojoMode.pojo.bienso}</td>
+		<td ALIGN=center>
+			${pojoMode.pojo.sta_date.toString(datetimeformat)}</td>
+		<td ALIGN=center>
+			${pojoMode.pojo.end_date.toString(datetimeformat)}</td>
+		<td ALIGN=right>${pojoMode.pojo.tien_tnds}</td> <#assign tnds =
+		tnds+pojoMode.pojo.tien_tnds>
+		<td ALIGN=right>${pojoMode.pojo.tien_mguoingoitrenxe}</td> <#assign tn
+		= tn+pojoMode.pojo.tien_mguoingoitrenxe>
+		<td ALIGN=right>${(pojoMode.pojo.tien_tnds+pojoMode.pojo.tien_mguoingoitrenxe)*employee.department.commission}</td>
+		<#assign hh =
+		hh+(pojoMode.pojo.tien_tnds+pojoMode.pojo.tien_mguoingoitrenxe)*employee.department.commission>
+		<td ALIGN=right>${pojoMode.pojo.tien_tnds +
+			pojoMode.pojo.tien_mguoingoitrenxe
+			-(pojoMode.pojo.tien_tnds+pojoMode.pojo.tien_mguoingoitrenxe)*employee.department.commission}</td>
+		<#if user_roles?? && (user_roles?seq_contains("KC_MAN") ||
+		user_roles?seq_contains("KC_ACC"))>
+		<td ALIGN=right>${(pojoMode.pojo.tien_tnds+pojoMode.pojo.tien_mguoingoitrenxe)*pojoMode.pojo.department.commission}</td>
+		<#assign hhdl =
+		hhdl+(pojoMode.pojo.tien_tnds+pojoMode.pojo.tien_mguoingoitrenxe)*pojoMode.pojo.department.commission>
+		<td ALIGN=right>${pojoMode.pojo.tien_tnds +
+			pojoMode.pojo.tien_mguoingoitrenxe
+			-(pojoMode.pojo.tien_tnds+pojoMode.pojo.tien_mguoingoitrenxe)*pojoMode.pojo.department.commission}</td>
+		</#if>
+
+		<!-- td ALIGN=center><a href=update/${pojoMode.pojo.anchi.id}>Sửa</a> <a
+			href=delete/${pojoMode.pojo.anchi.id}>Xóa</a></td  -->
+	</TR>
+	</#list>
+	<TR>
+		<th ALIGN=left colspan="6">Tổng</th>
+		<th ALIGN=right>${tnds}</th>
+		<th ALIGN=right>${tn}</th>
+		<th ALIGN=right>${hh}</th>
+		<th ALIGN=right>${tnds+tn-hh}</th> <#if user_roles?? &&
+		(user_roles?seq_contains("KC_MAN") ||
+		user_roles?seq_contains("KC_ACC"))>
+		<th ALIGN=right>${hhdl}</th>
+		<th ALIGN=right>${tnds+tn-hhdl}</th> </#if>
+
+	</TR>
+</table>
+</#if> <#include "/footer.ftl">

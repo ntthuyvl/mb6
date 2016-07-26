@@ -1,0 +1,76 @@
+<#import "/spring.ftl" as spring />
+<HTML>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" href="../../styles/petclinic3.css"
+			type="text/css">
+	</head>
+	<form action="" method="post">
+		<table align="center">
+			<caption class=caption_table_sub>
+				<h1>
+					Kế Hoạch Chi Tiêu
+				</h1>
+				<a href=add>@Thêm mới</a>
+				<br />
+			</caption>
+			<tr>
+				<th ALIGN=left>
+					Tài khoản JARS
+				</th>
+				<td>
+					<@spring.formSingleSelect "pojoMode.search.jarsAccountType"
+					jarsAccountMap/>
+				</td>
+				<th ALIGN=left>
+					Loại định kỳ
+				</th>
+				<td>
+					<@spring.formSingleSelect "pojoMode.search.periodicType"
+					incomeTimeMap/>
+				</td>
+				<td align="center">
+					<input type="submit" value="Tìm kiếm">
+				</td>
+			</tr>
+
+		</table>
+		<hr />
+		<table class="table_sub">
+			<TR>
+				<th ALIGN=left>
+					Diễn Giải
+				</th>
+				<th ALIGN=left>
+					Định Kỳ
+				</th>
+				<th ALIGN=left>
+					Tài khoản JARS
+				</th>
+				<th ALIGN=right>
+					Số Tiền
+				</th>
+			</TR>
+			<@spring.bind "pojoModeList" /> <#list pojoModeList as pojoMode>
+			<TR>
+				<td ALIGN=left>
+					${pojoMode.spendPlan.label}
+				</td>
+				<td ALIGN=left>
+					${incomeTimeMap[pojoMode.spendPlan.periodicType?string]}
+				</td>
+				<td ALIGN=left>
+					${jarsAccountMap[pojoMode.spendPlan.jarsAccount.accountType?string]}
+				</td>
+				<td ALIGN=right>
+					${pojoMode.spendPlan.amount}
+				</td>
+				<td ALIGN=center>
+					<a href=update/${pojoMode.spendPlan.id}>Sửa</a>
+					<a href=delete/${pojoMode.spendPlan.id}>Xóa</a>
+				</td>
+			</TR>
+			</#list>
+		</table>
+	</form>
+</HTML>

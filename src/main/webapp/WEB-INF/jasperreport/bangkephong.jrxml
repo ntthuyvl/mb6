@@ -1,0 +1,655 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="tree-template" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="535" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="template.type" value="columnar"/>
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<style name="Title" forecolor="#000000" fontName="Times New Roman" fontSize="50" isBold="false" pdfFontName="Times-Bold"/>
+	<style name="SubTitle" forecolor="#666666" fontName="Times New Roman" fontSize="18" isBold="false" pdfFontName="Times-Roman"/>
+	<style name="Column header" forecolor="#666666" fontName="Times New Roman" fontSize="14" isBold="true" pdfFontName="Times-Roman"/>
+	<style name="Detail" mode="Transparent" fontName="Times New Roman" pdfFontName="Times-Roman"/>
+	<style name="Row" mode="Transparent" fontName="Times New Roman" fontSize="12" pdfFontName="Times-Roman">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$V{REPORT_COUNT}%2 == 0]]></conditionExpression>
+			<style mode="Opaque" backcolor="#F0EFEF"/>
+		</conditionalStyle>
+	</style>
+	<subDataset name="Dataset1">
+		<queryString language="SQL">
+			<![CDATA[]]>
+		</queryString>
+	</subDataset>
+	<parameter name="bangkedacap" class="net.sf.jasperreports.engine.JasperReport"/>
+	<parameter name="datasource1" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+	<parameter name="bangkemathong" class="net.sf.jasperreports.engine.JasperReport"/>
+	<parameter name="datasource2" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+	<parameter name="donvi" class="java.lang.String"/>
+	<parameter name="sequence" class="java.lang.Integer"/>
+	<parameter name="congty" class="java.lang.String"/>
+	<parameter name="daily" class="java.lang.String"/>
+	<parameter name="ngay" class="java.lang.String"/>
+	<field name="cus_name" class="java.lang.String"/>
+	<field name="type" class="java.lang.String"/>
+	<field name="bienso" class="java.lang.String"/>
+	<field name="end_date" class="java.lang.String"/>
+	<field name="totFee" class="java.lang.Double"/>
+	<field name="tax" class="java.lang.Double"/>
+	<field name="serial" class="java.lang.Long"/>
+	<field name="vcx" class="java.lang.Double"/>
+	<field name="tndsbb" class="java.lang.Double"/>
+	<field name="tndstn" class="java.lang.Double"/>
+	<field name="tndshh" class="java.lang.Double"/>
+	<field name="tnnn_lp" class="java.lang.Double"/>
+	<variable name="total" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{totFee}+$F{tax}]]></variableExpression>
+	</variable>
+	<variable name="tottax" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{tax}]]></variableExpression>
+	</variable>
+	<variable name="allFee" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{totFee}]]></variableExpression>
+	</variable>
+	<variable name="totVcx" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{vcx}]]></variableExpression>
+	</variable>
+	<variable name="totTndstn" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{tndstn}]]></variableExpression>
+	</variable>
+	<variable name="totTndsbb" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{tndsbb}]]></variableExpression>
+	</variable>
+	<variable name="totTndshh" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{tndshh}]]></variableExpression>
+	</variable>
+	<variable name="totTnnn_lp" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{tnnn_lp}]]></variableExpression>
+	</variable>
+	<title>
+		<band height="90" splitType="Stretch">
+			<staticText>
+				<reportElement style="Title" x="0" y="0" width="260" height="40"/>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="Times New Roman" size="14" isBold="true" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[CÔNG TY BẢO HIỂM PETROLIMEX
+Phòng BH...............
+]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="260" y="0" width="541" height="40"/>
+				<box>
+					<pen lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font fontName="Times New Roman" size="14" isBold="true" isItalic="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["BẢNG KÊ KHAI THANH TOÁN  PHÍ BẢO HIỂM ÔTÔ HÀNG NGÀY"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="40" width="260" height="50"/>
+				<textElement>
+					<font fontName="Times New Roman" size="14" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Tên đơn vị hoặc cá nhân lập bảng: 
+Tên đại lý: 
+HĐĐL số: ]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="379" y="40" width="423" height="20"/>
+				<box>
+					<pen lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="Times New Roman" size="14" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Số: năm cấp/đơn vị/phòng cấp/mã nghiệp vụ/" + $P{sequence}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="379" y="60" width="423" height="20"/>
+				<box>
+					<pen lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="Times New Roman" size="14" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Đơn vị tính:"]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<columnHeader>
+		<band height="32">
+			<staticText>
+				<reportElement style="Title" x="20" y="0" width="90" height="32"/>
+				<box>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="true" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[TÊN CHỦ XE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Title" x="0" y="0" width="20" height="32"/>
+				<box>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="true" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[STT]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Title" x="110" y="0" width="50" height="32"/>
+				<box>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="true" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[SỐ CHỖ
+TR.TẢI]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Title" x="160" y="0" width="70" height="32"/>
+				<box>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="true" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[MỤC ĐÍCH
+SỬ DỤNG]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Title" x="230" y="16" width="40" height="16"/>
+				<box>
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="true" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[SỐ GCN]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Title" x="270" y="16" width="50" height="16"/>
+				<box>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="true" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[BIỂN SỐ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Title" x="320" y="16" width="59" height="16"/>
+				<box>
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="true" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[THỜI HẠN]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Title" x="379" y="16" width="51" height="16"/>
+				<box>
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="true" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[TNDS BB]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Title" x="430" y="16" width="51" height="16"/>
+				<box>
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="true" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[TNDS TN]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Title" x="481" y="16" width="51" height="16"/>
+				<box>
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="true" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[TNDS HH]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Title" x="532" y="16" width="51" height="16"/>
+				<box>
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="true" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[TNNN, LP]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Title" x="583" y="16" width="51" height="16"/>
+				<box>
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="true" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[VCX]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Title" x="634" y="0" width="56" height="32"/>
+				<box>
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="true" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[TỔNG PHÍ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Title" x="690" y="0" width="56" height="32"/>
+				<box>
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="true" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[VAT]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Title" x="746" y="0" width="56" height="32"/>
+				<box>
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="true" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[TỔNG TT]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Title" x="230" y="0" width="149" height="16"/>
+				<box>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="true" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[ĐƠN BH (GCN - HĐBH)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Title" x="379" y="0" width="255" height="16"/>
+				<box>
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="true" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[LOẠI HÌNH BẢO HIỂM]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="24">
+			<textField>
+				<reportElement x="0" y="0" width="20" height="24"/>
+				<box>
+					<topPen lineWidth="0.2" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.2" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.2" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="false" isItalic="false" pdfEncoding=""/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$V{REPORT_COUNT}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="20" y="0" width="90" height="24"/>
+				<box>
+					<topPen lineWidth="0.2"/>
+					<leftPen lineWidth="0.2" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.2"/>
+					<rightPen lineWidth="0.2" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="false" isItalic="false" pdfEncoding=""/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{cus_name}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.###;(#,##0.###-)" isBlankWhenNull="true">
+				<reportElement x="634" y="0" width="56" height="24"/>
+				<box>
+					<topPen lineWidth="0.2"/>
+					<leftPen lineWidth="0.2" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.2" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.2" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="false" isItalic="false" pdfEncoding=""/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{totFee}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.###;(#,##0.###-)" isBlankWhenNull="true">
+				<reportElement x="690" y="0" width="56" height="24"/>
+				<box padding="0">
+					<pen lineWidth="0.2" lineStyle="Dashed"/>
+					<topPen lineWidth="0.2" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.2"/>
+					<bottomPen lineWidth="0.2" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.2" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="false" isItalic="false" pdfEncoding=""/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{tax}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.###;(#,##0.###-)" isBlankWhenNull="true">
+				<reportElement x="746" y="0" width="56" height="24"/>
+				<box>
+					<pen lineWidth="0.2" lineStyle="Dashed"/>
+					<topPen lineWidth="0.2" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.2" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.2" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="false" isItalic="false" pdfEncoding=""/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{totFee}+$F{tax}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="270" y="0" width="50" height="24"/>
+				<box>
+					<topPen lineWidth="0.2" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.2" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.2" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.2" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="false" isItalic="false" pdfEncoding=""/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{bienso}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#00000000.###;(#00000000.###-)" isBlankWhenNull="true">
+				<reportElement x="230" y="0" width="40" height="24"/>
+				<box>
+					<topPen lineWidth="0.2" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.2" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.2" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.2" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="false" isItalic="false" pdfEncoding=""/>
+				</textElement>
+				<textFieldExpression class="java.lang.Long"><![CDATA[$F{serial}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="110" y="0" width="120" height="24"/>
+				<box>
+					<topPen lineWidth="0.2" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.2" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.2" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.2" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="false" isItalic="false" pdfEncoding=""/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{type}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="320" y="0" width="59" height="24"/>
+				<box>
+					<topPen lineWidth="0.2"/>
+					<leftPen lineWidth="0.2" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.2"/>
+					<rightPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="false" isItalic="false" pdfEncoding=""/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{end_date}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.###;(#,##0.###-)" isBlankWhenNull="true">
+				<reportElement x="583" y="0" width="51" height="24"/>
+				<box padding="5">
+					<pen lineWidth="0.2" lineStyle="Dashed"/>
+					<topPen lineWidth="0.2" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.2"/>
+					<bottomPen lineWidth="0.2" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.2" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="false" isItalic="false" pdfEncoding=""/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{vcx}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.###;(#,##0.###-)" isBlankWhenNull="true">
+				<reportElement x="532" y="0" width="51" height="24"/>
+				<box padding="0">
+					<pen lineWidth="0.2" lineStyle="Dashed"/>
+					<topPen lineWidth="0.2" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.2"/>
+					<bottomPen lineWidth="0.2" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.2" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="false" isItalic="false" pdfEncoding=""/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{tnnn_lp}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.###;(#,##0.###-)" isBlankWhenNull="true">
+				<reportElement x="481" y="0" width="51" height="24"/>
+				<box padding="0">
+					<pen lineWidth="0.2" lineStyle="Dashed"/>
+					<topPen lineWidth="0.2" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.2"/>
+					<bottomPen lineWidth="0.2" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.2" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="false" isItalic="false" pdfEncoding=""/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{tndshh}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.###;(#,##0.###-)" isBlankWhenNull="true">
+				<reportElement x="430" y="0" width="51" height="24"/>
+				<box padding="0">
+					<pen lineWidth="0.2" lineStyle="Dashed"/>
+					<topPen lineWidth="0.2" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.2"/>
+					<bottomPen lineWidth="0.2" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.2" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="false" isItalic="false" pdfEncoding=""/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{tndstn}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.###;(#,##0.###-)" isBlankWhenNull="true">
+				<reportElement x="379" y="0" width="51" height="24"/>
+				<box padding="0">
+					<pen lineWidth="0.2" lineStyle="Dashed"/>
+					<topPen lineWidth="0.2" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.2"/>
+					<bottomPen lineWidth="0.2" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.2" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="false" isItalic="false" pdfEncoding=""/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{tndsbb}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<summary>
+		<band height="160">
+			<staticText>
+				<reportElement x="0" y="48" width="320" height="38"/>
+				<textElement>
+					<font fontName="Times New Roman" size="12" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Kèm theo: 02 chứng từ gốc (01 Giấy CNBH và 01 Giấy YCBH)
+Hình thức thanh toán: (TM, Séc, Chuyển khoản)]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="0" y="86" width="260" height="40"/>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font fontName="Times New Roman" size="14" isBold="true" isItalic="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["PHÒNG KẾ TOÁN"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="260" y="86" width="259" height="40"/>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font fontName="Times New Roman" size="14" isBold="true" isItalic="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["PHÒNG NGHIỆP VỤ KHAI THÁC"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="519" y="86" width="280" height="40"/>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font fontName="Times New Roman" size="14" isBold="true" isItalic="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["NGƯỜI LẬP"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="20" width="300" height="28"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="12" isBold="false" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Viết bằng chữ  "]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement style="Title" x="0" y="0" width="379" height="20"/>
+				<box>
+					<pen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="true" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Tổng cộng]]></text>
+			</staticText>
+			<textField pattern="#,##0.###;(#,##0.###-)">
+				<reportElement x="746" y="0" width="56" height="20"/>
+				<box padding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.4"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="true" isItalic="false" pdfEncoding=""/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{total}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.###;(#,##0.###-)">
+				<reportElement x="690" y="0" width="56" height="20"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.4"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="true" isItalic="false" pdfEncoding=""/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{tottax}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.###;(#,##0.###-)">
+				<reportElement x="634" y="0" width="56" height="20"/>
+				<box padding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.4"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="true" isItalic="false" pdfEncoding=""/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{allFee}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.###;(#,##0.###-)">
+				<reportElement x="583" y="0" width="51" height="20"/>
+				<box padding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.4"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="true" isItalic="false" pdfEncoding=""/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{totVcx}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.###;(#,##0.###-)">
+				<reportElement x="532" y="0" width="51" height="20"/>
+				<box padding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.4"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="true" isItalic="false" pdfEncoding=""/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{totTnnn_lp}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.###;(#,##0.###-)">
+				<reportElement x="481" y="0" width="51" height="20"/>
+				<box padding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.4"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="true" isItalic="false" pdfEncoding=""/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{totTndshh}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.###;(#,##0.###-)">
+				<reportElement x="430" y="0" width="51" height="20"/>
+				<box padding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.4"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="true" isItalic="false" pdfEncoding=""/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{totTndstn}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.###;(#,##0.###-)">
+				<reportElement x="379" y="0" width="51" height="20"/>
+				<box padding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.4"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" isBold="true" isItalic="false" pdfEncoding=""/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{totTndsbb}]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
+</jasperReport>
