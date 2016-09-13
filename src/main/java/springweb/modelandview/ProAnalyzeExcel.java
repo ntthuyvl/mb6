@@ -42,7 +42,8 @@ public class ProAnalyzeExcel extends AbstractPOIExcelView {
 				excelHeader = (SXSSFRow) excelSheet.createRow(0);
 				location = 0;
 				for (String k : headerRow.keySet()) {
-					excelHeader.createCell(location).setCellValue(headerRow.get(k).replaceAll("<td>", ""));
+					excelHeader.createCell(location)
+							.setCellValue(headerRow.get(k).replaceAll("<td>", "").replaceAll("<th>", ""));
 					location++;
 				}
 			}
@@ -56,9 +57,9 @@ public class ProAnalyzeExcel extends AbstractPOIExcelView {
 				value = item.get(k).replaceAll("<td>", "");
 				excelRow.createCell(location);
 				if (value != null && AppParam.isNumeric(value)
-						&& !headerRow.get(k).replaceAll("<td>", "").equals("ISDN")
-						&& !headerRow.get(k).replaceAll("<td>", "").equals("SIM_SERIAL")
-						&& !headerRow.get(k).replaceAll("<td>", "").equals("SERIAL")) {
+						&& !headerRow.get(k).replaceAll("<th>", "").equals("ISDN")
+						&& !headerRow.get(k).replaceAll("<th>", "").equals("SIM_SERIAL")
+						&& !headerRow.get(k).replaceAll("<th>", "").equals("SERIAL")) {
 					excelRow.getCell(location).setCellType(XSSFCell.CELL_TYPE_NUMERIC);
 					excelRow.getCell(location).setCellValue(Double.valueOf(value));
 				} else

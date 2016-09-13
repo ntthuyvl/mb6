@@ -1,4 +1,4 @@
-<#include "../header.ftl">
+<#include "/header_bt.ftl">
 <SCRIPT>
 	var curtab = '#tab1';
 	var type = 1;
@@ -6,10 +6,10 @@
 	var isdn_list = '';	
 	var isclosed='0';
 	var param=${param};
-	var input_number = "<input type=\"number\">"
+	var input_number = "<input type=\"number\">";
+	var app = 4;
 	
-	function close() {
-		$('input').attr('disabled', 'disabled');
+	function close() {		
 		var dataObj = {
 			"month" : $('input#month').val(),
 			"bill_cycle_id" : $('select#bill_cycle_id').val(),
@@ -24,14 +24,14 @@
 		$.post("/ttcp/hoahongthucuoc/close", dataObj, function(data2, status) {			
 			alert("Đã chốt số liệu");
 			$('input, select').prop('disabled', false);
-			$('input#tonghop, input#chotsolieu').attr('disabled', 'disabled');
+			$('button#tonghop, button#chotsolieu').attr('disabled', 'disabled');
 		});		
 	}
 	
 	
 	
 	function tonghop() {
-		$('input').attr('disabled', 'disabled');
+		$('#alertModal').show();
 		var dataObj = {
 			"month" : $('input#month').val(),
 			"bill_cycle_id" : $('select#bill_cycle_id').val(),
@@ -42,17 +42,17 @@
 		dataObj = {
 			"json" : JSON.stringify(dataObj)
 		};
-		$('section2 header').html("DỮ LIỆU ĐANG ĐƯỢC TỔNG HỢP...");
-		$('in, input, div#content table').hide();
+		//$('section2 header').html("DỮ LIỆU ĐANG ĐƯỢC TỔNG HỢP...");
+		//$('in, input, div#content table').hide();
 		$.post("/ttcp/hoahongthucuoc/tonghop", dataObj, function(data2, status) {
 			call_back_ajax(data2, status);
 			$('section2 header').html("KẾT QỦA THU CƯỚC");
-			$('in, input, div#content table').fadeIn();
+			//$('in, input, div#content table').fadeIn();
 		});		
 	}
 	
 	function bcth() {
-		$('input').attr('disabled', 'disabled');
+		$('#alertModal').show();
 		var dataObj = {
 			"month" : $('input#month').val(),
 			"bill_cycle_id" : $('select#bill_cycle_id').val(),
@@ -73,7 +73,7 @@
 		$.post("/ttcp/hoahongthucuoc/listdetail", dataObj, function(data2, status) {
 			call_back_ajax(data2, status);
 			if (isclosed=='1')
-				$('input#tonghop, input#chotsolieu').attr('disabled', 'disabled');			
+				$('button#tonghop, button#chotsolieu').attr('disabled', 'disabled');			
 		});
 		if (param==1)		
 			$('section2 header').html("THÔNG TIN DẠI LÝ");
@@ -83,14 +83,14 @@
 			$('section2 header').html("KẾT QỦA THU CƯỚC");
 		else if (param==3)
 			$('section2 header').html("VÙNG THU CƯỚC");		
-		$('input#update').hide();
+		$('button#update').hide();
 	}
 
 	$(document)
 			.ready(
 					function() {
 						if (param!=2) {
-							$('in#donvi, input#xuat_bien_ban, input#tonghop, input#chotsolieu').hide();						
+							$('#donvi, button#xuat_bien_ban, button#tonghop, button#chotsolieu').hide();						
 						}else {
 							var dataObj = {
 									"app" : app
@@ -116,11 +116,11 @@
 								});						
 						}
 						$("select#bill_cycle_id").val(${bill_cycle_id});
-						$('input#update').hide();
+						$('button#update').hide();
 						
 						$(document).on('click', 'td.editable', function() {
 								if (isclosed != '1') 
-									$('input#update').fadeIn();									
+									$('button#update').fadeIn();									
 								else 
 								$(this).attr('contenteditable', 'false');
 
@@ -186,17 +186,17 @@
 							}
 						});
 					
-						$('input#getdata').click(function() {
+						$('button#getdata').click(function() {
 							bcth();
 						});
-						$('input#tonghop').click(function() {
+						$('button#tonghop').click(function() {
 							tonghop();
 						});
-						$('input#chotsolieu').click(function() {
+						$('button#chotsolieu').click(function() {
 							close();
 						});
 						
-						$('input#xuat_bien_ban').click(function() {
+						$('button#xuat_bien_ban').click(function() {
 							var dataObj = {
 									"month" : $("input#month").val(),
 									"bill_cycle_id" : $("select#bill_cycle_id").val(),									
@@ -213,7 +213,7 @@
 								x.focus();
 						});						
 						
-						$('input#update')
+						$('button#update')
 								.click(
 										function() {
 											//var uploadFile =true;
@@ -377,7 +377,7 @@
 																		data,
 																		status);
 																$(
-																		'input#update')
+																		'button#update')
 																		.hide();
 																$(
 																		'section2 header')
@@ -395,41 +395,38 @@
 <section2 class="session" style="width: 98%"> <header>
 	HOA HỒNG THU CƯỚC CỦA ĐẠI LÝ</header>
 <ul id="tabs">
+	<div class="container-fluid form-inline">
+		<div class="form-group" id="month">
+			<label for="month" id="month">Tháng</label> <input type="month"
+				class="form-control" id="month" value="${month?string["yyyy-MM"]}">
+		</div>
 
-	<in id="month"> <label id="active_month" style="">Tháng</label> <input
-		type="month" id="month" value="${month?string["yyyy-MM"]}"> </in>
-	<in id="bill_cycle_id"> <label id="bill_cycle_id" style="">Chukỳ
-	</label> <select id="bill_cycle_id" value="${bill_cycle_id}">
-		<option value="1">1</option>
-		<option value="11">11</option>
-		<option value="21">21</option>
-	</select> </in>
-	<input type="submit" id="update" value="Cập nhật"
-		style="width: 110px; float: right;" />
-	<in id="donvi"> <select id="donvi" value="" style="height: 25px">
-		<option value="666666">-- Chọn đơn vị--</option>
-	</select> </in>
-
-
-
-	<input type="submit" id="getdata" value="Lấy số liệu"
-		style="width: 110px;" />
-	<input type="submit" id="xuat_bien_ban" value="Xuất biên bản"
-		style="width: 110px;" />
-	<input type="submit" id="tonghop" value="Tổng hợp"
-		style="width: 110px;" />
-	<input type="submit" id="chotsolieu" value="Chốt số liệu"
-		style="width: 110px;" />
-	<!-- <input name="excelUpload" type="file" id="file" />
-	 -->
-
-
+		<div class="form-group">
+			<label for="bill_cycle_id" id="bill_cycle_id">Chu kỳ</label> <select
+				id="bill_cycle_id" value="${bill_cycle_id}" class="form-control">
+				<option value="1">1</option>
+				<option value="11">11</option>
+				<option value="21">21</option>
+			</select>
+		</div>
+		<div class="form-group">
+			<select id="donvi" class="form-control" value="">
+				<option value="666666">-- Chọn đơn vị--</option>
+			</select>
+		</div>
+		<button type="button" class="btn btn-primary" id="update">Cập
+			nhật</button>
+		<button type="button" class="btn btn-primary" id="getdata">Lấy số liệu</button>
+		<button type="button" class="btn btn-primary" id="xuat_bien_ban">Xuất biên bản</button>
+		<button type="button" class="btn btn-primary" id="tonghop">Tổng hợp</button>
+		<button type="button" class="btn btn-primary" id="chotsolieu">Chốt số liệu</button>
+	</div>
 </ul>
 
 <div id="content">
 	<div id="tab1">
-		<table id="datarp" class="CSSTableGenerator">
-			<tbody></tbody>
+		<table id="datarp"
+			class="CSSTableGenerator table-condensed table-bordered">
 		</table>
 	</div>
 </div>

@@ -1,16 +1,16 @@
-<#include "../../${app_path}/header.ftl">
+<#include "/header_bt.ftl">
 <SCRIPT>
 	var curtab = '#tab1';
 	var type = 1;
 	var table_amar = 'div#list';
 	var isdn_list = '';
-var app = ${app};
+	var app = ${app};
 	function load_tab_data() {
 	};
 
 	$(document)
 			.ready(
-					function() {						
+					function() {
 						tab_present();
 						// 						var today = new Date();
 						// 						var dd = today.getDate();
@@ -70,28 +70,34 @@ var app = ${app};
 	<li><a href="#" name="tab1">Trả trước</a></li>
 	<li><a href="#" name="tab2">Trả sau</a></li>
 
-	<in id="active_sub"> <label id="active_sub" style="">Đang
-		active ngày</label> <input type="date" id="aliving_date"> </in>
-	<in id="tu_ngay"> <label id="tu_ngay" style="">Từ ngày</label> <input
-		type="date" id="tu_ngay" value="${from_date?string["yyyy-MM-dd"]}" >
-	</in>
-	<in id="den_ngay"> <label id="den_ngay" style="">Đến ngày</label>
-	<input type="date" id="den_ngay" value="${to_date?string["yyyy-MM-dd"] }">
-	</in>
-	<input type="submit" id="danh_gia" value="Đánh giá"
-		style="width: 100px; float: right" />
+	<div class="container-fluid form-inline">
+		<div class="form-group" id="aliving_date">
+			<label for="aliving_date" id="aliving_date">Đang active ngày</label>
+			<input type="date" class="form-control" id="aliving_date">
+		</div>
+		<div class="form-group" id="tu_ngay">
+			<label for="tu_ngay">Từ ngày</label> <input type="date"
+				class="form-control" id="tu_ngay" value="${from_date?string["yyyy-MM-dd"]}" >
+		</div>
+		<div class="form-group" id="den_ngay">
+			<label for="den_ngay">Đến ngày</label> <input type="date"
+				class="form-control" id="den_ngay" value="${to_date?string["yyyy-MM-dd"] }">
+		</div>
+		<button type="button" class="btn btn-primary" id="danh_gia">Đánh
+			giá</button>
+	</div>
 </ul>
 
 <div id="content">
 	<div id="tab1">
-		<table id="datarp" class="CSSTableGenerator">			
-			<tbody></tbody>
+		<table id="datarp"
+			class="CSSTableGenerator table-condensed table-bordered">
 		</table>
 		<textarea id="pre"></textarea>
 	</div>
 	<div id="tab2">
-		<table id="datarp" class="CSSTableGenerator">			
-			<tbody></tbody>
+		<table id="datarp"
+			class="CSSTableGenerator table-condensed table-bordered">
 		</table>
 		<textarea id="pos"></textarea>
 	</div>

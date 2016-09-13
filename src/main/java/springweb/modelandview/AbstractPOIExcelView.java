@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.web.servlet.view.AbstractView;
 
@@ -36,7 +37,7 @@ public abstract class AbstractPOIExcelView extends AbstractView {
 
 		Workbook workbook = createWorkbook();
 
-		if (workbook instanceof XSSFWorkbook) {
+		if (workbook instanceof XSSFWorkbook || workbook instanceof SXSSFWorkbook) {
 			setContentType(CONTENT_TYPE_XLSX);
 		} else {
 			setContentType(CONTENT_TYPE_XLS);

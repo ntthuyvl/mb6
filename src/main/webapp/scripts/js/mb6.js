@@ -1,7 +1,6 @@
 var contents;
 var id_changeds = [];
 
-
 function call_back_ajax2(data, status, table_amar) {
 	// alert(JSON.stringify(data));
 	var error = "";
@@ -15,23 +14,52 @@ function call_back_ajax2(data, status, table_amar) {
 		alert(error);
 		self.location = "/j_spring_security_logout";
 	} else if (data.length > 0) {
-		$(table_amar + ' tbody').html("");
-//		var row2 = '<tr>';
-//		for ( var key2 in data[0]) {
-//			row2 = row2 + data[0][key2];
-//		}
-//		row2 = row2 + "</th></tr>";
-//		$(table_amar + ' table thead').html(row2);
-
-		for (i = 0; i < data.length; i++) {
+		var $table = $(table_amar + ' table#datarp');
+		$table.floatThead('destroy');
+		$table.empty();
+		// $table.html('');
+		// $table.append('<thead>');
+		row2 = '<thead><tr>';
+		for ( var key2 in data[0]) {
+			row2 = row2 + data[0][key2];
+		}
+		// alert(row2);
+		$table.append(row2);
+		// $(row2).appendTo(curtab + ' thead');
+		$table.append('<tbody>');
+		var $body = $(table_amar + ' table#datarp tbody');
+		// $(curtab + ' tbody').html("");
+		for (i = 1; i < data.length; i++) {
 			row2 = '<tr>';
 			for ( var key2 in data[0]) {
 				row2 = row2 + data[i][key2];
 			}
-			row2 = row2 + "</td>";
-			$(row2).appendTo(table_amar + " tbody");
+			$body.append(row2);
+			// $(row2).appendTo(curtab + " tbody");
 		}
-		$('input').prop('disabled', false);
+		$('#datarp tr').each(function() {
+			$(this).find("td.thc2").attr('contenteditable', 'true');
+			$(this).find("td.thc2").css("color", "#bf384f");
+			// $(this).find("td.thc2").css("font-weight", "bold");
+			$(this).find("td.thc2").css("font-size", "1em");
+
+			$(this).find("td.editable").css("color", "#bf384f");
+			$(this).find("td.editable").attr('contenteditable', 'true');
+			$(this).find("td.editable").css("font-weight", "bold");
+			$(this).find("td.cnumber").css("text-align", "right");
+			$(this).find('td.cnumber').each(function() {
+				$(this).text(addCommas($(this).text()));
+			});
+		});
+
+		$table.floatThead({
+			scrollContainer : function($table) {
+				return $table.closest('.wrapper');
+				// return $("#content");
+			}
+		});
+
+		//$('input, select, button').prop('disabled', false);
 	}
 };
 
@@ -48,43 +76,56 @@ function call_back_ajax(data, status) {
 		alert(error);
 		self.location = "/j_spring_security_logout";
 	} else if (data.length > 0) {
-		$(curtab + ' tbody').html("");
-		/*
-		 * var row2 = '<tr>'; for ( var key2 in data[0]) { row2 = row2 +
-		 * data[0][key2]; } row2 = row2 + "</th></tr>"; $(curtab + ' table
-		 * thead').html(row2);
-		 */
-		for (i = 0; i < data.length; i++) {
+		var $table = $(curtab + ' table#datarp');
+		$table.floatThead('destroy');
+		$table.empty();
+		// $table.html('');
+		// $table.append('<thead>');
+		row2 = '<thead><tr>';
+		for ( var key2 in data[0]) {
+			row2 = row2 + data[0][key2];
+		}
+		// alert(row2);
+		$table.append(row2);
+		// $(row2).appendTo(curtab + ' thead');
+		$table.append('<tbody>');
+		var $body = $(curtab + ' table#datarp tbody');
+		row2 = '<tr style="display:none;">';
+		for ( var key2 in data[0]) {
+			row2 = row2 + data[0][key2];
+		}
+		$body.append(row2);
+		
+		for (i = 1; i < data.length; i++) {
 			row2 = '<tr>';
 			for ( var key2 in data[0]) {
 				row2 = row2 + data[i][key2];
 			}
-			row2 = row2 + "</td>";
-			$(row2).appendTo(curtab + " tbody");
+			$body.append(row2);
+			// $(row2).appendTo(curtab + " tbody");
 		}
 		$('#datarp tr').each(function() {
 			$(this).find("td.thc2").attr('contenteditable', 'true');
 			$(this).find("td.thc2").css("color", "#bf384f");
-			//$(this).find("td.thc2").css("font-weight", "bold");
-			$(this).find("td.thc2").css("font-size", "1em");		
-			
+			// $(this).find("td.thc2").css("font-weight", "bold");
+			$(this).find("td.thc2").css("font-size", "1em");
+
 			$(this).find("td.editable").css("color", "#bf384f");
 			$(this).find("td.editable").attr('contenteditable', 'true');
 			$(this).find("td.editable").css("font-weight", "bold");
-			$(this).find("td.cnumber").css("text-align", "right");			 
-			$(this).find('td.cnumber').each (function() {
-				$(this).text(addCommas($(this).text()));			
-				});
-			
-			
-			
-			//var number_value =parseFloat($(this).html());
-			//var input_number = "<input type=\"number\" step=\"10000\" style =\"background-color: transparent;border: 0; height:90%; width: 90%; margin: 0;\"  value=\""+$(this).find("td.thc2").html()+"\">"
-			//$(this).find("td.thc2").html(input_number);   				
-			
+			$(this).find("td.cnumber").css("text-align", "right");
+			$(this).find('td.cnumber').each(function() {
+				$(this).text(addCommas($(this).text()));
+			});
 		});
+		$table.floatThead({
+			scrollContainer : function($table) {
+				// return $table.closest('.wrapper');
+				return $("#content");
+			}
 
-		$('input, select').prop('disabled', false);
+		});
+		//$('input, select, button').prop('disabled', false);
 	}
 };
 
@@ -119,11 +160,9 @@ function convertDate(nv_date) {
 function replaceNull(value, key) {
 	return (value == null) ? key : value
 }
-function cNumberUpdate()
-{
-	
-}
+function cNumberUpdate() {
 
+}
 
 function addCommas(nStr) {
 	nStr += '';

@@ -1,4 +1,4 @@
-<#include "../header.ftl">
+<#include "/header_bt.ftl">
 <SCRIPT>
 	var curtab = '#tab1';
 	var dataLoad = {
@@ -25,28 +25,33 @@
 	}
 
 	function getData() {
-		$('input').attr('disabled', 'disabled');
-		$('section h').html("Tạm tính hệ số rời mạng tháng hiện thời");
+		var dd = (new Date()).getDate();
+		if (dd < "10") {
+			$('section2 header').html(
+					"CHỨC NĂNG CHỈ CHẠY ĐƯỢC TỪ NGÀY 10 HÀNG THÁNG");
+			$('select, button').attr('disabled', 'disabled');
+		} else {
+			$('#alertModal').show();
+			var dataObj = {
+				"donvi" : $('select#donvi').val(),
+				"level" : $('select#level').val(),
+				"app" : app
+			}
 
-		var dataObj = {
-			"donvi" : $('select#donvi').val(),
-			"level" : $('select#level').val(),
-			"app" : app
+			dataObj = {
+				"json" : JSON.stringify(dataObj)
+			};
+
+			$.post("list", dataObj, function(data2, status) {
+				call_back_ajax(data2, status);
+			});
 		}
-
-		dataObj = {
-			"json" : JSON.stringify(dataObj)
-		};
-
-		$.post("list", dataObj, function(data2, status) {
-			call_back_ajax(data2, status);
-		});
 	}
 
 	$(document).ready(
 			function() {
 				tab_present();
-				$('input#find').click(function() {
+				$('button#get_data').click(function() {
 					getData();
 				});
 
@@ -71,9 +76,10 @@
 								+ data[i]['002'] + "</option>";
 						$(row).appendTo("select#donvi");
 					}
+					getData();
 				});
 
-				$(document).on('click', 'input#table2excel', function() {
+				$(document).on('click', 'button#table2excel', function() {
 					$(curtab + ' table#datarp').table2excel({
 						// exclude CSS class			
 						exclude : ".noExl",
@@ -81,7 +87,7 @@
 					});
 				});
 
-				$('input#bcct').click(
+				$('button#bcct').click(
 						function() {
 							var dataObj = {
 								"app" : app
@@ -95,32 +101,36 @@
 			})
 </SCRIPT>
 
-<section2 class="session" style="width: 98%"> <header>Tạm
-	tính hệ số rời mạng tháng hiện thời</header>
+<section2 class="session" style="width: 98%"> <header>TẠM
+	TÍNH HSRM ĐẾN NGÀY ${vlr3k3dLatday}</header>
 <ul id="tabs">
+	<div class="container-fluid form-inline">
+		<div class="form-group">
+			<select id="donvi" class="form-control" value="">
+				<option value="666666">-- Chọn đơn vị--</option>
+			</select>
+		</div>
+		<div class="form-group">
+			<select id="level" class="form-control" value="">
+				<option value="0">-- Cấp đơn vị--</option>
+				<option value="1">-- Cấp tỉnh--</option>
+				<option value="2">-- Cấp huyện-</option>
+			</select>
+		</div>
+		<button type="button" class="btn btn-primary" id="get_data">Lấy
+			dữ liệu</button>
+		<button type="button" class="btn btn-primary" id="table2excel">Export
+			to excel</button>
+		<button type="button" class="btn btn-primary" id="bcct">Chi
+			tiết các thuê bao chưa đạt 3K3D</button>
 
-	<in id="donvi"> <select id="donvi" value="" style="height: 25px">
-		<option value="">-- Chọn đơn vị--</option>
-	</select> </in>
-	<in id="level"> <select id="level" value="" style="height: 25px">
-		<option value="0">-- Cấp đơn vị--</option>
-		<option value="1">-- Cấp tỉnh--</option>
-		<option value="2">-- Cấp huyện-</option>
-	</select> </in>
-	<input type="submit" id="find" value="Lấy số liệu"
-		style="width: 120px;" />
-
-	<input type="submit" id="table2excel" value="Excel"
-		style="width: 120px;" />
-	<input type="submit" id="bcct"
-		value="Chi tiết các thuê bao chưa đạt 3K3D" />
-
+	</div>
 </ul>
 
 <div id="content">
 	<div id="tab1">
-		<table id="datarp" class="CSSTableGenerator">
-			<tbody></tbody>
+		<table id="datarp"
+			class="CSSTableGenerator table-condensed table-bordered">
 		</table>
 	</div>
 </div>

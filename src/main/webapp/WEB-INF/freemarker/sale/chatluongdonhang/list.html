@@ -1,12 +1,12 @@
-<#include "../header.ftl">
+<#include "/header_bt.ftl">
 <SCRIPT>
-var app=2;
+	var app = 2;
 	$(document)
 			.ready(
 					function() {
 						tab_present();
 						$('textarea#pre').attr('disabled', 'disabled');
-						$('input#add').click(
+						$('button#add').click(
 								function() {
 									$('textarea#pre').val(
 											$('textarea#pre').val()
@@ -18,7 +18,7 @@ var app=2;
 															.val() + "'\n");
 								});
 
-						$('input#danh_gia')
+						$('button#danh_gia')
 								.click(
 										function() {
 											var dataObj = {
@@ -34,7 +34,7 @@ var app=2;
 														.val(),
 												"den_ngay" : $('input#den_ngay')
 														.val(),
-														"app" : app
+												"app" : app
 											};
 
 											dataObj = {
@@ -60,33 +60,37 @@ var app=2;
 </SCRIPT>
 
 <section2 class="session" style="width: 98%"> <header>
-	HIỆU QUẢ ĐƠN HÀNG</header>
+	HIỆU QUẢ ĐƠN HÀNG THUÊ BAO TRẢ TRƯỚC</header>
 <ul id="tabs">
-	<li><a href="#" name="tab1">Trả trước</a></li>
-	<in id="begin_serial"> <label id="begin_serial" style="">Từ
-		serial </label> <input type="text" id="begin_serial" style="width: 120px;">
-	</in>
-	<in id="end_serial"> <label id="end_serial" style="">đến
-		serial </label> <input type="text" id="end_serial" style="width: 120px;">
-	</in>
-	<input type="submit" id="add" value="Thêm giải serial"
-		style="width: 110px;" />
+	<div class="container-fluid form-inline">
+		<div class="form-group form-inline" id="begin_serial">
+			<input type="text" class="form-control" id="begin_serial"
+				placeholder="Từ serial">
+		</div>
+		<div class="form-group form-inline" id="end_serial">
+			<input type="text" class="form-control" id="end_serial"
+				placeholder="Đến serial">
+		</div>
+		<button type="button" class="btn btn-primary" id="add">Thêm
+			giải serial</button>
+		<div class="form-group" id="tu_ngay">
+			<label for="tu_ngay">Từ ngày</label> <input type="date"
+				class="form-control" id="tu_ngay" value="${from_date?string["yyyy-MM-dd"]}" >
+		</div>
+		<div class="form-group" id="den_ngay">
+			<label for="den_ngay">Đến ngày</label> <input type="date"
+				class="form-control" id="den_ngay" value="${to_date?string["yyyy-MM-dd"]}" >
+		</div>
+		<button type="button" class="btn btn-primary" id="danh_gia">Đánh
+			giá</button>
 
-	<in id="tu_ngay"> <label id="tu_ngay" style="">Từ ngày</label> <input
-		type="date" id="tu_ngay" value="${from_date?string["yyyy-MM-dd"]}" >
-	</in>
-	<in id="den_ngay"> <label id="den_ngay" style="">đến ngày</label>
-	<input type="date" id="den_ngay" value="${to_date?string["yyyy-MM-dd"] }">
-	</in>
-	<input type="submit" id="danh_gia" value="Đánh giá"
-		style="float: right; width: 80px;" />
-
+	</div>
 </ul>
 
 <div id="content">
 	<div id="tab1">
-		<table id="datarp" class="CSSTableGenerator">			
-			<tbody></tbody>
+		<table id="datarp"
+			class="CSSTableGenerator table-condensed table-bordered">
 		</table>
 		<textarea id="pre"></textarea>
 	</div>

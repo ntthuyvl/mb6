@@ -21,22 +21,16 @@
 package springsecurity;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import javax.naming.ldap.InitialLdapContext;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.authority.GrantedAuthorityImpl;
-
-import pojo.Account;
 import pojobase.interfaces.AccountBase;
 
 public class LdapAuthenticationToken extends AbstractAuthenticationToken {
@@ -56,8 +50,7 @@ public class LdapAuthenticationToken extends AbstractAuthenticationToken {
 	 * @param defaultAuthority
 	 */
 
-	public LdapAuthenticationToken(AccountBase accountBase,
-			Authentication auth, GrantedAuthority defaultAuthority) {
+	public LdapAuthenticationToken(AccountBase accountBase, Authentication auth, GrantedAuthority defaultAuthority) {
 		super(new ArrayList<GrantedAuthority>());
 		this.auth = auth;
 		this.accountBase = accountBase;
@@ -77,8 +70,7 @@ public class LdapAuthenticationToken extends AbstractAuthenticationToken {
 	 * @param auth
 	 * @param defaultAuthority
 	 */
-	public LdapAuthenticationToken(AccountBase accountBase,
-			Authentication auth, String defaultAuthority) {
+	public LdapAuthenticationToken(AccountBase accountBase, Authentication auth, String defaultAuthority) {
 		this(accountBase, auth, new GrantedAuthorityImpl(defaultAuthority));
 	}
 

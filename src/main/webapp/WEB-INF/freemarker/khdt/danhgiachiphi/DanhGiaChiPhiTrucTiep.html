@@ -1,4 +1,4 @@
-<#include "../header.ftl">
+<#include "/header_bt.ftl">
 <SCRIPT>
 	var curtab = '#tab1';
 	var type = 1;
@@ -9,8 +9,7 @@
 	var app = 5;
 
 	function getData() {
-		$('input').attr('disabled', 'disabled');
-
+		$('#alertModal').show();
 		var dataObj = {
 			"thang_kh" : $('input#thang_kh').val(),
 			"donvi" : $('select#donvi').val(),
@@ -31,22 +30,22 @@
 
 	$(document).ready(
 			function() {
-				$(document).on('click', 'input#table2excel', function() {
+				$(document).on('click', 'button#table2excel', function() {
 					$("table#datarp").table2excel({
 						// exclude CSS class			
 						exclude : ".noExl",
 						name : "Excel Document Name"
 					});
 				});
-				var dataObj = {						
-						"app" : app
-					};
+				var dataObj = {
+					"app" : app
+				};
 
-					dataObj = {
-						"json" : JSON
-								.stringify(dataObj)
-					};
-				$.getJSON("/khdt/khsxkd/donvi", dataObj, function(data, textStatus) {
+				dataObj = {
+					"json" : JSON.stringify(dataObj)
+				};
+				$.getJSON("/khdt/khsxkd/donvi", dataObj, function(data,
+						textStatus) {
 					$('select#donvi option').remove();
 					var row;
 					/*
@@ -61,7 +60,7 @@
 						$(row).appendTo("select#donvi");
 					}
 				});
-				$('input#getdata').click(function() {
+				$('button#getdata').click(function() {
 					getData();
 				});
 				tab_present();
@@ -70,35 +69,44 @@
 </SCRIPT>
 <section2 class="session" style="width: 98%"> <header>
 	ĐÁNH GIÁ CHI PHÍ TRỰC TIẾP CÁC CHƯƠNG TRÌNH </header>
-<ul id="tabs">
+<div class="container-fluid form-inline">
+	<div class="form-group" id="thang_kh">
+		<label for="thang_kh">Tháng kích hoạt</label> <input type="month"
+			class="form-control" id="thang_kh">
+	</div>
 
-	<in id="thang_kh"> <label id="thang_kh" style="">Tháng
-		kích hoạt</label> <input type="month" id="thang_kh"> </in>
-	<in id="tu_ngay"> <label id="dg_tu_ngay" style="">Đánh
-		giá từ ngày</label> <input type="date" id="dg_tu_ngay"> </in>
-	<in id="den_ngay"> <label id="dg_den_ngay" style="">đến
-		ngày</label> <input type="date" id="dg_den_ngay"> </in>
-	<in id="donvi"> <select id="donvi" value="" style="height: 25px">
-		>
-		<option value="">-- Chọn đơn vị--</option>
-	</select> </in>
-	<in id="level"> <select id="level" value="" style="height: 25px">
-		>
-		<option value="0">-- Cấp đơn vị--</option>
-		<option value="1">-- Cấp tỉnh--</option>
-		<option value="2">-- Cấp huyện-</option>
-	</select> </in>
-	<input type="submit" id="table2excel" value="ToExcel"
-		style="width: 80px;" />
-	<input type="submit" id="getdata" value="Đánh giá"
-		style="width: 80px;" />
+	<div class="form-group">
+		<select id="donvi" class="form-control" value="">
+			<option value="666666">-- Chọn đơn vị--</option>
+		</select>
+	</div>
+	<div class="form-group">
+		<select id="level" class="form-control" value="">
+			<option value="0">-- Cấp đơn vị--</option>
+			<option value="1">-- Cấp tỉnh--</option>
+			<option value="2">-- Cấp huyện-</option>
+		</select>
+	</div>
+</div>
+<div class="container-fluid form-inline" style="padding: 10px 0 0 0">
+	<div class="form-group" id="dg_tu_ngay">
+		<label for="dg_tu_ngay">Đánh giá từ ngày</label> <input type="date"
+			class="form-control" id="dg_tu_ngay">
+	</div>
 
-</ul>
-
+	<div class="form-group" id="dg_den_ngay">
+		<label for="dg_den_ngay">đến ngày</label> <input type="date"
+			class="form-control" id="dg_den_ngay">
+	</div>
+	<button type="button" class="btn btn-primary" id="getdata">Đánh
+		giá</button>
+	<button type="button" class="btn btn-primary" id="table2excel">Xuất
+		excel</button>
+</div>
 <div id="content">
 	<div id="tab1">
-		<table id="datarp" class="CSSTableGenerator">
-			<tbody></tbody>
+		<table id="datarp"
+			class="CSSTableGenerator table-condensed table-bordered">
 		</table>
 	</div>
 </div>

@@ -147,4 +147,16 @@ public interface MsaleBase {
 	List<Map<String, String>> lncc_result_detail(String user_name, String json);
 
 	List<Map<String, String>> getLnccActList(String user_name, String json);
+
+	List<Map<String, String>> mobitv_roimang(String user_name, String json);
+
+	List<Map<String, String>> mobitv_care_history(String user_name, String json);
+
+	List<Map<String, String>> add_mobitv_care_history(String user_name, String json);
+
+	List<Map<String, String>> mobitv_ketqua(String user_name, String json);
+
+	List<Map<String, String>> chiTietCell(String user_name, String json);
+
+	Object getVlr3k3dLatday();
 }

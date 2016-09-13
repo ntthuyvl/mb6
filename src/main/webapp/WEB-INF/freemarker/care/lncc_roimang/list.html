@@ -1,4 +1,4 @@
-<#include "../header.ftl">
+<#include "/header_bt.ftl">
 <SCRIPT>
 	var curtab = '#tab1';
 	var dataLoad = {
@@ -74,9 +74,7 @@
 
 	}
 
-	function tracuu() {
-		$('input').attr('disabled', 'disabled');
-		$('section h').html("THUÊ BAO LÂU NĂM CƯỚC CAO CÓ NGUY CƠ RỜI MẠNG");
+	function tracuu() {		
 		var dataObj = {
 			"isdn" : $('input#isdn').val(),
 			"app" : app
@@ -92,8 +90,7 @@
 	}
 
 	function getData() {
-		$('input').attr('disabled', 'disabled');
-		$('section h').html("THUÊ BAO LÂU NĂM CƯỚC CAO CÓ NGUY CƠ RỜI MẠNG");
+		$('#alertModal').show();		
 		var dataObj = {
 			"donvi" : $('select#donvi').val(),
 			"app" : app
@@ -105,6 +102,7 @@
 
 		$.post("list", dataObj, function(data2, status) {
 			call_back_ajax(data2, status);
+
 		});
 	}
 
@@ -120,7 +118,7 @@
 		};
 
 		$.post("sub_care_history", dataObj, function(data2, status) {
-			call_back_ajax2(data2, status, '#act_rp');
+			call_back_ajax2(data2, status, '#myModal');
 		});
 	}
 
@@ -154,15 +152,15 @@
 			function() {
 				tab_present();
 				load_donvi_list();
-				$('input#find').click(function() {
+				$('button#find').click(function() {
 					tracuu();
 				});
 
-				$('input#get_data').click(function() {
+				$('button#get_data').click(function() {
 					getData();
 				});
 
-				$(document).on('click', 'input#table2excel', function() {
+				$(document).on('click', 'button#table2excel', function() {
 					$(curtab + ' table#datarp').table2excel({
 						// exclude CSS class			
 						exclude : ".noExl",
@@ -183,7 +181,7 @@
 							.html();
 							getCareHistory();
 							$('h2#his_head').html(
-									"LỊCH SỬ HOẠT ĐỘNG CHĂM SÓC KHÁCH HÀNG "
+									"LỊCH SỬ HOẠT ĐỘNG CSKH "
 											+ $(this).closest("tr") // Finds the closest row <tr> 
 											.find("td#isdn") // Gets a descendent with id="id"
 											.text() + " SUB_ID " + sub_id);
@@ -193,13 +191,13 @@
 					$('#myModal').hide();
 				});
 
-				$('input#bcth').click(function() {
+				$('button#bcth').click(function() {
 					//var x = window.open("ketqua");	x.focus();
 					window.location.href = "ketqua"
 
 				});
 
-				$('input#ok').click(function() {
+				$('button#ok').click(function() {
 					addCareHistory();
 					$('#myModal').hide();
 				});
@@ -209,29 +207,32 @@
 <section2 class="session" style="width: 98%"> <header>THUÊ
 	BAO LÂU NĂM CƯỚC CAO CÓ NGUY CƠ RỜI MẠNG</header>
 <ul id="tabs">
+	<div class="container-fluid form-inline">
+		<div class="form-group">
+			<select id="donvi" class="form-control" value="">
+				<option value="666666">-- Chọn đơn vị--</option>
+			</select>
+		</div>
 
-	<in id="donvi"> <select id="donvi" value="" style="height: 25px">
-		<option value="666666">-- Chọn đơn vị--</option>
-	</select> </in>
-	<input type="submit" id="get_data" value="Lấy số liệu"
-		style="width: 120px;" />
+		<button type="button" class="btn btn-primary" id="get_data">Lấy
+			số liệu</button>
+		<div class="form-group">
+			<label for="isdn">Isdn </label> <input type="text"
+				class="form-control" id="isdn" placeholder="903456789">
+		</div>
+		<button type="button" class="btn btn-primary" id="find">Tra
+			cứu</button>
+		<button type="button" class="btn  btn-primary" id="table2excel">Excel</button>			
+		<button type="button" class="btn  btn-primary" id="bcth">Báo
+			cáo tổng hợp</button>
 
-	<input type="submit" id="table2excel" value="Excel"
-		style="width: 120px;" />
-
-	<in id="isdn" style="float: right"> <label id="isdn" style="">ISDN
-	</label> <input type="text" id="isdn" style="width: 100px; height: 20px">
-	<input type="submit" id="find" value="Tra cứu" style="width: 120px;" />
-	<input type="submit" id="bcth" value="Báo cáo tổng hợp"
-		style="width: 120px;" /> </in>
-
-
+	</div>
 </ul>
 
 <div id="content">
 	<div id="tab1">
-		<table id="datarp" class="CSSTableGenerator">
-			<tbody></tbody>
+		<table id="datarp"
+			class="CSSTableGenerator table-condensed table-bordered">
 		</table>
 	</div>
 </div>
@@ -247,24 +248,32 @@
 		</div>
 		<div class="modal-body">
 
-			<in id="act"> <label id="act" style="">Hành động </label> <select
-				id="act" value="0" style="height: 25px">
-				<option value="0">-- Thêm ghi chú--</option>
-			</select> </in>
-			<in id="status_act_care"> <label id="status_act_care" style="">Trạng
-				thái </label> <select id="status_act_care" value="1" style="height: 25px">
-				<option value="1">-- Đã xong--</option>
-				<option value="0">-- Đang thực hiện--</option>
-			</select> </in>
-			<in id="comment"> <label id="comment" style="">Ghi chú </label>
-			<input type="text" id="comment" style="width: 400px; height: 21px;">
-			</in>
+			<div class="container-fluid form-inline">
+				<div class="form-group">
+					<label for="act">Hành động </label> <select id="act" value="0"
+						class="form-control">
+						<option value="0">-- Thêm ghi chú--</option>
+					</select>
+				</div>
+				<div class="form-group">
+					<label for="status_act_care">Trạng thái </label> <select
+						id="status_act_care" value="0" class="form-control">
+						<option value="1">-- Đã xong--</option>
+						<option value="0">-- Đang thực hiện--</option>
+					</select>
+				</div>
 
-			<input type="submit" id="ok" value="Thêm" style="width: 120px;" />
+				<div class="form-group">
+					<label for="comment">Ghi chú </label> <input type="text"
+						class="form-control" id="comment" placeholder="">
+				</div>
 
-			<table id="act_rp" class="CSSTableGenerator"
-				style="margin: 30px 0px 20px 0;">
-				<tbody></tbody>
+				<button type="button" class="btn btn-primary" id="ok">Thêm</button>
+
+			</div>
+
+			<table id="datarp"
+				class="CSSTableGenerator table-condensed table-bordered">
 			</table>
 		</div>
 		<div class="modal-footer">

@@ -4,24 +4,15 @@ package tool;
 * Original version available from:
 * http://www.coderanch.com/t/420958/open-source/Copying-sheet-excel-file-another
 **/
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-
-import org.apache.poi.EncryptedDocumentException;
-import org.apache.poi.hssf.usermodel.HSSFCell;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.ss.util.CellRangeAddress;
 
 public class Util {
@@ -79,7 +70,7 @@ public class Util {
 		// manage a list of merged zone in order to not insert two times a
 		// merged zone
 		Set<CellRangeAddressWrapper> mergedRegions = new TreeSet<CellRangeAddressWrapper>();
-		
+
 		destRow.setHeight(srcRow.getHeight());
 		// reckoning delta rows
 		int deltaRows = destRow.getRowNum() - srcRow.getRowNum();
@@ -113,6 +104,7 @@ public class Util {
 						try {
 							destSheet.addMergedRegion(wrapper.range);
 						} catch (Exception e) {
+							e.printStackTrace();
 						}
 					}
 				}
@@ -148,7 +140,7 @@ public class Util {
 			newCell.setCellValue(oldCell.getNumericCellValue());
 			break;
 		case Cell.CELL_TYPE_BLANK:
-			newCell.setCellType(HSSFCell.CELL_TYPE_BLANK);
+			newCell.setCellType(Cell.CELL_TYPE_BLANK);
 			break;
 		case Cell.CELL_TYPE_BOOLEAN:
 			newCell.setCellValue(oldCell.getBooleanCellValue());

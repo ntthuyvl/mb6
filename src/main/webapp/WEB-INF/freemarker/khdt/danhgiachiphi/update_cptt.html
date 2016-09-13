@@ -1,6 +1,6 @@
-<#include "../header.ftl">
+<#include "/header_bt.ftl">
 <SCRIPT>
-	var curtab = '#tab1';	
+	var curtab = '#tab1';
 	var app = 5;
 	var dataLoad = {
 		"#tab1" : 0,
@@ -9,7 +9,8 @@
 
 	function load_tab_data() {
 		var dataObj = {
-				"app" : app}
+			"app" : app
+		}
 		dataObj = {
 			"json" : JSON.stringify(dataObj)
 		};
@@ -24,7 +25,7 @@
 	$(document)
 			.ready(
 					function() {
-						$(document).on('click', 'input#table2excel',
+						$(document).on('click', 'button#table2excel',
 								function() {
 									$("table#datarp").table2excel({
 										// exclude CSS class			
@@ -32,25 +33,23 @@
 										name : "Excel Document Name"
 									});
 								});
-						
-						
+
 						$(document).on('blur', 'td.editable', function() {
-							var contents = $(this).text();							
+							var contents = $(this).text();
 						});
-						
-						
-						$(document).on('blur', 'td.cnumber', function() {							
-							var content=$(this).text().replace(/,/g,"");
+
+						$(document).on('blur', 'td.cnumber', function() {
+							var content = $(this).text().replace(/,/g, "");
 							//alert(content);
-							if (content.length > 0){								
+							if (content.length > 0) {
 								$(this).text(addCommas(Number(content)));
-							}						
-							
+							}
+
 							var cur_contents = $(this).html();
 							if (contents != cur_contents) {
 								var id = $(this).closest("tr") // Finds the closest row <tr> 
 								.find("#id") // Gets a descendent with id="id"
-								.html();								
+								.html();
 								/*
 								if (isNaN(cur_contents))
 									$(this).html(contents)
@@ -59,10 +58,10 @@
 								 */
 
 								id_changeds.push(id)
-								$('input#update').fadeIn();
+								$('button#update').fadeIn();
 							}
 						});
-						
+
 						$(document).on(
 								'click',
 								'td.thc2',
@@ -77,7 +76,7 @@
 
 								});
 
-						$('input#update')
+						$('button#update')
 								.click(
 										function() {
 											var cp = [];
@@ -107,8 +106,14 @@
 																				id_changeds) != -1) {
 																	o = {
 																		"id" : id,
-																		"cpkh" : cpkh.replace(/,/g,""),
-																		"cptt" : cptt.replace(/,/g,"")
+																		"cpkh" : cpkh
+																				.replace(
+																						/,/g,
+																						""),
+																		"cptt" : cptt
+																				.replace(
+																						/,/g,
+																						"")
 																	};
 																	cp.push(o);
 																}
@@ -138,7 +143,7 @@
 																		data,
 																		status);
 																$(
-																		'input#update')
+																		'button#update')
 																		.hide();
 																$(
 																		'section2 header')
@@ -153,20 +158,20 @@
 </SCRIPT>
 
 <section2 class="session" style="width: 98%"> <header>CHI
-	PHÍ TRUC TIEP </header>
-<ul id="tabs">	
-	<div>
-
-		<input type="submit" id="update" value="Cập nhật"
-			style="width: 110px; float: right;" /> <input type="submit"
-			id="table2excel" value="Excel" style="width: 110px; float: right;" />
+	PHÍ TRỰC TIẾP </header>
+<ul id="tabs">
+	<div class="container-fluid form-inline">
+		<button type="button" class="btn btn-primary" id="table2excel">Export
+			to excel</button>
+		<button type="button" class="btn btn-primary" id="update">Cập
+			nhật</button>
 	</div>
 </ul>
 
 <div id="content">
 	<div id="tab1">
-		<table id="datarp" class="CSSTableGenerator">
-			<tbody></tbody>
+		<table id="datarp"
+			class="CSSTableGenerator table-condensed table-bordered">
 		</table>
 	</div>
 </div>

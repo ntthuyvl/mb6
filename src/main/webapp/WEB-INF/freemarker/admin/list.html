@@ -1,4 +1,4 @@
-<#include "../header.ftl">
+<#include "/header_bt.ftl">
 <SCRIPT>
     var curtab='#tab1';
     var dataLoad= {"#tab1":0,"#tab2":0,"#tab3":0};
@@ -21,7 +21,7 @@
                 dataObj,
                 function(data2,
                     status) {                    
-            	call_back_ajax(data2,status);
+            	call_back_ajax2(data2,status,curtab);
             	if (curtab=="#tab2"){//Tab 2 vua dc chon
                 	province_count = 0;    			
                 	$('input#pro_check:checked').each(function() {    				
@@ -41,12 +41,12 @@
         $(document).ready(function() {        	
         	tab_present();            
             
-            $(document).on('click', 'input#chung', function() {
+            $(document).on('click', 'button#chung', function() {
             	dataLoad= {"#tab1":0,"#tab2":0,"#tab3":0};
             	load_tab_data();            	            	
             });
             
-            $('input#update').click(function() {
+            $('button#update').click(function() {
             	var roles = [];
             	var provinces = [];
             	var districts = [];            	
@@ -83,7 +83,7 @@
                         dataObj,
                         function(data,
                             status) {
-                	call_back_ajax(data,status);
+                	call_back_ajax2(data,status,curtab);
                 	alert ("Đã cập nhật thành công")
                         });
             	
@@ -112,9 +112,7 @@
                 }            		
             	else $('a[name="tab3"]').hide();
             });
-            $(document).on('click', 'input#dic_check', function() { 
-            	                
-            });
+            
             
         });
     </SCRIPT>
@@ -125,27 +123,35 @@
 	<li><a href="#" name="tab1">Vai trò</a></li>
 	<li><a href="#" name="tab2">Tỉnh</a></li>
 	<li><a href="#" name="tab3">Huyện</a></li>
-	<in> <label>Tài khoản</label> <input type="text" id="account">
-	</in>
-	<input type="submit" id="chung" value="Tìm kiếm" style="width: 110px;" />
-	<input type="submit" id="update" value="Cập nhật" style="width: 110px;" />
+	<div class="container-fluid form-inline">
+		<div class="form-group">
+			<label for="tu_ngay">Tài khoản</label> <input type="text"
+				class="form-control" id="account">
+		</div>
+		
+
+		<button type="button" class="btn btn-primary" id="chung">Tìm kiếm</button>
+		<button type="button" class="btn btn-primary" id="update">Cập nhật</button>	
+
+	</div>
+	
 
 </ul>
 
 <div id="content">
 	<div id="tab1">
-		<table id="datarp" class="CSSTableGenerator">
-			<tbody></tbody>
+		<table id="datarp"
+			class="CSSTableGenerator table-condensed table-bordered">
 		</table>
 	</div>
 	<div id="tab2">
-		<table id="datarp" class="CSSTableGenerator">
-			<tbody></tbody>
+		<table id="datarp"
+			class="CSSTableGenerator table-condensed table-bordered">
 		</table>
 	</div>
 	<div id="tab3">
-		<table id="datarp" class="CSSTableGenerator">
-			<tbody></tbody>
+		<table id="datarp"
+			class="CSSTableGenerator table-condensed table-bordered">
 		</table>
 	</div>
 </div>

@@ -7,13 +7,10 @@ import java.util.TreeMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-
 import pojo.HoaHongThuCuoc;
 import pojo.HoaHongThuCuocTrongDs;
 import pojo.Mb6Fillter;
@@ -22,7 +19,6 @@ import pojo.MsaleReseller;
 import pojo.SubReg;
 import pojobase.interfaces.MsaleBase;
 import springweb.controllers.AjaxController;
-
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -42,7 +38,7 @@ import java.text.SimpleDateFormat;
 public class MsaleOracleBase extends OracleBase implements MsaleBase {
 	private static HashMap<String, Mb6Fillter> filterBuiledMap = new HashMap<String, Mb6Fillter>();
 	private static ArrayList<String> provinceNumberList = new ArrayList<String>();
-	private static String ct = "6";
+
 	// private static Logger logger =
 	// Logger.getLogger(OracleBase.class.getName());
 
@@ -73,9 +69,9 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 		pojo = new TreeMap<String, String>();
 		List<Map<String, String>> pojoList = new LinkedList<Map<String, String>>();
 		// put header
-		pojo.put("000", "<td>STT");
+		pojo.put("000", "<th>STT");
 		for (int i = 1; i <= numberOfColumns; i++) {
-			pojo.put(String.format("%03d", i), "<td>" + rsMetaData.getColumnName(i));
+			pojo.put(String.format("%03d", i), "<th>" + rsMetaData.getColumnName(i));
 		}
 		pojoList.add(pojo);
 		int rowcount = 0;
@@ -126,9 +122,9 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 		pojo = new TreeMap<String, String>();
 		List<Map<String, String>> pojoList = new LinkedList<Map<String, String>>();
 		// put header
-		pojo.put("000", "<td>STT");
+		pojo.put("000", "<th>STT");
 		for (int i = 1; i <= numberOfColumns; i++) {
-			pojo.put(String.format("%03d", i), "<td>" + rsMetaData.getColumnName(i));
+			pojo.put(String.format("%03d", i), "<th>" + rsMetaData.getColumnName(i));
 		}
 		pojoList.add(pojo);
 		int rowcount = 0;
@@ -172,10 +168,28 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 	public List<MsaleReseller> getReselers(String user_name) throws SQLException {
 		Connection conn = getConnection();
 		Statement sttm = conn.createStatement();
-		ResultSet rs = sttm.executeQuery(
-				"SELECT tinh_thanh_pho id_tinh,quan_huyen id_huyen,id,ten_cua_hang,dia_chi,so_ez_nhan_tien,vi_do ||',' || kinh_do googeladdress"
-						+ "  FROM out_data.diem_ban_hang_msale_v where tinh_thanh_pho in (370,380,390,520)"
-						+ "  and nvl(so_ez_nhan_tien,'0')<>'0' and is_active=1");
+		String sql = "SELECT /*+DRIVING_SITE(c)*/  SUBSTR(E.DISTRICT_CODE,1,3) PROVINCE, SUBSTR(E.DISTRICT_CODE,4) DISTRICT, "
+				+ "TO_CHAR(C.MEMBER_ID) ID_DIEM_BAN, C.MEMBER_CODE MA_DIEM_BAN, C.MEMBER_NAME TEN_DIEM_BAN,"
+				+ "C.CONTACT_PHONE, C.LATITUDE||',' ||C.LONGTITUDE googeladdress,replace(C.ADDRESS,chr(10),'') ADDRESS, C.WEBSITE MA_KENH,"
+				+ "A.MEMBER_ID ID_NV_QL, A.MEMBER_CODE MA_NV_QL, A.MEMBER_NAME TEN_NV_QL"
+				+ ",case when c.create_date >= trunc(sysdate-10,'MM') then 1 else 0 end new_member"
+				+ "    FROM MSALES.MEMBER@MSALES_NEW C"
+				+ "         LEFT JOIN MSALES.SALE_ROUTE@MSALES_NEW B ON B.MEMBER_ID = C.MEMBER_ID AND B.STATUS = 1"
+				+ "         LEFT JOIN MSALES.MEMBER@MSALES_NEW A ON B.STAFF_ID = A.MEMBER_ID"
+				+ "         LEFT JOIN MSALES.DISTRICT@MSALES_NEW E ON C.PROVINCE_ID = E.PROVINCE_ID AND C.DISTRICT_ID = E.DISTRICT_ID"
+				+ "          LEFT JOIN out_data.KPI_C6_CHANNEL K ON C.WEBSITE = K.CHANNEL_CODE"
+				+ "    WHERE C.CHANNEL_PATH LIKE '>1>7>%' AND SUBSTR(E.DISTRICT_CODE,1,3) IN ('THO','NAN','HTI','QBI') AND C.MEMBER_TYPE !=7 AND C.STATUS  = 1"
+				+ " and c.longtitude is not null and c.latitude is not null";
+		ResultSet rs = sttm.executeQuery(sql);
+		/*
+		 * ResultSet rs = sttm.executeQuery(
+		 * "SELECT tinh_thanh_pho id_tinh,quan_huyen id_huyen,id,ten_cua_hang,dia_chi,so_ez_nhan_tien,vi_do ||',' || kinh_do googeladdress"
+		 * +
+		 * "  FROM out_data.diem_ban_hang_msale_v where tinh_thanh_pho in (370,380,390,520)"
+		 * +
+		 * "  and nvl(so_ez_nhan_tien,'0')<>'0' and is_active=1 and vi_do is not null and kinh_do is not null"
+		 * );
+		 */
 		List<MsaleReseller> pojoList = new LinkedList<MsaleReseller>();
 		String app = "2";
 		MsaleReseller pojo;
@@ -184,16 +198,16 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 		Mb6Fillter mb6Fillter = filterBuiledMap.get(user_name + ".." + app);
 
 		while (rs != null && rs.next()) {
-			if (mb6Fillter.isAllProvince() || mb6Fillter.getProvince_msaleList().contains("" + rs.getString("id_tinh"))
+			if (mb6Fillter.isAllProvince() || mb6Fillter.getProvinceList().contains("" + rs.getString("province"))
 					&& (mb6Fillter.isAllDistrict()
-							|| mb6Fillter.getDistrict_msaleList().contains("" + rs.getString("id_huyen")))) {
-
+							|| mb6Fillter.getDistrictList().contains("" + rs.getString("district")))) {
 				pojo = new MsaleReseller();
-				pojo.setId(rs.getInt("id"));
-				pojo.setTen_cua_hang(rs.getString("ten_cua_hang"));
-				pojo.setDia_chi(rs.getString("dia_chi"));
-				pojo.setSo_ez_nhan_tien(rs.getString("so_ez_nhan_tien"));
+				pojo.setId(rs.getString("ID_DIEM_BAN"));
+				pojo.setTen_cua_hang(rs.getString("TEN_DIEM_BAN"));
+				pojo.setDia_chi(rs.getString("ADDRESS"));
+				pojo.setSo_ez_nhan_tien(rs.getString("CONTACT_PHONE"));
 				pojo.setGoogelAddress(rs.getString("googeladdress"));
+				pojo.setNew_member(rs.getString("new_member"));
 				pojoList.add(pojo);
 			}
 		}
@@ -349,92 +363,6 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 		conn.close();
 		return pojoList;
 
-	}
-
-	@Override
-	public List<Map<String, String>> getKhdnNewActive(String user_name, Date from_date, Date to_date) {
-		Connection conn = null;
-		ResultSet rs = null;
-		String app = "1";
-		PreparedStatement prpStm = null;
-		try {
-			conn = getConnection();
-			conn.setAutoCommit(false);
-			if (filterBuiledMap.get(user_name + ".." + app) == null)
-				buildFilter(user_name, app);
-			Mb6Fillter mb6Fillter = filterBuiledMap.get(user_name + ".." + app);
-			String province_condition = "", district_condition = "";
-
-			if (!mb6Fillter.isAllProvince()) {
-				for (String province : mb6Fillter.getProvinceList()) {
-					province_condition = province_condition + " ,'" + province + "'";
-				}
-				try {
-					province_condition = " and province_reg in (" + province_condition.substring(2) + " )";
-				} catch (Exception e) {
-					province_condition = "";
-				}
-			}
-			if (!mb6Fillter.isAllDistrict()) {
-				for (String district : mb6Fillter.getDistrictList()) {
-					district_condition = district_condition + " ,'" + district + "'";
-				}
-				try {
-					district_condition = " and district_reg in (" + district_condition.substring(2) + " )";
-				} catch (Exception e) {
-					district_condition = "";
-				}
-
-			}
-			String sql = "  SELECT   province_reg province, sub_type, COUNT(sub_id) tot_sub FROM   (SELECT	 sub_id"
-					+ "					,hlr_isdn,active_datetime,province_reg,district_reg"
-					+ "					,sub_type,emp_code_reg FROM	 out_data.mc_subscriber_mv"
-					+ "			 WHERE		(delete_datetime IS NULL OR delete_datetime >= TO_DATE(?, 'YYYY-MM-DD'))"
-					+ "					 AND cen_reg = 6 AND(kit_id = 4 OR sub_type = 'ETK')"
-					+ "					 AND shop_code_reg IS NOT NULL"
-					+ "					 AND active_datetime >= TO_DATE(?, 'YYYY-MM-DD')"
-					+ "					 AND active_datetime < TO_DATE(?, 'YYYY-MM-DD') + 1 " + province_condition
-					+ district_condition + " )" + "GROUP BY   ROLLUP(province_reg, sub_type)";
-
-			//
-			// "SELECT province, sub_type, COUNT(sub_id) tot_sub"
-			// + " FROM (SELECT sub_id, isdn, active_datetime,
-			// province,district"
-			// + " , sub_type,emp_code FROM cntt_c6.pre_vms_active"
-			// + " WHERE cen_code = 6 AND(kit_id = 4 OR sub_type = 'ETK')"
-			// + " AND shop_code IS NOT NULL AND active_datetime >= TO_DATE(?,
-			// 'YYYY-MM-DD')"
-			// + " AND active_datetime < TO_DATE(?, 'YYYY-MM-DD') + 1 " +
-			// province_condition + district_condition
-			// + " ) GROUP BY ROLLUP (province, sub_type)";
-
-			// syslog(sql);
-			prpStm = conn.prepareStatement(sql);
-			prpStm.setString(1, AjaxController.YYYY_MM_DD_FORMAT.format(from_date));
-			prpStm.setString(2, AjaxController.YYYY_MM_DD_FORMAT.format(from_date));
-			prpStm.setString(3, AjaxController.YYYY_MM_DD_FORMAT.format(to_date));
-
-			rs = prpStm.executeQuery();
-			List<Map<String, String>> pojoList = new LinkedList<Map<String, String>>();
-			Map<String, String> pojo;
-			long tot_sub_all = 0, tot_sub = 0;
-			while (rs != null && rs.next()) {
-				pojo = new TreeMap<String, String>();
-				pojo.put("province", rs.getString("province"));
-				pojo.put("sub_type", rs.getString("sub_type"));
-				pojo.put("tot_sub", rs.getString("tot_sub"));
-				tot_sub = rs.getLong("tot_sub");
-				tot_sub_all = tot_sub_all + tot_sub;
-				pojoList.add(pojo);
-			}
-			pojo = new TreeMap<String, String>();
-			pojo.put("tot_sub_all", String.valueOf(tot_sub_all));
-			return pojoList;
-		} catch (Exception e) {
-			return getError(e);
-		} finally {
-			clean(conn, prpStm, rs);
-		}
 	}
 
 	@Override
@@ -648,36 +576,8 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 				prpStm.setString(6, ez);
 
 			}
-
 			rs = prpStm.executeQuery();
-			ResultSetMetaData rsMetaData = rs.getMetaData();
-			int numberOfColumns = rsMetaData.getColumnCount();
-			TreeMap<String, String> pojo = new TreeMap<String, String>();
-			// put header
-			pojo.put("000", "<td>STT");
-			for (int i = 1; i <= numberOfColumns; i++) {
-				pojo.put(String.format("%03d", i), "<td>" + rsMetaData.getColumnName(i));
-			}
-			pojoList.add(pojo);
-			int rowcount = 0;
-			if (filterBuiledMap.get(user_name + ".." + app) == null)
-				buildFilter(user_name, app);
-			Mb6Fillter mb6Fillter = filterBuiledMap.get(user_name + ".." + app);
-			while (rs != null && rs.next()) {
-				if (mb6Fillter.isAllProvince() || mb6Fillter.getProvinceList().contains("" + rs.getString("province"))
-						&& (mb6Fillter.isAllDistrict()
-								|| mb6Fillter.getDistrictList().contains("" + rs.getString("district")))) {
-					rowcount = rowcount + 1;
-					pojo = new TreeMap<String, String>();
-					pojo.put("000", "<td>" + rowcount);
-					for (int i = 1; i <= numberOfColumns; i++) {
-						pojo.put(String.format("%03d", i), "<td>" + replaceNull(rs.getString(i)));
-					}
-					pojoList.add(pojo);
-				}
-			}
-
-			return pojoList;
+			return getData(rs, 0, user_name, app);
 		} catch (Exception e) {
 			return getError(e);
 		} finally {
@@ -871,18 +771,15 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 
 			JSONObject jsonObject = new JSONObject(json);
 
-			String account = String.valueOf(jsonObject.get("account")), app = String.valueOf(jsonObject.get("app")),
-					curtab = String.valueOf(jsonObject.get("curtab"));
+			String account = String.valueOf(jsonObject.get("account")), app = String.valueOf(jsonObject.get("app"));
 			JSONArray roles = new JSONArray(jsonObject.get("roles").toString());
 			JSONArray provices = new JSONArray(jsonObject.get("provinces").toString());
 			JSONArray districts = new JSONArray(jsonObject.get("districts").toString());
 
-			String xml_update = "<types>";
-			String xml_xpath = "";
 			String xml_node = "";
 
 			prpStm = conn.prepareStatement(
-					"BEGIN INSERT INTO account(name) VALUES (?); EXCEPTION WHEN OTHERS THEN null; END;");
+					"BEGIN INSERT INTO account(name) VALUES (lower(?)); EXCEPTION WHEN OTHERS THEN null; END;");
 			prpStm.setString(1, account);
 			prpStm.execute();
 			prpStm.close();
@@ -1044,9 +941,9 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 				prpStm = conn.prepareStatement("SELECT a.role asigned, b.name role, b.label"
 						+ " ,b.app,CASE WHEN a.role IS NOT NULL THEN 'checked' ELSE NULL END role_checked"
 						+ "  FROM account_action_v a RIGHT JOIN role b"
-						+ "  ON a.role = b.name AND a.name = ? WHERE b.app = ? AND EXISTS (SELECT 1"
+						+ "  ON a.role = b.name AND a.name = lower(?) WHERE b.app = ? AND EXISTS (SELECT 1"
 						+ "  FROM account_action_v a INNER JOIN role b ON ( a.role = b.name"
-						+ "  AND a.name = ? AND((a.role LIKE '%ADMIN' AND b.app = ?) OR a.role = 'DEVELOPER')))");
+						+ "  AND a.name = lower(?) AND((a.role LIKE '%ADMIN' AND b.app = ?) OR a.role = 'DEVELOPER')))");
 				prpStm.setString(1, account);
 				prpStm.setString(2, app);
 				prpStm.setString(3, user_name);
@@ -1056,7 +953,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 				Map<String, String> pojo;
 				// put header
 				pojo = new TreeMap<String, String>();
-				pojo.put("0role", "<td>VAI TRÒ");
+				pojo.put("0role", "<th>");
 				pojoList.add(pojo);
 				// String check="false";
 
@@ -1083,14 +980,14 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 						+ "  (SELECT DISTINCT province_code, province_number,msale_province_id, province"
 						+ "  FROM out_data.address WHERE province_code IN ('NAN', 'THO', 'HTI', 'QBI') union all"
 						+ "  SELECT 'ALL' province_code, 0 province_number,0 msale_province_id, 'Tất cả' province"
-						+ "  FROM dual) c ON a.province = c.province_code AND a.name = ? and app=?");
+						+ "  FROM dual) c ON a.province = c.province_code AND a.name = lower(?) and app=?");
 				prpStm.setString(1, account);
 				prpStm.setString(2, app);
 				rs = prpStm.executeQuery();
 				Map<String, String> pojo;
 				// put header
 				pojo = new TreeMap<String, String>();
-				pojo.put("0", "<td>Tỉnh");
+				pojo.put("0", "<th>");
 				pojoList.add(pojo);
 				// String check="false";
 				while (rs != null && rs.next()) {
@@ -1111,7 +1008,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 						+ " ,district_number,msale_district_id"
 						+ " ,district FROM out_data.address WHERE province_code = ? UNION ALL"
 						+ "  SELECT 'ALL' district_code, 0 district_number, 0 msale_district_id, 'Tất cả' district"
-						+ "  FROM DUAL) c ON a.district = c.district_code AND a.name = ? and app=? ORDER BY district_code ");
+						+ "  FROM DUAL) c ON a.district = c.district_code AND a.name = lower(?) and app=? ORDER BY district_code ");
 
 				String province_code = String.valueOf(jsonObject.get("province_code"));
 				prpStm.setString(1, province_code);
@@ -1122,7 +1019,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 				Map<String, String> pojo;
 				// put header
 				pojo = new TreeMap<String, String>();
-				pojo.put("0", "<td>Huyện");
+				pojo.put("0", "<th>");
 				pojoList.add(pojo);
 				// String check="false";
 				while (rs != null && rs.next()) {
@@ -1163,7 +1060,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 			Map<String, String> pojo;
 			pojo = new TreeMap<String, String>();
 			pojo.put("0",
-					"<td><input type=\"checkbox\" name=\"KetThuc\" checked=\"true\" style=\"margin: 5px 0px 0px 5px;\">"
+					"<th><input type=\"checkbox\" id=\"KetThuc\" checked=\"true\" style=\"margin: 5px 0px 0px 5px;\">"
 							+ " Chưa kết thúc");
 			pojoList.add(pojo);
 			while (rs != null && rs.next()) {
@@ -1326,11 +1223,12 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 			prpStm.executeBatch();
 			prpStm.close();
 			// syslog("end BUILD TMP");
-			prpStm = conn.prepareStatement("BEGIN mb6app.pre_assign_sub_reg3; END;");
-			prpStm.execute();
+			// prpStm = conn.prepareStatement("BEGIN mb6app.pre_assign_sub_reg3;
+			// END;");
+			// prpStm.execute();
 			// syslog("end mb6app.pre_assign_sub_reg;");
-			prpStm.close();
-			prpStm = conn.prepareStatement("BEGIN mb6app.assign_sub_reg(?,?,?,?,?); END;");
+			// prpStm.close();
+			prpStm = conn.prepareStatement("BEGIN mb6app.pre_assign_sub_reg3; mb6app.assign_sub_reg(?,?,?,?,?); END;");
 			prpStm.setString(1, pro_id);
 			prpStm.setString(2, pro_type);
 			prpStm.setString(3, user_name);
@@ -1748,354 +1646,570 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 			String from_date = String.valueOf(jsonObject.get("from_date")),
 					to_date = String.valueOf(jsonObject.get("to_date")), type = String.valueOf(jsonObject.get("type")),
 					donvi = String.valueOf(jsonObject.get("donvi")), level = String.valueOf(jsonObject.get("level"));
-
+			String app = String.valueOf(jsonObject.get("app"));
 			conn = this.getConnection();
-			String sql;
-			if (type.equals("#tab1")) {
+			String sql = "";
+			if (app.equals("1")) {
+				if (type.equals("#tab1")) {// tab tra sau
+					if (donvi.equals("666666")) {
+						if (level.equals("0")) {
+							sql = " SELECT '<td id=\"sub_type\">' || sub_type sub_type"
+									+ ",'<td class=\"canclick cnumber\">' || COUNT(sub_id) tot_sub"
+									+ " FROM subscriber_khdn_ptm_v WHERE sta_datetime >= TO_DATE(?, 'YYYY-MM-DD')"
+									+ "  AND sta_datetime < TO_DATE(?, 'YYYY-MM-DD') + 1" + "GROUP BY ROLLUP(sub_type)";
+						} else if (level.equals("1")) {
+							sql = " SELECT '<td id=\"province\">' || province province"
+									+ ",'<td id=\"sub_type\">' || sub_type sub_type"
+									+ ",'<td class=\"canclick cnumber\">' || COUNT(sub_id) tot_sub"
+									+ " FROM subscriber_khdn_ptm_v WHERE sta_datetime >= TO_DATE(?, 'YYYY-MM-DD')"
+									+ "  AND sta_datetime < TO_DATE(?, 'YYYY-MM-DD') + 1"
+									+ " GROUP BY ROLLUP(province, sub_type)";
+						} else {
+							sql = " SELECT '<td id=\"province\">' || province province"
+									+ "      ,'<td id=\"district\">' || district district"
+									+ "      ,'<td id=\"sub_type\">' || sub_type sub_type"
+									+ "      ,'<td class=\"canclick cnumber\">' || COUNT(sub_id) tot_sub"
+									+ " FROM subscriber_khdn_ptm_v WHERE sta_datetime >= TO_DATE(?, 'YYYY-MM-DD')"
+									+ "  AND sta_datetime < TO_DATE(?, 'YYYY-MM-DD') + 1"
+									+ " GROUP BY ROLLUP(province, district, sub_type)";
+						}
+						prpStm = conn.prepareStatement(sql);
+						prpStm.setString(1, from_date);
+						prpStm.setString(2, to_date);
 
-				if (donvi.equals("666666")) {
-					if (level.equals("0")) {
-						sql = "  SELECT   '<td class=\"cnumber\">'||COUNT(sub_id) \"SỐ LƯỢNG THUÊ BAO\""
-								+ "		  ,'<td class=\"canclick cnumber\" act_status = \"00\">'||COUNT(CASE WHEN status != '0' AND act_status = '00' THEN sub_id ELSE NULL END) \"HOẠT ĐỘNG 2 CHIỀU\""
-								+ "		  ,'<td class=\"canclick cnumber\" act_status = \"01\">'||COUNT(CASE WHEN status != '0' AND act_status = '01' THEN sub_id ELSE NULL END) \"CHẶN 1C NỢ CƯỚC\""
-								+ "		  ,'<td class=\"canclick cnumber\" act_status = \"02\">'||COUNT(CASE WHEN status != '0' AND act_status = '02' THEN sub_id ELSE NULL END) \"CHẶN 2C NỢ CƯỚC\""
-								+ "		  ,'<td class=\"canclick cnumber\" act_status = \"10\">'||COUNT(CASE WHEN status != '0' AND act_status IN ('10', '11', '31', '30') THEN sub_id ELSE NULL END) \"CHẶN 1C KHÁC\""
-								+ "		  ,'<td class=\"canclick cnumber\" act_status = \"20\">'||COUNT(CASE WHEN status != '0' AND act_status IN ('20', '21', '22', '12', '32') THEN sub_id ELSE NULL END) \"CHẶN 2C KHÁC\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 1) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 1 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 2) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 2 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 3) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 3 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 6) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 6 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 9) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 9 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 12) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 1 NĂM\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN status = '0' THEN sub_id ELSE NULL END) \"ĐÃ HỦY\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN status = '0' AND TRUNC(end_datetime, 'MM') = TRUNC(SYSDATE, 'MM') THEN sub_id ELSE NULL END) \"HỦY THÁNG HIỆN TẠI\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE"
-								+ "					 WHEN status = '0' AND TRUNC(end_datetime, 'MM') = ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1) THEN sub_id"
-								+ "					 ELSE NULL END) \"HỦY THÁNG TRƯỚC\""
-								+ "	FROM   out_data.subscriber_v WHERE cen_code = 6"
-								+ "		   AND province IN ('THO', 'NAN', 'QBI', 'HTI')"
-								+ "		   AND sta_datetime >= TO_DATE(?, 'YYYY-MM-DD') AND sta_datetime < TO_DATE(?, 'YYYY-MM-DD')  + 1";
-					} else if (level.equals("1")) {
-						sql = "  SELECT   '<td id=\"province\">'|| province province"
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(sub_id) \"SỐ LƯỢNG THUÊ BAO\""
-								+ "		  ,'<td class=\"canclick cnumber\" act_status = \"00\">'||COUNT(CASE WHEN status != '0' AND act_status = '00' THEN sub_id ELSE NULL END) \"HOẠT ĐỘNG 2 CHIỀU\""
-								+ "		  ,'<td class=\"canclick cnumber\" act_status = \"01\">'||COUNT(CASE WHEN status != '0' AND act_status = '01' THEN sub_id ELSE NULL END) \"CHẶN 1C NỢ CƯỚC\""
-								+ "		  ,'<td class=\"canclick cnumber\" act_status = \"02\">'||COUNT(CASE WHEN status != '0' AND act_status = '02' THEN sub_id ELSE NULL END) \"CHẶN 2C NỢ CƯỚC\""
-								+ "		  ,'<td class=\"canclick cnumber\" act_status = \"10\">'||COUNT(CASE WHEN status != '0' AND act_status IN ('10', '11', '31', '30') THEN sub_id ELSE NULL END) \"CHẶN 1C KHÁC\""
-								+ "		  ,'<td class=\"canclick cnumber\" act_status = \"20\">'||COUNT(CASE WHEN status != '0' AND act_status IN ('20', '21', '22', '12', '32') THEN sub_id ELSE NULL END) \"CHẶN 2C KHÁC\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 1) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 1 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 2) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 2 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 3) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 3 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 6) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 6 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 9) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 9 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 12) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 1 NĂM\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN status = '0' THEN sub_id ELSE NULL END) \"ĐÃ HỦY\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN status = '0' AND TRUNC(end_datetime, 'MM') = TRUNC(SYSDATE, 'MM') THEN sub_id ELSE NULL END) \"HỦY THÁNG HIỆN TẠI\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE"
-								+ "					 WHEN status = '0' AND TRUNC(end_datetime, 'MM') = ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1) THEN sub_id"
-								+ "					 ELSE NULL END) \"HỦY THÁNG TRƯỚC\""
-								+ "	FROM   out_data.subscriber_v WHERE cen_code = 6"
-								+ "		   AND province IN ('THO', 'NAN', 'QBI', 'HTI')"
-								+ "		   AND sta_datetime >= TO_DATE(?, 'YYYY-MM-DD') AND sta_datetime < TO_DATE(?, 'YYYY-MM-DD')  + 1"
-								+ " GROUP BY   province";
-
+					} else if (provinceNumberList.contains(donvi)) {
+						if (level.equals("0") || level.equals("1")) {
+							sql = " SELECT '<td id=\"province\">' || province province"
+									+ "      ,'<td id=\"sub_type\">' || sub_type sub_type"
+									+ "      ,'<td class=\"canclick cnumber\">' || COUNT(sub_id) tot_sub"
+									+ " FROM subscriber_khdn_ptm_v WHERE sta_datetime >= TO_DATE(?, 'YYYY-MM-DD')"
+									+ "  AND sta_datetime < TO_DATE(?, 'YYYY-MM-DD') + 1"
+									+ "  AND province =get_province_code(?) GROUP BY ROLLUP(province, sub_type)";
+						} else {
+							sql = " SELECT '<td id=\"province\">' || province province"
+									+ "      ,'<td id=\"district\">' || district district"
+									+ "      ,'<td id=\"sub_type\">' || sub_type sub_type"
+									+ "      ,'<td class=\"canclick cnumber\">' || COUNT(sub_id) tot_sub"
+									+ " FROM subscriber_khdn_ptm_v WHERE sta_datetime >= TO_DATE(?, 'YYYY-MM-DD')"
+									+ "  AND sta_datetime < TO_DATE(?, 'YYYY-MM-DD') + 1"
+									+ "  AND province =get_province_code(?) "
+									+ " GROUP BY ROLLUP(province, district, sub_type)";
+						}
+						prpStm = conn.prepareStatement(sql);
+						prpStm.setString(1, from_date);
+						prpStm.setString(2, to_date);
+						prpStm.setString(3, donvi);
 					} else {
-						sql = "  SELECT   '<td id=\"province\">'|| province province,'<td id=\"district\">'|| district district"
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(sub_id) \"SỐ LƯỢNG THUÊ BAO\""
-								+ "		  ,'<td class=\"canclick cnumber\" act_status = \"00\">'||COUNT(CASE WHEN status != '0' AND act_status = '00' THEN sub_id ELSE NULL END) \"HOẠT ĐỘNG 2 CHIỀU\""
-								+ "		  ,'<td class=\"canclick cnumber\" act_status = \"01\">'||COUNT(CASE WHEN status != '0' AND act_status = '01' THEN sub_id ELSE NULL END) \"CHẶN 1C NỢ CƯỚC\""
-								+ "		  ,'<td class=\"canclick cnumber\" act_status = \"02\">'||COUNT(CASE WHEN status != '0' AND act_status = '02' THEN sub_id ELSE NULL END) \"CHẶN 2C NỢ CƯỚC\""
-								+ "		  ,'<td class=\"canclick cnumber\" act_status = \"10\">'||COUNT(CASE WHEN status != '0' AND act_status IN ('10', '11', '31', '30') THEN sub_id ELSE NULL END) \"CHẶN 1C KHÁC\""
-								+ "		  ,'<td class=\"canclick cnumber\" act_status = \"20\">'||COUNT(CASE WHEN status != '0' AND act_status IN ('20', '21', '22', '12', '32') THEN sub_id ELSE NULL END) \"CHẶN 2C KHÁC\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 1) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 1 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 2) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 2 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 3) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 3 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 6) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 6 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 9) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 9 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 12) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 1 NĂM\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN status = '0' THEN sub_id ELSE NULL END) \"ĐÃ HỦY\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN status = '0' AND TRUNC(end_datetime, 'MM') = TRUNC(SYSDATE, 'MM') THEN sub_id ELSE NULL END) \"HỦY THÁNG HIỆN TẠI\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE"
-								+ "					 WHEN status = '0' AND TRUNC(end_datetime, 'MM') = ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1) THEN sub_id"
-								+ "					 ELSE NULL END) \"HỦY THÁNG TRƯỚC\""
-								+ "	FROM   out_data.subscriber_v WHERE cen_code = 6"
-								+ "		   AND province IN ('THO', 'NAN', 'QBI', 'HTI')"
-								+ "		   AND sta_datetime >= TO_DATE(?, 'YYYY-MM-DD') AND sta_datetime < TO_DATE(?, 'YYYY-MM-DD')  + 1"
-								+ " GROUP BY   province,district";
-					}
-					prpStm = conn.prepareStatement(sql);
-					prpStm.setString(1, from_date);
-					prpStm.setString(2, to_date);
-
-				} else if (provinceNumberList.contains(donvi)) {
-					if (level.equals("0") || level.equals("1")) {
-						sql = "  SELECT   '<td id=\"province\">'|| province province"
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(sub_id) \"SỐ LƯỢNG THUÊ BAO\""
-								+ "		  ,'<td class=\"canclick cnumber\" act_status = \"00\">'||COUNT(CASE WHEN status != '0' AND act_status = '00' THEN sub_id ELSE NULL END) \"HOẠT ĐỘNG 2 CHIỀU\""
-								+ "		  ,'<td class=\"canclick cnumber\" act_status = \"01\">'||COUNT(CASE WHEN status != '0' AND act_status = '01' THEN sub_id ELSE NULL END) \"CHẶN 1C NỢ CƯỚC\""
-								+ "		  ,'<td class=\"canclick cnumber\" act_status = \"02\">'||COUNT(CASE WHEN status != '0' AND act_status = '02' THEN sub_id ELSE NULL END) \"CHẶN 2C NỢ CƯỚC\""
-								+ "		  ,'<td class=\"canclick cnumber\" act_status = \"10\">'||COUNT(CASE WHEN status != '0' AND act_status IN ('10', '11', '31', '30') THEN sub_id ELSE NULL END) \"CHẶN 1C KHÁC\""
-								+ "		  ,'<td class=\"canclick cnumber\" act_status = \"20\">'||COUNT(CASE WHEN status != '0' AND act_status IN ('20', '21', '22', '12', '32') THEN sub_id ELSE NULL END) \"CHẶN 2C KHÁC\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 1) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 1 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 2) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 2 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 3) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 3 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 6) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 6 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 9) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 9 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 12) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 1 NĂM\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN status = '0' THEN sub_id ELSE NULL END) \"ĐÃ HỦY\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN status = '0' AND TRUNC(end_datetime, 'MM') = TRUNC(SYSDATE, 'MM') THEN sub_id ELSE NULL END) \"HỦY THÁNG HIỆN TẠI\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE"
-								+ "					 WHEN status = '0' AND TRUNC(end_datetime, 'MM') = ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1) THEN sub_id"
-								+ "					 ELSE NULL END) \"HỦY THÁNG TRƯỚC\""
-								+ "	FROM   out_data.subscriber_v WHERE cen_code = 6"
-								+ "		   AND province =get_province_code(?) "
-								+ "		   AND sta_datetime >= TO_DATE(?, 'YYYY-MM-DD') AND sta_datetime < TO_DATE(?, 'YYYY-MM-DD')  + 1"
-								+ " GROUP BY   province";
-
-					} else {
-						sql = "  SELECT   '<td id=\"province\">'|| province province,'<td id=\"district\">'|| district district"
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(sub_id) \"SỐ LƯỢNG THUÊ BAO\""
-								+ "		  ,'<td class=\"canclick cnumber\" act_status = \"00\">'||COUNT(CASE WHEN status != '0' AND act_status = '00' THEN sub_id ELSE NULL END) \"HOẠT ĐỘNG 2 CHIỀU\""
-								+ "		  ,'<td class=\"canclick cnumber\" act_status = \"01\">'||COUNT(CASE WHEN status != '0' AND act_status = '01' THEN sub_id ELSE NULL END) \"CHẶN 1C NỢ CƯỚC\""
-								+ "		  ,'<td class=\"canclick cnumber\" act_status = \"02\">'||COUNT(CASE WHEN status != '0' AND act_status = '02' THEN sub_id ELSE NULL END) \"CHẶN 2C NỢ CƯỚC\""
-								+ "		  ,'<td class=\"canclick cnumber\" act_status = \"10\">'||COUNT(CASE WHEN status != '0' AND act_status IN ('10', '11', '31', '30') THEN sub_id ELSE NULL END) \"CHẶN 1C KHÁC\""
-								+ "		  ,'<td class=\"canclick cnumber\" act_status = \"20\">'||COUNT(CASE WHEN status != '0' AND act_status IN ('20', '21', '22', '12', '32') THEN sub_id ELSE NULL END) \"CHẶN 2C KHÁC\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 1) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 1 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 2) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 2 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 3) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 3 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 6) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 6 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 9) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 9 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 12) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 1 NĂM\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN status = '0' THEN sub_id ELSE NULL END) \"ĐÃ HỦY\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN status = '0' AND TRUNC(end_datetime, 'MM') = TRUNC(SYSDATE, 'MM') THEN sub_id ELSE NULL END) \"HỦY THÁNG HIỆN TẠI\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE"
-								+ "					 WHEN status = '0' AND TRUNC(end_datetime, 'MM') = ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1) THEN sub_id"
-								+ "					 ELSE NULL END) \"HỦY THÁNG TRƯỚC\""
-								+ "	FROM   out_data.subscriber_v WHERE cen_code = 6"
-								+ "		   AND province =get_province_code(?) "
-								+ "		   AND sta_datetime >= TO_DATE(?, 'YYYY-MM-DD') AND sta_datetime < TO_DATE(?, 'YYYY-MM-DD')  + 1"
-								+ " GROUP BY   province,district";
+						sql = " SELECT '<td id=\"province\">' || province province"
+								+ "      ,'<td id=\"district\">' || district district"
+								+ "      ,'<td id=\"sub_type\">' || sub_type sub_type"
+								+ "      ,'<td class=\"canclick cnumber\">' || COUNT(sub_id) tot_sub"
+								+ " FROM subscriber_khdn_ptm_v WHERE sta_datetime >= TO_DATE(?, 'YYYY-MM-DD')"
+								+ "  AND sta_datetime < TO_DATE(?, 'YYYY-MM-DD') + 1"
+								+ "  AND get_district_number(province||district) = ? "
+								+ " GROUP BY ROLLUP(province, district, sub_type)";
+						prpStm = conn.prepareStatement(sql);
+						prpStm.setString(1, from_date);
+						prpStm.setString(2, to_date);
+						prpStm.setString(3, donvi);
 
 					}
-					prpStm = conn.prepareStatement(sql);
-					prpStm.setString(1, donvi);
-					prpStm.setString(2, from_date);
-					prpStm.setString(3, to_date);
-				} else {
-					sql = "  SELECT   '<td id=\"province\">'|| province province,'<td id=\"district\">'|| district district"
-							+ "		  ,'<td class=\"cnumber\">'||COUNT(sub_id) \"SỐ LƯỢNG THUÊ BAO\""
-							+ "		  ,'<td class=\"canclick cnumber\" act_status = \"00\">'||COUNT(CASE WHEN status != '0' AND act_status = '00' THEN sub_id ELSE NULL END) \"HOẠT ĐỘNG 2 CHIỀU\""
-							+ "		  ,'<td class=\"canclick cnumber\" act_status = \"01\">'||COUNT(CASE WHEN status != '0' AND act_status = '01' THEN sub_id ELSE NULL END) \"CHẶN 1C NỢ CƯỚC\""
-							+ "		  ,'<td class=\"canclick cnumber\" act_status = \"02\">'||COUNT(CASE WHEN status != '0' AND act_status = '02' THEN sub_id ELSE NULL END) \"CHẶN 2C NỢ CƯỚC\""
-							+ "		  ,'<td class=\"canclick cnumber\" act_status = \"10\">'||COUNT(CASE WHEN status != '0' AND act_status IN ('10', '11', '31', '30') THEN sub_id ELSE NULL END) \"CHẶN 1C KHÁC\""
-							+ "		  ,'<td class=\"canclick cnumber\" act_status = \"20\">'||COUNT(CASE WHEN status != '0' AND act_status IN ('20', '21', '22', '12', '32') THEN sub_id ELSE NULL END) \"CHẶN 2C KHÁC\""
-							+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 1) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 1 THÁNG\""
-							+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 2) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 2 THÁNG\""
-							+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 3) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 3 THÁNG\""
-							+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 6) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 6 THÁNG\""
-							+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 9) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 9 THÁNG\""
-							+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 12) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 1 NĂM\""
-							+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN status = '0' THEN sub_id ELSE NULL END) \"ĐÃ HỦY\""
-							+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN status = '0' AND TRUNC(end_datetime, 'MM') = TRUNC(SYSDATE, 'MM') THEN sub_id ELSE NULL END) \"HỦY THÁNG HIỆN TẠI\""
-							+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE"
-							+ "					 WHEN status = '0' AND TRUNC(end_datetime, 'MM') = ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1) THEN sub_id"
-							+ "					 ELSE NULL END) \"HỦY THÁNG TRƯỚC\""
-							+ "	FROM   out_data.subscriber_v WHERE cen_code = 6"
-							+ "		   AND get_district_number(province||district) = ? "
-							+ "		   AND sta_datetime >= TO_DATE(?, 'YYYY-MM-DD') AND sta_datetime < TO_DATE(?, 'YYYY-MM-DD')  + 1"
-							+ " GROUP BY   province,district";
+				} else {// tab tra truoc
+					if (donvi.equals("666666")) {
+						if (level.equals("0")) {
+							sql = "  SELECT   '<td id=\"sub_type\">'|| sub_type sub_type"
+									+ ",'<td class=\"canclick cnumber\">'|| COUNT(sub_id) tot_sub FROM   (SELECT	 sub_id"
+									+ "					,hlr_isdn,active_datetime,province_reg,district_reg"
+									+ "					,sub_type,emp_code_reg FROM	 out_data.mc_subscriber_mv"
+									+ "			 WHERE		(delete_datetime IS NULL OR delete_datetime >= TO_DATE(?, 'YYYY-MM-DD'))"
+									+ "					 AND cen_reg = 6 AND(kit_id = 4 OR sub_type = 'ETK')"
+									+ "					 AND shop_code_reg IS NOT NULL"
+									+ "					 AND active_datetime >= TO_DATE(?, 'YYYY-MM-DD')"
+									+ "					 AND active_datetime < TO_DATE(?, 'YYYY-MM-DD') + 1 )"
+									+ " GROUP BY ROLLUP(sub_type)";
+						} else if (level.equals("1")) {
+							sql = "  SELECT   '<td id=\"province\">'|| province_reg province"
+									+ ",'<td id=\"sub_type\">'|| sub_type sub_type"
+									+ ",'<td class=\"canclick cnumber\">'|| COUNT(sub_id) tot_sub FROM   (SELECT	 sub_id"
+									+ "					,hlr_isdn,active_datetime,province_reg,district_reg"
+									+ "					,sub_type,emp_code_reg FROM	 out_data.mc_subscriber_mv"
+									+ "			 WHERE		(delete_datetime IS NULL OR delete_datetime >= TO_DATE(?, 'YYYY-MM-DD'))"
+									+ "					 AND cen_reg = 6 AND(kit_id = 4 OR sub_type = 'ETK')"
+									+ "					 AND shop_code_reg IS NOT NULL"
+									+ "					 AND active_datetime >= TO_DATE(?, 'YYYY-MM-DD')"
+									+ "					 AND active_datetime < TO_DATE(?, 'YYYY-MM-DD') + 1 )"
+									+ " GROUP BY   ROLLUP(province_reg, sub_type)";
+						} else {
+							sql = "  SELECT   '<td id=\"province\">'|| province_reg province"
+									+ ",'<td id=\"district\">'|| district_reg district"
+									+ ",'<td id=\"sub_type\">'|| sub_type sub_type"
+									+ ",'<td class=\"canclick cnumber\">'|| COUNT(sub_id) tot_sub FROM   (SELECT	 sub_id"
+									+ "					,hlr_isdn,active_datetime,province_reg,district_reg"
+									+ "					,sub_type,emp_code_reg FROM	 out_data.mc_subscriber_mv"
+									+ "			 WHERE		(delete_datetime IS NULL OR delete_datetime >= TO_DATE(?, 'YYYY-MM-DD'))"
+									+ "					 AND cen_reg = 6 AND(kit_id = 4 OR sub_type = 'ETK')"
+									+ "					 AND shop_code_reg IS NOT NULL"
+									+ "					 AND active_datetime >= TO_DATE(?, 'YYYY-MM-DD')"
+									+ "					 AND active_datetime < TO_DATE(?, 'YYYY-MM-DD') + 1 )"
+									+ " GROUP BY   ROLLUP(province_reg,district_reg, sub_type)";
+						}
+						prpStm = conn.prepareStatement(sql);
+						prpStm.setString(1, from_date);
+						prpStm.setString(2, from_date);
+						prpStm.setString(3, to_date);
 
-					prpStm = conn.prepareStatement(sql);
-					prpStm.setString(1, donvi);
-					prpStm.setString(2, from_date);
-					prpStm.setString(3, to_date);
+					} else if (provinceNumberList.contains(donvi)) {
+						if (level.equals("0") || level.equals("1")) {
+							sql = "  SELECT   '<td id=\"province\">'|| province_reg province"
+									+ ",'<td id=\"sub_type\">'|| sub_type sub_type"
+									+ ",'<td class=\"canclick cnumber\">'|| COUNT(sub_id) tot_sub FROM   (SELECT	 sub_id"
+									+ "					,hlr_isdn,active_datetime,province_reg,district_reg"
+									+ "					,sub_type,emp_code_reg FROM	 out_data.mc_subscriber_mv"
+									+ "			 WHERE		(delete_datetime IS NULL OR delete_datetime >= TO_DATE(?, 'YYYY-MM-DD'))"
+									+ "					 AND cen_reg = 6 AND(kit_id = 4 OR sub_type = 'ETK')"
+									+ "		   			 AND province_reg =get_province_code(?) "
+									+ "					 AND shop_code_reg IS NOT NULL"
+									+ "					 AND active_datetime >= TO_DATE(?, 'YYYY-MM-DD')"
+									+ "					 AND active_datetime < TO_DATE(?, 'YYYY-MM-DD') + 1 )"
+									+ " GROUP BY   ROLLUP(province_reg, sub_type)";
 
+						} else {
+							sql = "  SELECT   '<td id=\"province\">'|| province_reg province"
+									+ ",'<td id=\"district\">'|| district_reg district"
+									+ ",'<td id=\"sub_type\">'|| sub_type sub_type"
+									+ ",'<td class=\"canclick cnumber\">'|| COUNT(sub_id) tot_sub FROM   (SELECT	 sub_id"
+									+ "					,hlr_isdn,active_datetime,province_reg,district_reg"
+									+ "					,sub_type,emp_code_reg FROM	 out_data.mc_subscriber_mv"
+									+ "			 WHERE		(delete_datetime IS NULL OR delete_datetime >= TO_DATE(?, 'YYYY-MM-DD'))"
+									+ "					 AND cen_reg = 6 AND(kit_id = 4 OR sub_type = 'ETK')"
+									+ "		   			 AND province_reg =get_province_code(?) "
+									+ "					 AND shop_code_reg IS NOT NULL"
+									+ "					 AND active_datetime >= TO_DATE(?, 'YYYY-MM-DD')"
+									+ "					 AND active_datetime < TO_DATE(?, 'YYYY-MM-DD') + 1 )"
+									+ " GROUP BY   ROLLUP(province_reg,district_reg, sub_type)";
+						}
+						prpStm = conn.prepareStatement(sql);
+						prpStm.setString(1, from_date);
+						prpStm.setString(2, donvi);
+						prpStm.setString(3, from_date);
+						prpStm.setString(4, to_date);
+					} else {
+						sql = "  SELECT   '<td id=\"province\">'|| province_reg province"
+								+ ",'<td id=\"district\">'|| district_reg district"
+								+ ",'<td id=\"sub_type\">'|| sub_type sub_type"
+								+ ",'<td class=\"canclick cnumber\">'|| COUNT(sub_id) tot_sub FROM   (SELECT	 sub_id"
+								+ "					,hlr_isdn,active_datetime,province_reg,district_reg"
+								+ "					,sub_type,emp_code_reg FROM	 out_data.mc_subscriber_mv"
+								+ "			 WHERE		(delete_datetime IS NULL OR delete_datetime >= TO_DATE(?, 'YYYY-MM-DD'))"
+								+ "					 AND cen_reg = 6 AND(kit_id = 4 OR sub_type = 'ETK')"
+								+ "		             AND get_district_number(province_reg||district_reg) = ? "
+								+ "					 AND shop_code_reg IS NOT NULL"
+								+ "					 AND active_datetime >= TO_DATE(?, 'YYYY-MM-DD')"
+								+ "					 AND active_datetime < TO_DATE(?, 'YYYY-MM-DD') + 1 )"
+								+ " GROUP BY   ROLLUP(province_reg,district_reg, sub_type)";
+						prpStm = conn.prepareStatement(sql);
+						prpStm.setString(1, from_date);
+						prpStm.setString(2, donvi);
+						prpStm.setString(3, from_date);
+						prpStm.setString(4, to_date);
+					}
 				}
-			} else {// tab tra truoc
-				if (donvi.equals("666666")) {
-					if (level.equals("0")) {
-						sql = "SELECT '<td class=\"cnumber\">' || COUNT(b.sub_id) \"SỐ LƯỢNG THUÊ BAO\""
-								+ "		  ,'<td class=\"cnumber\" act_status = \"00\">'"
-								+ "		   || COUNT(CASE WHEN b.hlr_status != '0' AND b.hlr_act_status = '00' THEN b.sub_id ELSE NULL END) "
-								+ "			   \"HOẠT ĐỘNG 2 CHIỀU\""
-								+ "		  ,'<td class=\"canclick cnumber\"  act_status = \"1\">'"
-								+ "		   || COUNT(CASE WHEN b.hlr_status != '0'"
-								+ "							 AND INSTR(b.hlr_act_status, '2') <= 0"
-								+ "							 AND INSTR(b.hlr_act_status, '1') > 0"
-								+ "						THEN b.sub_id ELSE NULL END) \"CHẶN 1 CHIỀU\""
-								+ "		  ,'<td class=\"canclick cnumber\"  act_status = \"2\">'"
-								+ "		   || COUNT(CASE WHEN b.hlr_status != '0' AND INSTR(b.hlr_act_status, '2') > 0 THEN b.sub_id ELSE NULL END) \"CHẶN 2 CHIỀU\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN stn>=2 THEN b.sub_id ELSE NULL END) \"NẠP HƠN 1 THẺ\""
-								+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
-								+ "						WHEN ADD_MONTHS(b.active_datetime, 1) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
-								+ "						ELSE NULL END) \"ĐẠT 1 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
-								+ "						WHEN ADD_MONTHS(b.active_datetime, 2) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
-								+ "						ELSE NULL END) \"ĐẠT 2 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
-								+ "						WHEN ADD_MONTHS(b.active_datetime, 3) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
-								+ "						ELSE NULL END) \"ĐẠT 3 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
-								+ "						WHEN ADD_MONTHS(b.active_datetime, 6) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
-								+ "						ELSE NULL END) \"ĐẠT 6 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
-								+ "						WHEN ADD_MONTHS(b.active_datetime, 9) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
-								+ "						ELSE NULL END) \"ĐẠT 9 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
-								+ "						WHEN ADD_MONTHS(b.active_datetime, 12) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
-								+ "						ELSE NULL END) \"ĐẠT 1 NĂM\""
-								+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE WHEN b.hlr_status = '0' THEN b.sub_id ELSE NULL END) \"ĐÃ HỦY\""
-								+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
-								+ "						WHEN b.hlr_status = '0' AND TRUNC(b.delete_datetime, 'MM') = TRUNC(SYSDATE, 'MM') THEN b.sub_id"
-								+ "						ELSE NULL END) \"HỦY THÁNG HIỆN TẠI\""
-								+ ",'<td class=\"cnumber\">' || COUNT(CASE"
-								+ "						WHEN b.hlr_status = '0' AND TRUNC(b.delete_datetime, 'MM') = ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1)"
-								+ "						THEN b.sub_id ELSE NULL"
-								+ "					END) \"HỦY THÁNG TRƯỚC\" FROM out_data.mc_subscriber_mv b"
-								+ "		   where	  b.cen_reg = 6 and (delete_datetime IS NULL OR delete_datetime >= TO_DATE(?, 'YYYY-MM-DD'))"
-								+ "			  AND b.active_datetime >= TO_DATE(?, 'YYYY-MM-DD')"
-								+ "			  AND b.active_datetime < TO_DATE(?, 'YYYY-MM-DD') + 1"
-								+ " 	and b.province_reg IN ('THO', 'NAN', 'QBI', 'HTI')";
+			} else {
+				if (type.equals("#tab1")) {
+					if (donvi.equals("666666")) {
+						if (level.equals("0")) {
+							sql = "  SELECT   '<td class=\"cnumber\">'||COUNT(sub_id) \"SỐ LƯỢNG THUÊ BAO\""
+									+ "		  ,'<td class=\"canclick cnumber\" act_status = \"00\">'||COUNT(CASE WHEN status != '0' AND act_status = '00' THEN sub_id ELSE NULL END) \"HOẠT ĐỘNG 2 CHIỀU\""
+									+ "		  ,'<td class=\"canclick cnumber\" act_status = \"01\">'||COUNT(CASE WHEN status != '0' AND act_status = '01' THEN sub_id ELSE NULL END) \"CHẶN 1C NỢ CƯỚC\""
+									+ "		  ,'<td class=\"canclick cnumber\" act_status = \"02\">'||COUNT(CASE WHEN status != '0' AND act_status = '02' THEN sub_id ELSE NULL END) \"CHẶN 2C NỢ CƯỚC\""
+									+ "		  ,'<td class=\"canclick cnumber\" act_status = \"10\">'||COUNT(CASE WHEN status != '0' AND act_status IN ('10', '11', '31', '30') THEN sub_id ELSE NULL END) \"CHẶN 1C KHÁC\""
+									+ "		  ,'<td class=\"canclick cnumber\" act_status = \"20\">'||COUNT(CASE WHEN status != '0' AND act_status IN ('20', '21', '22', '12', '32') THEN sub_id ELSE NULL END) \"CHẶN 2C KHÁC\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 1) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 1 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 2) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 2 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 3) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 3 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 6) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 6 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 9) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 9 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 12) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 1 NĂM\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN status = '0' THEN sub_id ELSE NULL END) \"ĐÃ HỦY\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN status = '0' AND TRUNC(end_datetime, 'MM') = TRUNC(SYSDATE, 'MM') THEN sub_id ELSE NULL END) \"HỦY THÁNG HIỆN TẠI\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE"
+									+ "					 WHEN status = '0' AND TRUNC(end_datetime, 'MM') = ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1) THEN sub_id"
+									+ "					 ELSE NULL END) \"HỦY THÁNG TRƯỚC\""
+									+ "	FROM   out_data.subscriber_v WHERE cen_code = 6"
+									+ "		   AND province IN ('THO', 'NAN', 'QBI', 'HTI')"
+									+ "		   AND sta_datetime >= TO_DATE(?, 'YYYY-MM-DD') AND sta_datetime < TO_DATE(?, 'YYYY-MM-DD')  + 1";
+						} else if (level.equals("1")) {
+							sql = "  SELECT   '<td id=\"province\">'|| province province"
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(sub_id) \"SỐ LƯỢNG THUÊ BAO\""
+									+ "		  ,'<td class=\"canclick cnumber\" act_status = \"00\">'||COUNT(CASE WHEN status != '0' AND act_status = '00' THEN sub_id ELSE NULL END) \"HOẠT ĐỘNG 2 CHIỀU\""
+									+ "		  ,'<td class=\"canclick cnumber\" act_status = \"01\">'||COUNT(CASE WHEN status != '0' AND act_status = '01' THEN sub_id ELSE NULL END) \"CHẶN 1C NỢ CƯỚC\""
+									+ "		  ,'<td class=\"canclick cnumber\" act_status = \"02\">'||COUNT(CASE WHEN status != '0' AND act_status = '02' THEN sub_id ELSE NULL END) \"CHẶN 2C NỢ CƯỚC\""
+									+ "		  ,'<td class=\"canclick cnumber\" act_status = \"10\">'||COUNT(CASE WHEN status != '0' AND act_status IN ('10', '11', '31', '30') THEN sub_id ELSE NULL END) \"CHẶN 1C KHÁC\""
+									+ "		  ,'<td class=\"canclick cnumber\" act_status = \"20\">'||COUNT(CASE WHEN status != '0' AND act_status IN ('20', '21', '22', '12', '32') THEN sub_id ELSE NULL END) \"CHẶN 2C KHÁC\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 1) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 1 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 2) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 2 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 3) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 3 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 6) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 6 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 9) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 9 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 12) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 1 NĂM\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN status = '0' THEN sub_id ELSE NULL END) \"ĐÃ HỦY\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN status = '0' AND TRUNC(end_datetime, 'MM') = TRUNC(SYSDATE, 'MM') THEN sub_id ELSE NULL END) \"HỦY THÁNG HIỆN TẠI\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE"
+									+ "					 WHEN status = '0' AND TRUNC(end_datetime, 'MM') = ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1) THEN sub_id"
+									+ "					 ELSE NULL END) \"HỦY THÁNG TRƯỚC\""
+									+ "	FROM   out_data.subscriber_v WHERE cen_code = 6"
+									+ "		   AND province IN ('THO', 'NAN', 'QBI', 'HTI')"
+									+ "		   AND sta_datetime >= TO_DATE(?, 'YYYY-MM-DD') AND sta_datetime < TO_DATE(?, 'YYYY-MM-DD')  + 1"
+									+ " GROUP BY   province";
 
-					} else if (level.equals("1")) {
-						sql = "SELECT  		'<td id=\"province\">' || b.province_reg province"
-								+ "		  ,'<td class=\"cnumber\">' || COUNT(b.sub_id) \"SỐ LƯỢNG THUÊ BAO\""
-								+ "		  ,'<td class=\"cnumber\" act_status = \"00\">'"
-								+ "		   || COUNT(CASE WHEN b.hlr_status != '0' AND b.hlr_act_status = '00' THEN b.sub_id ELSE NULL END)"
-								+ "			   \"HOẠT ĐỘNG 2 CHIỀU\""
-								+ "		  ,'<td class=\"canclick cnumber\"  act_status = \"1\">'"
-								+ "		   || COUNT(CASE WHEN b.hlr_status != '0'"
-								+ "							 AND INSTR(b.hlr_act_status, '2') <= 0"
-								+ "							 AND INSTR(b.hlr_act_status, '1') > 0"
-								+ "						THEN b.sub_id ELSE NULL END) \"CHẶN 1 CHIỀU\""
-								+ "		  ,'<td class=\"canclick cnumber\"  act_status = \"2\">'"
-								+ "		   || COUNT(CASE WHEN b.hlr_status != '0' AND INSTR(b.hlr_act_status, '2') > 0 THEN b.sub_id ELSE NULL END) \"CHẶN 2 CHIỀU\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN stn>=2 THEN b.sub_id ELSE NULL END) \"NẠP HƠN 1 THẺ\""
-								+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
-								+ "						WHEN ADD_MONTHS(b.active_datetime, 1) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
-								+ "						ELSE NULL END) \"ĐẠT 1 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
-								+ "						WHEN ADD_MONTHS(b.active_datetime, 2) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
-								+ "						ELSE NULL END) \"ĐẠT 2 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
-								+ "						WHEN ADD_MONTHS(b.active_datetime, 3) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
-								+ "						ELSE NULL END) \"ĐẠT 3 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
-								+ "						WHEN ADD_MONTHS(b.active_datetime, 6) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
-								+ "						ELSE NULL END) \"ĐẠT 6 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
-								+ "						WHEN ADD_MONTHS(b.active_datetime, 9) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
-								+ "						ELSE NULL END) \"ĐẠT 9 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
-								+ "						WHEN ADD_MONTHS(b.active_datetime, 12) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
-								+ "						ELSE NULL END) \"ĐẠT 1 NĂM\""
-								+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE WHEN b.hlr_status = '0' THEN b.sub_id ELSE NULL END) \"ĐÃ HỦY\""
-								+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
-								+ "						WHEN b.hlr_status = '0' AND TRUNC(b.delete_datetime, 'MM') = TRUNC(SYSDATE, 'MM') THEN b.sub_id"
-								+ "						ELSE NULL END) \"HỦY THÁNG HIỆN TẠI\""
-								+ ",'<td class=\"cnumber\">' || COUNT(CASE"
-								+ "						WHEN b.hlr_status = '0' AND TRUNC(b.delete_datetime, 'MM') = ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1)"
-								+ "						THEN b.sub_id ELSE NULL"
-								+ "					END) \"HỦY THÁNG TRƯỚC\" FROM out_data.mc_subscriber_mv b"
-								+ "		   where	  b.cen_reg = 6 and (delete_datetime IS NULL OR delete_datetime >= TO_DATE(?, 'YYYY-MM-DD')) AND b.active_datetime >= TO_DATE(?, 'YYYY-MM-DD') "
-								+ "			  AND b.active_datetime < TO_DATE(?, 'YYYY-MM-DD') + 1 and"
-								+ " 	 b.province_reg IN ('THO', 'NAN', 'QBI', 'HTI') GROUP BY   b.province_reg";
+						} else {
+							sql = "  SELECT   '<td id=\"province\">'|| province province,'<td id=\"district\">'|| district district"
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(sub_id) \"SỐ LƯỢNG THUÊ BAO\""
+									+ "		  ,'<td class=\"canclick cnumber\" act_status = \"00\">'||COUNT(CASE WHEN status != '0' AND act_status = '00' THEN sub_id ELSE NULL END) \"HOẠT ĐỘNG 2 CHIỀU\""
+									+ "		  ,'<td class=\"canclick cnumber\" act_status = \"01\">'||COUNT(CASE WHEN status != '0' AND act_status = '01' THEN sub_id ELSE NULL END) \"CHẶN 1C NỢ CƯỚC\""
+									+ "		  ,'<td class=\"canclick cnumber\" act_status = \"02\">'||COUNT(CASE WHEN status != '0' AND act_status = '02' THEN sub_id ELSE NULL END) \"CHẶN 2C NỢ CƯỚC\""
+									+ "		  ,'<td class=\"canclick cnumber\" act_status = \"10\">'||COUNT(CASE WHEN status != '0' AND act_status IN ('10', '11', '31', '30') THEN sub_id ELSE NULL END) \"CHẶN 1C KHÁC\""
+									+ "		  ,'<td class=\"canclick cnumber\" act_status = \"20\">'||COUNT(CASE WHEN status != '0' AND act_status IN ('20', '21', '22', '12', '32') THEN sub_id ELSE NULL END) \"CHẶN 2C KHÁC\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 1) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 1 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 2) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 2 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 3) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 3 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 6) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 6 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 9) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 9 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 12) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 1 NĂM\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN status = '0' THEN sub_id ELSE NULL END) \"ĐÃ HỦY\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN status = '0' AND TRUNC(end_datetime, 'MM') = TRUNC(SYSDATE, 'MM') THEN sub_id ELSE NULL END) \"HỦY THÁNG HIỆN TẠI\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE"
+									+ "					 WHEN status = '0' AND TRUNC(end_datetime, 'MM') = ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1) THEN sub_id"
+									+ "					 ELSE NULL END) \"HỦY THÁNG TRƯỚC\""
+									+ "	FROM   out_data.subscriber_v WHERE cen_code = 6"
+									+ "		   AND province IN ('THO', 'NAN', 'QBI', 'HTI')"
+									+ "		   AND sta_datetime >= TO_DATE(?, 'YYYY-MM-DD') AND sta_datetime < TO_DATE(?, 'YYYY-MM-DD')  + 1"
+									+ " GROUP BY   province,district";
+						}
+						prpStm = conn.prepareStatement(sql);
+						prpStm.setString(1, from_date);
+						prpStm.setString(2, to_date);
+
+					} else if (provinceNumberList.contains(donvi)) {
+						if (level.equals("0") || level.equals("1")) {
+							sql = "  SELECT   '<td id=\"province\">'|| province province"
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(sub_id) \"SỐ LƯỢNG THUÊ BAO\""
+									+ "		  ,'<td class=\"canclick cnumber\" act_status = \"00\">'||COUNT(CASE WHEN status != '0' AND act_status = '00' THEN sub_id ELSE NULL END) \"HOẠT ĐỘNG 2 CHIỀU\""
+									+ "		  ,'<td class=\"canclick cnumber\" act_status = \"01\">'||COUNT(CASE WHEN status != '0' AND act_status = '01' THEN sub_id ELSE NULL END) \"CHẶN 1C NỢ CƯỚC\""
+									+ "		  ,'<td class=\"canclick cnumber\" act_status = \"02\">'||COUNT(CASE WHEN status != '0' AND act_status = '02' THEN sub_id ELSE NULL END) \"CHẶN 2C NỢ CƯỚC\""
+									+ "		  ,'<td class=\"canclick cnumber\" act_status = \"10\">'||COUNT(CASE WHEN status != '0' AND act_status IN ('10', '11', '31', '30') THEN sub_id ELSE NULL END) \"CHẶN 1C KHÁC\""
+									+ "		  ,'<td class=\"canclick cnumber\" act_status = \"20\">'||COUNT(CASE WHEN status != '0' AND act_status IN ('20', '21', '22', '12', '32') THEN sub_id ELSE NULL END) \"CHẶN 2C KHÁC\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 1) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 1 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 2) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 2 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 3) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 3 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 6) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 6 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 9) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 9 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 12) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 1 NĂM\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN status = '0' THEN sub_id ELSE NULL END) \"ĐÃ HỦY\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN status = '0' AND TRUNC(end_datetime, 'MM') = TRUNC(SYSDATE, 'MM') THEN sub_id ELSE NULL END) \"HỦY THÁNG HIỆN TẠI\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE"
+									+ "					 WHEN status = '0' AND TRUNC(end_datetime, 'MM') = ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1) THEN sub_id"
+									+ "					 ELSE NULL END) \"HỦY THÁNG TRƯỚC\""
+									+ "	FROM   out_data.subscriber_v WHERE cen_code = 6"
+									+ "		   AND province =get_province_code(?) "
+									+ "		   AND sta_datetime >= TO_DATE(?, 'YYYY-MM-DD') AND sta_datetime < TO_DATE(?, 'YYYY-MM-DD')  + 1"
+									+ " GROUP BY   province";
+
+						} else {
+							sql = "  SELECT   '<td id=\"province\">'|| province province,'<td id=\"district\">'|| district district"
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(sub_id) \"SỐ LƯỢNG THUÊ BAO\""
+									+ "		  ,'<td class=\"canclick cnumber\" act_status = \"00\">'||COUNT(CASE WHEN status != '0' AND act_status = '00' THEN sub_id ELSE NULL END) \"HOẠT ĐỘNG 2 CHIỀU\""
+									+ "		  ,'<td class=\"canclick cnumber\" act_status = \"01\">'||COUNT(CASE WHEN status != '0' AND act_status = '01' THEN sub_id ELSE NULL END) \"CHẶN 1C NỢ CƯỚC\""
+									+ "		  ,'<td class=\"canclick cnumber\" act_status = \"02\">'||COUNT(CASE WHEN status != '0' AND act_status = '02' THEN sub_id ELSE NULL END) \"CHẶN 2C NỢ CƯỚC\""
+									+ "		  ,'<td class=\"canclick cnumber\" act_status = \"10\">'||COUNT(CASE WHEN status != '0' AND act_status IN ('10', '11', '31', '30') THEN sub_id ELSE NULL END) \"CHẶN 1C KHÁC\""
+									+ "		  ,'<td class=\"canclick cnumber\" act_status = \"20\">'||COUNT(CASE WHEN status != '0' AND act_status IN ('20', '21', '22', '12', '32') THEN sub_id ELSE NULL END) \"CHẶN 2C KHÁC\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 1) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 1 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 2) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 2 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 3) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 3 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 6) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 6 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 9) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 9 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 12) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 1 NĂM\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN status = '0' THEN sub_id ELSE NULL END) \"ĐÃ HỦY\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN status = '0' AND TRUNC(end_datetime, 'MM') = TRUNC(SYSDATE, 'MM') THEN sub_id ELSE NULL END) \"HỦY THÁNG HIỆN TẠI\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE"
+									+ "					 WHEN status = '0' AND TRUNC(end_datetime, 'MM') = ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1) THEN sub_id"
+									+ "					 ELSE NULL END) \"HỦY THÁNG TRƯỚC\""
+									+ "	FROM   out_data.subscriber_v WHERE cen_code = 6"
+									+ "		   AND province =get_province_code(?) "
+									+ "		   AND sta_datetime >= TO_DATE(?, 'YYYY-MM-DD') AND sta_datetime < TO_DATE(?, 'YYYY-MM-DD')  + 1"
+									+ " GROUP BY   province,district";
+
+						}
+						prpStm = conn.prepareStatement(sql);
+						prpStm.setString(1, donvi);
+						prpStm.setString(2, from_date);
+						prpStm.setString(3, to_date);
 					} else {
-						sql = "SELECT 			 '<td id=\"province\">' || b.province_reg province,'<td id=\"district\">' || b.district_reg district"
-								+ "		  ,'<td class=\"cnumber\">' || COUNT(b.sub_id) \"SỐ LƯỢNG THUÊ BAO\""
-								+ "		  ,'<td class=\"cnumber\" act_status = \"00\">'"
-								+ "		   || COUNT(CASE WHEN b.hlr_status != '0' AND b.hlr_act_status = '00' THEN b.sub_id ELSE NULL END)"
-								+ "			   \"HOẠT ĐỘNG 2 CHIỀU\""
-								+ "		  ,'<td class=\"canclick cnumber\"  act_status = \"1\">'"
-								+ "		   || COUNT(CASE WHEN b.hlr_status != '0'"
-								+ "							 AND INSTR(b.hlr_act_status, '2') <= 0"
-								+ "							 AND INSTR(b.hlr_act_status, '1') > 0"
-								+ "						THEN b.sub_id ELSE NULL END) \"CHẶN 1 CHIỀU\""
-								+ "		  ,'<td class=\"canclick cnumber\"  act_status = \"2\">'"
-								+ "		   || COUNT(CASE WHEN b.hlr_status != '0' AND INSTR(b.hlr_act_status, '2') > 0 THEN b.sub_id ELSE NULL END) \"CHẶN 2 CHIỀU\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN stn>=2 THEN b.sub_id ELSE NULL END) \"NẠP HƠN 1 THẺ\""
-								+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
-								+ "						WHEN ADD_MONTHS(b.active_datetime, 1) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
-								+ "						ELSE NULL END) \"ĐẠT 1 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
-								+ "						WHEN ADD_MONTHS(b.active_datetime, 2) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
-								+ "						ELSE NULL END) \"ĐẠT 2 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
-								+ "						WHEN ADD_MONTHS(b.active_datetime, 3) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
-								+ "						ELSE NULL END) \"ĐẠT 3 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
-								+ "						WHEN ADD_MONTHS(b.active_datetime, 6) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
-								+ "						ELSE NULL END) \"ĐẠT 6 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
-								+ "						WHEN ADD_MONTHS(b.active_datetime, 9) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
-								+ "						ELSE NULL END) \"ĐẠT 9 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
-								+ "						WHEN ADD_MONTHS(b.active_datetime, 12) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
-								+ "						ELSE NULL END) \"ĐẠT 1 NĂM\""
-								+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE WHEN b.hlr_status = '0' THEN b.sub_id ELSE NULL END) \"ĐÃ HỦY\""
-								+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
-								+ "						WHEN b.hlr_status = '0' AND TRUNC(b.delete_datetime, 'MM') = TRUNC(SYSDATE, 'MM') THEN b.sub_id"
-								+ "						ELSE NULL END) \"HỦY THÁNG HIỆN TẠI\""
-								+ ",'<td class=\"cnumber\">' || COUNT(CASE"
-								+ "						WHEN b.hlr_status = '0' AND TRUNC(b.delete_datetime, 'MM') = ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1)"
-								+ "						THEN b.sub_id ELSE NULL"
-								+ "					END) \"HỦY THÁNG TRƯỚC\" FROM	out_data.mc_subscriber_mv b"
-								+ "		  where  b.cen_reg = 6 and (delete_datetime IS NULL OR delete_datetime >= TO_DATE(?, 'YYYY-MM-DD')) AND b.active_datetime >= TO_DATE(?, 'YYYY-MM-DD')"
-								+ "			  AND b.active_datetime < TO_DATE(?, 'YYYY-MM-DD') + 1"
-								+ " 	and b.province_reg IN ('THO', 'NAN', 'QBI', 'HTI')"
-								+ " GROUP BY   b.province_reg, b.district_reg";
+						sql = "  SELECT   '<td id=\"province\">'|| province province,'<td id=\"district\">'|| district district"
+								+ "		  ,'<td class=\"cnumber\">'||COUNT(sub_id) \"SỐ LƯỢNG THUÊ BAO\""
+								+ "		  ,'<td class=\"canclick cnumber\" act_status = \"00\">'||COUNT(CASE WHEN status != '0' AND act_status = '00' THEN sub_id ELSE NULL END) \"HOẠT ĐỘNG 2 CHIỀU\""
+								+ "		  ,'<td class=\"canclick cnumber\" act_status = \"01\">'||COUNT(CASE WHEN status != '0' AND act_status = '01' THEN sub_id ELSE NULL END) \"CHẶN 1C NỢ CƯỚC\""
+								+ "		  ,'<td class=\"canclick cnumber\" act_status = \"02\">'||COUNT(CASE WHEN status != '0' AND act_status = '02' THEN sub_id ELSE NULL END) \"CHẶN 2C NỢ CƯỚC\""
+								+ "		  ,'<td class=\"canclick cnumber\" act_status = \"10\">'||COUNT(CASE WHEN status != '0' AND act_status IN ('10', '11', '31', '30') THEN sub_id ELSE NULL END) \"CHẶN 1C KHÁC\""
+								+ "		  ,'<td class=\"canclick cnumber\" act_status = \"20\">'||COUNT(CASE WHEN status != '0' AND act_status IN ('20', '21', '22', '12', '32') THEN sub_id ELSE NULL END) \"CHẶN 2C KHÁC\""
+								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 1) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 1 THÁNG\""
+								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 2) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 2 THÁNG\""
+								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 3) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 3 THÁNG\""
+								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 6) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 6 THÁNG\""
+								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 9) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 9 THÁNG\""
+								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN ADD_MONTHS(sta_datetime, 12) <= NVL(end_datetime, SYSDATE) THEN sub_id ELSE NULL END) \"ĐẠT 1 NĂM\""
+								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN status = '0' THEN sub_id ELSE NULL END) \"ĐÃ HỦY\""
+								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN status = '0' AND TRUNC(end_datetime, 'MM') = TRUNC(SYSDATE, 'MM') THEN sub_id ELSE NULL END) \"HỦY THÁNG HIỆN TẠI\""
+								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE"
+								+ "					 WHEN status = '0' AND TRUNC(end_datetime, 'MM') = ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1) THEN sub_id"
+								+ "					 ELSE NULL END) \"HỦY THÁNG TRƯỚC\""
+								+ "	FROM   out_data.subscriber_v WHERE cen_code = 6"
+								+ "		   AND get_district_number(province||district) = ? "
+								+ "		   AND sta_datetime >= TO_DATE(?, 'YYYY-MM-DD') AND sta_datetime < TO_DATE(?, 'YYYY-MM-DD')  + 1"
+								+ " GROUP BY   province,district";
+
+						prpStm = conn.prepareStatement(sql);
+						prpStm.setString(1, donvi);
+						prpStm.setString(2, from_date);
+						prpStm.setString(3, to_date);
+
 					}
-					prpStm = conn.prepareStatement(sql);
-					prpStm.setString(1, from_date);
-					prpStm.setString(2, from_date);
-					prpStm.setString(3, to_date);
+				} else {// tab tra truoc
+					if (donvi.equals("666666")) {
+						if (level.equals("0")) {
+							sql = "SELECT '<td class=\"cnumber\">' || COUNT(b.sub_id) \"SỐ LƯỢNG THUÊ BAO\""
+									+ "		  ,'<td class=\"cnumber\" act_status = \"00\">'"
+									+ "		   || COUNT(CASE WHEN b.hlr_status != '0' AND b.hlr_act_status = '00' THEN b.sub_id ELSE NULL END) "
+									+ "			   \"HOẠT ĐỘNG 2 CHIỀU\""
+									+ "		  ,'<td class=\"canclick cnumber\"  act_status = \"1\">'"
+									+ "		   || COUNT(CASE WHEN b.hlr_status != '0'"
+									+ "							 AND INSTR(b.hlr_act_status, '2') <= 0"
+									+ "							 AND INSTR(b.hlr_act_status, '1') > 0"
+									+ "						THEN b.sub_id ELSE NULL END) \"CHẶN 1 CHIỀU\""
+									+ "		  ,'<td class=\"canclick cnumber\"  act_status = \"2\">'"
+									+ "		   || COUNT(CASE WHEN b.hlr_status != '0' AND INSTR(b.hlr_act_status, '2') > 0 THEN b.sub_id ELSE NULL END) \"CHẶN 2 CHIỀU\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN stn>=2 THEN b.sub_id ELSE NULL END) \"NẠP HƠN 1 THẺ\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN ADD_MONTHS(b.active_datetime, 1) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
+									+ "						ELSE NULL END) \"ĐẠT 1 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN ADD_MONTHS(b.active_datetime, 2) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
+									+ "						ELSE NULL END) \"ĐẠT 2 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN ADD_MONTHS(b.active_datetime, 3) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
+									+ "						ELSE NULL END) \"ĐẠT 3 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN ADD_MONTHS(b.active_datetime, 6) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
+									+ "						ELSE NULL END) \"ĐẠT 6 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN ADD_MONTHS(b.active_datetime, 9) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
+									+ "						ELSE NULL END) \"ĐẠT 9 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN ADD_MONTHS(b.active_datetime, 12) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
+									+ "						ELSE NULL END) \"ĐẠT 1 NĂM\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE WHEN b.hlr_status = '0' THEN b.sub_id ELSE NULL END) \"ĐÃ HỦY\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN b.hlr_status = '0' AND TRUNC(b.delete_datetime, 'MM') = TRUNC(SYSDATE, 'MM') THEN b.sub_id"
+									+ "						ELSE NULL END) \"HỦY THÁNG HIỆN TẠI\""
+									+ ",'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN b.hlr_status = '0' AND TRUNC(b.delete_datetime, 'MM') = ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1)"
+									+ "						THEN b.sub_id ELSE NULL"
+									+ "					END) \"HỦY THÁNG TRƯỚC\" FROM out_data.mc_subscriber_mv b"
+									+ "		   where	  b.cen_reg = 6 and (delete_datetime IS NULL OR delete_datetime >= TO_DATE(?, 'YYYY-MM-DD'))"
+									+ "			  AND b.active_datetime >= TO_DATE(?, 'YYYY-MM-DD')"
+									+ "			  AND b.active_datetime < TO_DATE(?, 'YYYY-MM-DD') + 1"
+									+ " 	and b.province_reg IN ('THO', 'NAN', 'QBI', 'HTI')";
 
-				} else if (provinceNumberList.contains(donvi)) {
-					if (level.equals("0") || level.equals("1")) {
-						sql = "SELECT 			  '<td class=\"cnumber\">' || COUNT(b.sub_id) \"SỐ LƯỢNG THUÊ BAO\""
-								+ "		  ,'<td class=\"cnumber\" act_status = \"00\">'"
-								+ "		   || COUNT(CASE WHEN b.hlr_status != '0' AND b.hlr_act_status = '00' THEN b.sub_id ELSE NULL END)"
-								+ "			   \"HOẠT ĐỘNG 2 CHIỀU\""
-								+ "		  ,'<td class=\"canclick cnumber\"  act_status = \"1\">'"
-								+ "		   || COUNT(CASE WHEN b.hlr_status != '0'"
-								+ "							 AND INSTR(b.hlr_act_status, '2') <= 0"
-								+ "							 AND INSTR(b.hlr_act_status, '1') > 0"
-								+ "						THEN b.sub_id ELSE NULL END) \"CHẶN 1 CHIỀU\""
-								+ "		  ,'<td class=\"canclick cnumber\"  act_status = \"2\">'"
-								+ "		   || COUNT(CASE WHEN b.hlr_status != '0' AND INSTR(b.hlr_act_status, '2') > 0 THEN b.sub_id ELSE NULL END) \"CHẶN 2 CHIỀU\""
-								+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN stn>=2 THEN b.sub_id ELSE NULL END) \"NẠP HƠN 1 THẺ\""
-								+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
-								+ "						WHEN ADD_MONTHS(b.active_datetime, 1) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
-								+ "						ELSE NULL END) \"ĐẠT 1 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
-								+ "						WHEN ADD_MONTHS(b.active_datetime, 2) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
-								+ "						ELSE NULL END) \"ĐẠT 2 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
-								+ "						WHEN ADD_MONTHS(b.active_datetime, 3) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
-								+ "						ELSE NULL END) \"ĐẠT 3 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
-								+ "						WHEN ADD_MONTHS(b.active_datetime, 6) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
-								+ "						ELSE NULL END) \"ĐẠT 6 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
-								+ "						WHEN ADD_MONTHS(b.active_datetime, 9) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
-								+ "						ELSE NULL END) \"ĐẠT 9 THÁNG\""
-								+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
-								+ "						WHEN ADD_MONTHS(b.active_datetime, 12) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
-								+ "						ELSE NULL END) \"ĐẠT 1 NĂM\""
-								+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE WHEN b.hlr_status = '0' THEN b.sub_id ELSE NULL END) \"ĐÃ HỦY\""
-								+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
-								+ "						WHEN b.hlr_status = '0' AND TRUNC(b.delete_datetime, 'MM') = TRUNC(SYSDATE, 'MM') THEN b.sub_id"
-								+ "						ELSE NULL END) \"HỦY THÁNG HIỆN TẠI\""
-								+ ",'<td class=\"cnumber\">' || COUNT(CASE"
-								+ "						WHEN b.hlr_status = '0' AND TRUNC(b.delete_datetime, 'MM') = ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1)"
-								+ "						THEN b.sub_id ELSE NULL"
-								+ "					END) \"HỦY THÁNG TRƯỚC\" FROM	out_data.mc_subscriber_mv b "
-								+ "		   where  b.cen_reg = 6 and (delete_datetime IS NULL OR delete_datetime >= TO_DATE(?, 'YYYY-MM-DD')) AND b.active_datetime >= TO_DATE(?, 'YYYY-MM-DD')"
-								+ "			  AND b.active_datetime < TO_DATE(?, 'YYYY-MM-DD') + 1"
-								+ "   and b.province_reg =get_province_code(?)";
+						} else if (level.equals("1")) {
+							sql = "SELECT  		'<td id=\"province\">' || b.province_reg province"
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(b.sub_id) \"SỐ LƯỢNG THUÊ BAO\""
+									+ "		  ,'<td class=\"cnumber\" act_status = \"00\">'"
+									+ "		   || COUNT(CASE WHEN b.hlr_status != '0' AND b.hlr_act_status = '00' THEN b.sub_id ELSE NULL END)"
+									+ "			   \"HOẠT ĐỘNG 2 CHIỀU\""
+									+ "		  ,'<td class=\"canclick cnumber\"  act_status = \"1\">'"
+									+ "		   || COUNT(CASE WHEN b.hlr_status != '0'"
+									+ "							 AND INSTR(b.hlr_act_status, '2') <= 0"
+									+ "							 AND INSTR(b.hlr_act_status, '1') > 0"
+									+ "						THEN b.sub_id ELSE NULL END) \"CHẶN 1 CHIỀU\""
+									+ "		  ,'<td class=\"canclick cnumber\"  act_status = \"2\">'"
+									+ "		   || COUNT(CASE WHEN b.hlr_status != '0' AND INSTR(b.hlr_act_status, '2') > 0 THEN b.sub_id ELSE NULL END) \"CHẶN 2 CHIỀU\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN stn>=2 THEN b.sub_id ELSE NULL END) \"NẠP HƠN 1 THẺ\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN ADD_MONTHS(b.active_datetime, 1) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
+									+ "						ELSE NULL END) \"ĐẠT 1 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN ADD_MONTHS(b.active_datetime, 2) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
+									+ "						ELSE NULL END) \"ĐẠT 2 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN ADD_MONTHS(b.active_datetime, 3) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
+									+ "						ELSE NULL END) \"ĐẠT 3 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN ADD_MONTHS(b.active_datetime, 6) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
+									+ "						ELSE NULL END) \"ĐẠT 6 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN ADD_MONTHS(b.active_datetime, 9) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
+									+ "						ELSE NULL END) \"ĐẠT 9 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN ADD_MONTHS(b.active_datetime, 12) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
+									+ "						ELSE NULL END) \"ĐẠT 1 NĂM\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE WHEN b.hlr_status = '0' THEN b.sub_id ELSE NULL END) \"ĐÃ HỦY\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN b.hlr_status = '0' AND TRUNC(b.delete_datetime, 'MM') = TRUNC(SYSDATE, 'MM') THEN b.sub_id"
+									+ "						ELSE NULL END) \"HỦY THÁNG HIỆN TẠI\""
+									+ ",'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN b.hlr_status = '0' AND TRUNC(b.delete_datetime, 'MM') = ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1)"
+									+ "						THEN b.sub_id ELSE NULL"
+									+ "					END) \"HỦY THÁNG TRƯỚC\" FROM out_data.mc_subscriber_mv b"
+									+ "		   where	  b.cen_reg = 6 and (delete_datetime IS NULL OR delete_datetime >= TO_DATE(?, 'YYYY-MM-DD')) AND b.active_datetime >= TO_DATE(?, 'YYYY-MM-DD') "
+									+ "			  AND b.active_datetime < TO_DATE(?, 'YYYY-MM-DD') + 1 and"
+									+ " 	 b.province_reg IN ('THO', 'NAN', 'QBI', 'HTI') GROUP BY   b.province_reg";
+						} else {
+							sql = "SELECT 			 '<td id=\"province\">' || b.province_reg province,'<td id=\"district\">' || b.district_reg district"
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(b.sub_id) \"SỐ LƯỢNG THUÊ BAO\""
+									+ "		  ,'<td class=\"cnumber\" act_status = \"00\">'"
+									+ "		   || COUNT(CASE WHEN b.hlr_status != '0' AND b.hlr_act_status = '00' THEN b.sub_id ELSE NULL END)"
+									+ "			   \"HOẠT ĐỘNG 2 CHIỀU\""
+									+ "		  ,'<td class=\"canclick cnumber\"  act_status = \"1\">'"
+									+ "		   || COUNT(CASE WHEN b.hlr_status != '0'"
+									+ "							 AND INSTR(b.hlr_act_status, '2') <= 0"
+									+ "							 AND INSTR(b.hlr_act_status, '1') > 0"
+									+ "						THEN b.sub_id ELSE NULL END) \"CHẶN 1 CHIỀU\""
+									+ "		  ,'<td class=\"canclick cnumber\"  act_status = \"2\">'"
+									+ "		   || COUNT(CASE WHEN b.hlr_status != '0' AND INSTR(b.hlr_act_status, '2') > 0 THEN b.sub_id ELSE NULL END) \"CHẶN 2 CHIỀU\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN stn>=2 THEN b.sub_id ELSE NULL END) \"NẠP HƠN 1 THẺ\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN ADD_MONTHS(b.active_datetime, 1) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
+									+ "						ELSE NULL END) \"ĐẠT 1 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN ADD_MONTHS(b.active_datetime, 2) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
+									+ "						ELSE NULL END) \"ĐẠT 2 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN ADD_MONTHS(b.active_datetime, 3) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
+									+ "						ELSE NULL END) \"ĐẠT 3 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN ADD_MONTHS(b.active_datetime, 6) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
+									+ "						ELSE NULL END) \"ĐẠT 6 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN ADD_MONTHS(b.active_datetime, 9) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
+									+ "						ELSE NULL END) \"ĐẠT 9 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN ADD_MONTHS(b.active_datetime, 12) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
+									+ "						ELSE NULL END) \"ĐẠT 1 NĂM\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE WHEN b.hlr_status = '0' THEN b.sub_id ELSE NULL END) \"ĐÃ HỦY\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN b.hlr_status = '0' AND TRUNC(b.delete_datetime, 'MM') = TRUNC(SYSDATE, 'MM') THEN b.sub_id"
+									+ "						ELSE NULL END) \"HỦY THÁNG HIỆN TẠI\""
+									+ ",'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN b.hlr_status = '0' AND TRUNC(b.delete_datetime, 'MM') = ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1)"
+									+ "						THEN b.sub_id ELSE NULL"
+									+ "					END) \"HỦY THÁNG TRƯỚC\" FROM	out_data.mc_subscriber_mv b"
+									+ "		  where  b.cen_reg = 6 and (delete_datetime IS NULL OR delete_datetime >= TO_DATE(?, 'YYYY-MM-DD')) AND b.active_datetime >= TO_DATE(?, 'YYYY-MM-DD')"
+									+ "			  AND b.active_datetime < TO_DATE(?, 'YYYY-MM-DD') + 1"
+									+ " 	and b.province_reg IN ('THO', 'NAN', 'QBI', 'HTI')"
+									+ " GROUP BY   b.province_reg, b.district_reg";
+						}
+						prpStm = conn.prepareStatement(sql);
+						prpStm.setString(1, from_date);
+						prpStm.setString(2, from_date);
+						prpStm.setString(3, to_date);
+
+					} else if (provinceNumberList.contains(donvi)) {
+						if (level.equals("0") || level.equals("1")) {
+							sql = "SELECT 			  '<td class=\"cnumber\">' || COUNT(b.sub_id) \"SỐ LƯỢNG THUÊ BAO\""
+									+ "		  ,'<td class=\"cnumber\" act_status = \"00\">'"
+									+ "		   || COUNT(CASE WHEN b.hlr_status != '0' AND b.hlr_act_status = '00' THEN b.sub_id ELSE NULL END)"
+									+ "			   \"HOẠT ĐỘNG 2 CHIỀU\""
+									+ "		  ,'<td class=\"canclick cnumber\"  act_status = \"1\">'"
+									+ "		   || COUNT(CASE WHEN b.hlr_status != '0'"
+									+ "							 AND INSTR(b.hlr_act_status, '2') <= 0"
+									+ "							 AND INSTR(b.hlr_act_status, '1') > 0"
+									+ "						THEN b.sub_id ELSE NULL END) \"CHẶN 1 CHIỀU\""
+									+ "		  ,'<td class=\"canclick cnumber\"  act_status = \"2\">'"
+									+ "		   || COUNT(CASE WHEN b.hlr_status != '0' AND INSTR(b.hlr_act_status, '2') > 0 THEN b.sub_id ELSE NULL END) \"CHẶN 2 CHIỀU\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN stn>=2 THEN b.sub_id ELSE NULL END) \"NẠP HƠN 1 THẺ\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN ADD_MONTHS(b.active_datetime, 1) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
+									+ "						ELSE NULL END) \"ĐẠT 1 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN ADD_MONTHS(b.active_datetime, 2) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
+									+ "						ELSE NULL END) \"ĐẠT 2 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN ADD_MONTHS(b.active_datetime, 3) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
+									+ "						ELSE NULL END) \"ĐẠT 3 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN ADD_MONTHS(b.active_datetime, 6) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
+									+ "						ELSE NULL END) \"ĐẠT 6 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN ADD_MONTHS(b.active_datetime, 9) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
+									+ "						ELSE NULL END) \"ĐẠT 9 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN ADD_MONTHS(b.active_datetime, 12) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
+									+ "						ELSE NULL END) \"ĐẠT 1 NĂM\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE WHEN b.hlr_status = '0' THEN b.sub_id ELSE NULL END) \"ĐÃ HỦY\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN b.hlr_status = '0' AND TRUNC(b.delete_datetime, 'MM') = TRUNC(SYSDATE, 'MM') THEN b.sub_id"
+									+ "						ELSE NULL END) \"HỦY THÁNG HIỆN TẠI\""
+									+ ",'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN b.hlr_status = '0' AND TRUNC(b.delete_datetime, 'MM') = ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1)"
+									+ "						THEN b.sub_id ELSE NULL"
+									+ "					END) \"HỦY THÁNG TRƯỚC\" FROM	out_data.mc_subscriber_mv b "
+									+ "		   where  b.cen_reg = 6 and (delete_datetime IS NULL OR delete_datetime >= TO_DATE(?, 'YYYY-MM-DD')) AND b.active_datetime >= TO_DATE(?, 'YYYY-MM-DD')"
+									+ "			  AND b.active_datetime < TO_DATE(?, 'YYYY-MM-DD') + 1"
+									+ "   and b.province_reg =get_province_code(?)";
+
+						} else {
+							sql = "SELECT  		'<td id=\"province\">' || b.province_reg province,'<td id=\"district\">' || b.district_reg district"
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(b.sub_id) \"SỐ LƯỢNG THUÊ BAO\""
+									+ "		  ,'<td class=\"cnumber\" act_status = \"00\">'"
+									+ "		   || COUNT(CASE WHEN b.hlr_status != '0' AND b.hlr_act_status = '00' THEN b.sub_id ELSE NULL END)"
+									+ "			   \"HOẠT ĐỘNG 2 CHIỀU\""
+									+ "		  ,'<td class=\"canclick cnumber\"  act_status = \"1\">'"
+									+ "		   || COUNT(CASE WHEN b.hlr_status != '0'"
+									+ "							 AND INSTR(b.hlr_act_status, '2') <= 0"
+									+ "							 AND INSTR(b.hlr_act_status, '1') > 0"
+									+ "						THEN b.sub_id ELSE NULL END) \"CHẶN 1 CHIỀU\""
+									+ "		  ,'<td class=\"canclick cnumber\"  act_status = \"2\">'"
+									+ "		   || COUNT(CASE WHEN b.hlr_status != '0' AND INSTR(b.hlr_act_status, '2') > 0 THEN b.sub_id ELSE NULL END) \"CHẶN 2 CHIỀU\""
+									+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN stn>=2 THEN b.sub_id ELSE NULL END) \"NẠP HƠN 1 THẺ\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN ADD_MONTHS(b.active_datetime, 1) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
+									+ "						ELSE NULL END) \"ĐẠT 1 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN ADD_MONTHS(b.active_datetime, 2) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
+									+ "						ELSE NULL END) \"ĐẠT 2 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN ADD_MONTHS(b.active_datetime, 3) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
+									+ "						ELSE NULL END) \"ĐẠT 3 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN ADD_MONTHS(b.active_datetime, 6) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
+									+ "						ELSE NULL END) \"ĐẠT 6 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN ADD_MONTHS(b.active_datetime, 9) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
+									+ "						ELSE NULL END) \"ĐẠT 9 THÁNG\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN ADD_MONTHS(b.active_datetime, 12) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
+									+ "						ELSE NULL END) \"ĐẠT 1 NĂM\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE WHEN b.hlr_status = '0' THEN b.sub_id ELSE NULL END) \"ĐÃ HỦY\""
+									+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN b.hlr_status = '0' AND TRUNC(b.delete_datetime, 'MM') = TRUNC(SYSDATE, 'MM') THEN b.sub_id"
+									+ "						ELSE NULL END) \"HỦY THÁNG HIỆN TẠI\""
+									+ ",'<td class=\"cnumber\">' || COUNT(CASE"
+									+ "						WHEN b.hlr_status = '0' AND TRUNC(b.delete_datetime, 'MM') = ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1)"
+									+ "						THEN b.sub_id ELSE NULL"
+									+ "					END) \"HỦY THÁNG TRƯỚC\" FROM out_data.mc_subscriber_mv b"
+									+ "		   where	  b.cen_reg = 6 and (delete_datetime IS NULL OR delete_datetime >= TO_DATE(?, 'YYYY-MM-DD')) AND b.active_datetime >= TO_DATE(?, 'YYYY-MM-DD')"
+									+ "			  AND b.active_datetime < TO_DATE(?, 'YYYY-MM-DD') + 1"
+									+ "   and   b.province_reg =get_province_code(?)  GROUP BY   b.province_reg, b.district_reg";
+
+						}
+						prpStm = conn.prepareStatement(sql);
+						prpStm.setString(1, from_date);
+						prpStm.setString(2, from_date);
+						prpStm.setString(3, to_date);
+						prpStm.setString(4, donvi);
 
 					} else {
-						sql = "SELECT  		'<td id=\"province\">' || b.province_reg province,'<td id=\"district\">' || b.district_reg district"
+						sql = "SELECT  			  '<td>' || b.province_reg province,'<td>' || b.district_reg district"
 								+ "		  ,'<td class=\"cnumber\">' || COUNT(b.sub_id) \"SỐ LƯỢNG THUÊ BAO\""
 								+ "		  ,'<td class=\"cnumber\" act_status = \"00\">'"
 								+ "		   || COUNT(CASE WHEN b.hlr_status != '0' AND b.hlr_act_status = '00' THEN b.sub_id ELSE NULL END)"
@@ -2136,93 +2250,107 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 								+ "					END) \"HỦY THÁNG TRƯỚC\" FROM out_data.mc_subscriber_mv b"
 								+ "		   where	  b.cen_reg = 6 and (delete_datetime IS NULL OR delete_datetime >= TO_DATE(?, 'YYYY-MM-DD')) AND b.active_datetime >= TO_DATE(?, 'YYYY-MM-DD')"
 								+ "			  AND b.active_datetime < TO_DATE(?, 'YYYY-MM-DD') + 1"
-								+ "   and   b.province_reg =get_province_code(?)  GROUP BY   b.province_reg, b.district_reg";
+								+ "   and get_district_number(province_reg||district_reg) = ? "
+								+ " GROUP BY   b.province_reg, b.district_reg";
+
+						prpStm = conn.prepareStatement(sql);
+						prpStm.setString(1, from_date);
+						prpStm.setString(2, from_date);
+						prpStm.setString(3, to_date);
+						prpStm.setString(4, donvi);
 
 					}
-					prpStm = conn.prepareStatement(sql);
-					prpStm.setString(1, from_date);
-					prpStm.setString(2, from_date);
-					prpStm.setString(3, to_date);
-					prpStm.setString(4, donvi);
-
-				} else {
-					sql = "SELECT  			  '<td>' || b.province_reg province,'<td>' || b.district_reg district"
-							+ "		  ,'<td class=\"cnumber\">' || COUNT(b.sub_id) \"SỐ LƯỢNG THUÊ BAO\""
-							+ "		  ,'<td class=\"cnumber\" act_status = \"00\">'"
-							+ "		   || COUNT(CASE WHEN b.hlr_status != '0' AND b.hlr_act_status = '00' THEN b.sub_id ELSE NULL END)"
-							+ "			   \"HOẠT ĐỘNG 2 CHIỀU\""
-							+ "		  ,'<td class=\"canclick cnumber\"  act_status = \"1\">'"
-							+ "		   || COUNT(CASE WHEN b.hlr_status != '0'"
-							+ "							 AND INSTR(b.hlr_act_status, '2') <= 0"
-							+ "							 AND INSTR(b.hlr_act_status, '1') > 0"
-							+ "						THEN b.sub_id ELSE NULL END) \"CHẶN 1 CHIỀU\""
-							+ "		  ,'<td class=\"canclick cnumber\"  act_status = \"2\">'"
-							+ "		   || COUNT(CASE WHEN b.hlr_status != '0' AND INSTR(b.hlr_act_status, '2') > 0 THEN b.sub_id ELSE NULL END) \"CHẶN 2 CHIỀU\""
-							+ "		  ,'<td class=\"cnumber\">'||COUNT(CASE WHEN stn>=2 THEN b.sub_id ELSE NULL END) \"NẠP HƠN 1 THẺ\""
-							+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
-							+ "						WHEN ADD_MONTHS(b.active_datetime, 1) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
-							+ "						ELSE NULL END) \"ĐẠT 1 THÁNG\""
-							+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
-							+ "						WHEN ADD_MONTHS(b.active_datetime, 2) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
-							+ "						ELSE NULL END) \"ĐẠT 2 THÁNG\""
-							+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
-							+ "						WHEN ADD_MONTHS(b.active_datetime, 3) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
-							+ "						ELSE NULL END) \"ĐẠT 3 THÁNG\""
-							+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
-							+ "						WHEN ADD_MONTHS(b.active_datetime, 6) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
-							+ "						ELSE NULL END) \"ĐẠT 6 THÁNG\""
-							+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
-							+ "						WHEN ADD_MONTHS(b.active_datetime, 9) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
-							+ "						ELSE NULL END) \"ĐẠT 9 THÁNG\""
-							+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
-							+ "						WHEN ADD_MONTHS(b.active_datetime, 12) <= NVL(b.delete_datetime, SYSDATE) THEN b.sub_id"
-							+ "						ELSE NULL END) \"ĐẠT 1 NĂM\""
-							+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE WHEN b.hlr_status = '0' THEN b.sub_id ELSE NULL END) \"ĐÃ HỦY\""
-							+ "		  ,'<td class=\"cnumber\">' || COUNT(CASE"
-							+ "						WHEN b.hlr_status = '0' AND TRUNC(b.delete_datetime, 'MM') = TRUNC(SYSDATE, 'MM') THEN b.sub_id"
-							+ "						ELSE NULL END) \"HỦY THÁNG HIỆN TẠI\""
-							+ ",'<td class=\"cnumber\">' || COUNT(CASE"
-							+ "						WHEN b.hlr_status = '0' AND TRUNC(b.delete_datetime, 'MM') = ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1)"
-							+ "						THEN b.sub_id ELSE NULL"
-							+ "					END) \"HỦY THÁNG TRƯỚC\" FROM out_data.mc_subscriber_mv b"
-							+ "		   where	  b.cen_reg = 6 and (delete_datetime IS NULL OR delete_datetime >= TO_DATE(?, 'YYYY-MM-DD')) AND b.active_datetime >= TO_DATE(?, 'YYYY-MM-DD')"
-							+ "			  AND b.active_datetime < TO_DATE(?, 'YYYY-MM-DD') + 1"
-							+ "   and get_district_number(province_reg||district_reg) = ? "
-							+ " GROUP BY   b.province_reg, b.district_reg";
-
-					prpStm = conn.prepareStatement(sql);
-					prpStm.setString(1, from_date);
-					prpStm.setString(2, from_date);
-					prpStm.setString(3, to_date);
-					prpStm.setString(4, donvi);
-
 				}
 			}
 			syslog(sql);
-			rs = prpStm.executeQuery();
-			ResultSetMetaData rsMetaData = rs.getMetaData();
-			int numberOfColumns = rsMetaData.getColumnCount();
 
-			Map<String, String> pojo;
-			List<Map<String, String>> pojoList = new LinkedList<Map<String, String>>();
-			// put header
-			pojo = new TreeMap<String, String>();
-			pojo.put("000", "<td>STT");
-			for (int i = 1; i <= numberOfColumns; i++) {
-				pojo.put(String.format("%03d", i), "<td>" + rsMetaData.getColumnName(i));
+			rs = prpStm.executeQuery();
+			return getData2(rs, 0, user_name, app);
+		} catch (Exception e) {
+			return getError(e);
+		} finally {
+			clean(conn, prpStm, rs);
+		}
+	}
+
+	@Override
+	public List<Map<String, String>> getKhdnNewActive(String user_name, Date from_date, Date to_date) {
+		Connection conn = null;
+		ResultSet rs = null;
+		String app = "1";
+		PreparedStatement prpStm = null;
+		try {
+			conn = getConnection();
+			conn.setAutoCommit(false);
+			if (filterBuiledMap.get(user_name + ".." + app) == null)
+				buildFilter(user_name, app);
+			Mb6Fillter mb6Fillter = filterBuiledMap.get(user_name + ".." + app);
+			String province_condition = "", district_condition = "";
+
+			if (!mb6Fillter.isAllProvince()) {
+				for (String province : mb6Fillter.getProvinceList()) {
+					province_condition = province_condition + " ,'" + province + "'";
+				}
+				try {
+					province_condition = " and province_reg in (" + province_condition.substring(2) + " )";
+				} catch (Exception e) {
+					province_condition = "";
+				}
 			}
-			pojoList.add(pojo);
-			int rowcount = 0;
+			if (!mb6Fillter.isAllDistrict()) {
+				for (String district : mb6Fillter.getDistrictList()) {
+					district_condition = district_condition + " ,'" + district + "'";
+				}
+				try {
+					district_condition = " and district_reg in (" + district_condition.substring(2) + " )";
+				} catch (Exception e) {
+					district_condition = "";
+				}
+
+			}
+			String sql = "  SELECT   province_reg province, sub_type, COUNT(sub_id) tot_sub FROM   (SELECT	 sub_id"
+					+ "					,hlr_isdn,active_datetime,province_reg,district_reg"
+					+ "					,sub_type,emp_code_reg FROM	 out_data.mc_subscriber_mv"
+					+ "			 WHERE		(delete_datetime IS NULL OR delete_datetime >= TO_DATE(?, 'YYYY-MM-DD'))"
+					+ "					 AND cen_reg = 6 AND(kit_id = 4 OR sub_type = 'ETK')"
+					+ "					 AND shop_code_reg IS NOT NULL"
+					+ "					 AND active_datetime >= TO_DATE(?, 'YYYY-MM-DD')"
+					+ "					 AND active_datetime < TO_DATE(?, 'YYYY-MM-DD') + 1 " + province_condition
+					+ district_condition + " )" + "GROUP BY   ROLLUP(province_reg, sub_type)";
+
+			//
+			// "SELECT province, sub_type, COUNT(sub_id) tot_sub"
+			// + " FROM (SELECT sub_id, isdn, active_datetime,
+			// province,district"
+			// + " , sub_type,emp_code FROM cntt_c6.pre_vms_active"
+			// + " WHERE cen_code = 6 AND(kit_id = 4 OR sub_type = 'ETK')"
+			// + " AND shop_code IS NOT NULL AND active_datetime >= TO_DATE(?,
+			// 'YYYY-MM-DD')"
+			// + " AND active_datetime < TO_DATE(?, 'YYYY-MM-DD') + 1 " +
+			// province_condition + district_condition
+			// + " ) GROUP BY ROLLUP (province, sub_type)";
+
+			// syslog(sql);
+			prpStm = conn.prepareStatement(sql);
+			prpStm.setString(1, AjaxController.YYYY_MM_DD_FORMAT.format(from_date));
+			prpStm.setString(2, AjaxController.YYYY_MM_DD_FORMAT.format(from_date));
+			prpStm.setString(3, AjaxController.YYYY_MM_DD_FORMAT.format(to_date));
+
+			rs = prpStm.executeQuery();
+			List<Map<String, String>> pojoList = new LinkedList<Map<String, String>>();
+			Map<String, String> pojo;
+			long tot_sub_all = 0, tot_sub = 0;
 			while (rs != null && rs.next()) {
 				pojo = new TreeMap<String, String>();
-				rowcount = rowcount + 1;
-				pojo = new TreeMap<String, String>();
-				pojo.put("000", "<td>" + rowcount);
-				for (int i = 1; i <= numberOfColumns; i++) {
-					pojo.put(String.format("%03d", i), rs.getString(i));
-				}
+				pojo.put("province", rs.getString("province"));
+				pojo.put("sub_type", rs.getString("sub_type"));
+				pojo.put("tot_sub", rs.getString("tot_sub"));
+				tot_sub = rs.getLong("tot_sub");
+				tot_sub_all = tot_sub_all + tot_sub;
 				pojoList.add(pojo);
 			}
+			pojo = new TreeMap<String, String>();
+			pojo.put("tot_sub_all", String.valueOf(tot_sub_all));
 			return pojoList;
 		} catch (Exception e) {
 			return getError(e);
@@ -2236,69 +2364,131 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 		Connection conn = null;
 		ResultSet rs = null;
 		PreparedStatement prpStm = null;
+		String sql = "";
 		try {
 			JSONObject jsonObject = new JSONObject(json);
 			String from_date = String.valueOf(jsonObject.get("from_date")),
-					to_date = String.valueOf(jsonObject.get("to_date")), area = String.valueOf(jsonObject.get("area")),
-					act_status = String.valueOf(jsonObject.get("act_status"));
+					to_date = String.valueOf(jsonObject.get("to_date")), area = String.valueOf(jsonObject.get("area"));
+
 			String app = String.valueOf(jsonObject.get("app"));
 			String type = String.valueOf(jsonObject.get("type"));
 			String area_clause = "", act_status_clause = "";
+			String sub_type = "ALL";
+			if (app.equals("1")) {
+				try {
+					sub_type = String.valueOf(jsonObject.get("sub_type"));
+				} catch (Exception e) {
+					sub_type = "ALL";
+				}
+				if (sub_type == null || sub_type.equals(""))
+					sub_type = "ALL";
+				if (area == null || area.equals(""))
+					area = "ALL";
+				conn = this.getConnection();
+				if (type.equals("tt")) {
+					sql = "BEGIN delete sub_analyze_tmp;INSERT INTO sub_analyze_tmp(sub_id) SELECT DISTINCT sub_id"
+							+ "  FROM out_data.mc_subscriber_mv "
+							+ " WHERE (delete_datetime IS NULL OR delete_datetime >= TO_DATE(?, 'YYYY-MM-DD')) and cen_reg = 6"
+							+ "  AND(kit_id = 4 OR sub_type = 'ETK') AND shop_code_reg IS NOT NULL"
+							+ "  AND active_datetime >= TO_DATE(?, 'YYYY-MM-DD')"
+							+ "  AND active_datetime < TO_DATE(?, 'YYYY-MM-DD') + 1 AND(province_reg||district_reg like '"
+							+ area + "%' OR 'ALL' = ?) " + "  AND(sub_type = ? OR 'ALL' = ?) ;"
+							+ "  analyze_sub(TO_DATE(?, 'YYYY-MM-DD'), TO_DATE(?, 'YYYY-MM-DD')); END;";
+					prpStm = conn.prepareStatement(sql);
 
-			if (area != null && !area.equals(""))
-				area_clause = " and province||district like'" + area + "%'";
-			else
-				area_clause = " AND province IN ('THO', 'NAN', 'QBI', 'HTI')";
-			conn = this.getConnection();
-			String sql;
-			if (type.equals("ts")) {
-
-				if (act_status.equals("10"))
-					act_status_clause = " and act_status IN ('10', '11', '31', '30') ";
-				else if (act_status.equals("20"))
-					act_status_clause = " and act_status IN ('20', '21', '22', '12', '32') ";
-				else
-					act_status_clause = " and act_status='" + act_status + "'";
-
-				sql = "SELECT a.sub_id,a.isdn,a.name,a.pay_full_address"
-						+ " ,a.province,a.district,a.shop_code,a.emp_code"
-						+ " ,TO_CHAR(sta_datetime, 'DD/MM/YYYY') sta_datetime"
-						+ " ,TO_CHAR(ngay_chan, 'DD/MM/YYYY') ngay_chan,bare_shop,b.code"
-						+ "  FROM (SELECT a.sub_id,a.isdn,a.name,a.pay_full_address"
-						+ " ,a.province,a.district,a.shop_code,a.emp_code,a.sta_datetime"
-						+ " ,TO_DATE(SUBSTR(bare_detail, 1, 8), 'YYYYMMDD') ngay_chan"
-						+ " ,SUBSTR(bare_detail, 15, INSTR(bare_detail, 'ENDSHOP') - 15) bare_shop"
-						+ " ,SUBSTR(bare_detail, INSTR(bare_detail, 'ENDSHOP') + 7) bare_resion_id"
-						+ "  FROM out_data.subscriber_v a LEFT JOIN ( SELECT pk_id sub_id"
-						+ " ,MAX( TO_CHAR(issue_datetime, 'YYYYMMDDhh24miss') || shop_code"
-						+ "  || 'ENDSHOP' || reason_id) bare_detail FROM out_data.action_audit_v"
-						+ "  WHERE issue_datetime >= TRUNC(SYSDATE) - 60 AND action_id IN ('06', '07')"
-						+ "  GROUP BY pk_id) b ON a.sub_id = b.sub_id  WHERE a.sta_datetime >= TO_DATE(?, 'YYYY-MM-DD')"
-						+ "  AND a.sta_datetime < TO_DATE(?, 'YYYY-MM-DD') + 1 AND a.status = 1 " + area_clause
-						+ act_status_clause + " ) a LEFT JOIN out_data.reason_v b ON a.bare_resion_id = b.reason_id";
-				prpStm = conn.prepareStatement(sql);
-				prpStm.setString(1, from_date);
-				prpStm.setString(2, to_date);
-
+					prpStm.setString(1, from_date);
+					prpStm.setString(2, from_date);
+					prpStm.setString(3, to_date);
+					prpStm.setString(4, area);
+					prpStm.setString(5, sub_type);
+					prpStm.setString(6, sub_type);
+					prpStm.setString(7, from_date);
+					prpStm.setString(8, to_date);
+					prpStm.execute();
+					prpStm.close();
+					prpStm = conn.prepareStatement("SELECT * from sub_analyze_tmp_v ORDER BY isdn");
+				} else {
+					sql = "BEGIN DELETE subscriber_tmp;"
+							+ " INSERT INTO subscriber_tmp(sub_id,isdn,sta_datetime,end_datetime,status,act_status)"
+							+ " SELECT sub_id,isdn,sta_datetime,end_datetime,status ,act_status FROM subscriber_khdn_ptm_v"
+							+ " WHERE sta_datetime >= TO_DATE(?, 'YYYY-MM-DD') "
+							+ " AND sta_datetime < TO_DATE(?, 'YYYY-MM-DD') + 1 AND (province || district like '" + area
+							+ "%' OR 'ALL' = ?) AND (sub_type = ? OR 'ALL' = ?);"
+							+ " thuynt.mb6app.analyze_subscriber_tmp(TO_DATE(?, 'YYYY-MM-DD'),TO_DATE(?, 'YYYY-MM-DD'));END;";
+					prpStm = conn.prepareStatement(sql);
+					prpStm.setString(1, from_date);
+					prpStm.setString(2, to_date);
+					prpStm.setString(3, area);
+					prpStm.setString(4, sub_type);
+					prpStm.setString(5, sub_type);
+					prpStm.setString(6, from_date);
+					prpStm.setString(7, to_date);
+					prpStm.execute();
+					prpStm.close();
+					sql = "select isdn,PROSUB_CODE,to_char(sta_datetime,'dd/mm/yyyy') sta_datetime,"
+							+ " to_char(end_datetime,'dd/mm/yyyy') end_datetime,act_status"
+							+ " ,charge,prom_amount, to_char(last_bill_date,'dd/mm/yyyy') last_bill_date, "
+							+ "  shop_code, province, district,bare_audit,vasp_reg_audit,cha_pkg_audit, name, pay_full_address from mb6_subscriber_v order by isdn";
+					prpStm = conn.prepareStatement(sql);
+				}
 			} else {
-				if (act_status.equals("1"))
-					act_status_clause = " and hlr_act_status like '%1%' and hlr_act_status not like '%2%' ";
-				else if (act_status.equals("2"))
-					act_status_clause = " and hlr_act_status like '%2%'";
+				String act_status = String.valueOf(jsonObject.get("act_status"));
+				if (area != null && !area.equals(""))
+					area_clause = " and province||district like'" + area + "%'";
 				else
-					act_status_clause = " and hlr_act_status='" + act_status + "'";
+					area_clause = " AND province IN ('THO', 'NAN', 'QBI', 'HTI')";
+				conn = this.getConnection();
 
-				sql = "SELECT  b.province_reg province,b.district_reg district, b.hlr_isdn,hlr_act_status,hlr_status"
-						+ "  FROM	out_data.mc_subscriber_mv b where cen_reg = 6 "
-						+ " and (delete_datetime IS NULL OR delete_datetime >= TO_DATE(?, 'YYYY-MM-DD')) AND b.active_datetime >=  TO_DATE(?, 'YYYY-MM-DD') "
-						+ " AND b.active_datetime <  TO_DATE(?, 'YYYY-MM-DD') + 1  WHERE	 1 = 1 " + area_clause
-						+ act_status_clause;
-				prpStm = conn.prepareStatement(sql);
-				prpStm.setString(1, from_date);
-				prpStm.setString(2, from_date);
-				prpStm.setString(3, to_date);
+				if (type.equals("ts")) {
+
+					if (act_status.equals("10"))
+						act_status_clause = " and act_status IN ('10', '11', '31', '30') ";
+					else if (act_status.equals("20"))
+						act_status_clause = " and act_status IN ('20', '21', '22', '12', '32') ";
+					else
+						act_status_clause = " and act_status='" + act_status + "'";
+
+					sql = "SELECT a.sub_id,a.isdn,a.name,a.pay_full_address"
+							+ " ,a.province,a.district,a.shop_code,a.emp_code"
+							+ " ,TO_CHAR(sta_datetime, 'DD/MM/YYYY') sta_datetime"
+							+ " ,TO_CHAR(ngay_chan, 'DD/MM/YYYY') ngay_chan,bare_shop,b.code"
+							+ "  FROM (SELECT a.sub_id,a.isdn,a.name,a.pay_full_address"
+							+ " ,a.province,a.district,a.shop_code,a.emp_code,a.sta_datetime"
+							+ " ,TO_DATE(SUBSTR(bare_detail, 1, 8), 'YYYYMMDD') ngay_chan"
+							+ " ,SUBSTR(bare_detail, 15, INSTR(bare_detail, 'ENDSHOP') - 15) bare_shop"
+							+ " ,SUBSTR(bare_detail, INSTR(bare_detail, 'ENDSHOP') + 7) bare_resion_id"
+							+ "  FROM out_data.subscriber_v a LEFT JOIN ( SELECT pk_id sub_id"
+							+ " ,MAX( TO_CHAR(issue_datetime, 'YYYYMMDDhh24miss') || shop_code"
+							+ "  || 'ENDSHOP' || reason_id) bare_detail FROM out_data.action_audit_v"
+							+ "  WHERE issue_datetime >= TRUNC(SYSDATE) - 60 AND action_id IN ('06', '07')"
+							+ "  GROUP BY pk_id) b ON a.sub_id = b.sub_id  WHERE a.sta_datetime >= TO_DATE(?, 'YYYY-MM-DD')"
+							+ "  AND a.sta_datetime < TO_DATE(?, 'YYYY-MM-DD') + 1 AND a.status = 1 " + area_clause
+							+ act_status_clause
+							+ " ) a LEFT JOIN out_data.reason_v b ON a.bare_resion_id = b.reason_id";
+					prpStm = conn.prepareStatement(sql);
+					prpStm.setString(1, from_date);
+					prpStm.setString(2, to_date);
+
+				} else {
+					if (act_status.equals("1"))
+						act_status_clause = " and hlr_act_status like '%1%' and hlr_act_status not like '%2%' ";
+					else if (act_status.equals("2"))
+						act_status_clause = " and hlr_act_status like '%2%'";
+					else
+						act_status_clause = " and hlr_act_status='" + act_status + "'";
+
+					sql = "SELECT  b.province_reg province,b.district_reg district, b.hlr_isdn,hlr_act_status,hlr_status"
+							+ "  FROM	out_data.mc_subscriber_mv b where cen_reg = 6 "
+							+ " and (delete_datetime IS NULL OR delete_datetime >= TO_DATE(?, 'YYYY-MM-DD')) AND b.active_datetime >=  TO_DATE(?, 'YYYY-MM-DD') "
+							+ " AND b.active_datetime <  TO_DATE(?, 'YYYY-MM-DD') + 1  WHERE	 1 = 1 " + area_clause
+							+ act_status_clause;
+					prpStm = conn.prepareStatement(sql);
+					prpStm.setString(1, from_date);
+					prpStm.setString(2, from_date);
+					prpStm.setString(3, to_date);
+				}
 			}
-			// syslog(sql);
+			syslog(sql);
 
 			rs = prpStm.executeQuery();
 			return getData(rs, 1, user_name, app);
@@ -2492,9 +2682,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 	private void buildIsdnTmp(JSONObject jsonObject, Connection conn, int is_gold) throws SQLException {
 		PreparedStatement prpStm = null;
 		String separator = ";";
-		String isdn_list = String.valueOf(jsonObject.get("isdn_list")).replaceAll("\n", separator)
-				.replaceAll(",", separator).replaceAll(" ", separator).replaceAll("\t", separator);
-
+		String isdn_list = String.valueOf(jsonObject.get("isdn_list")).replaceAll("[^\\d.]", separator);
 		String aliving_date;
 		try {
 			aliving_date = String.valueOf(jsonObject.get("aliving_date"));
@@ -2557,14 +2745,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 		PreparedStatement prpStm = null;
 		String separator = ";";
 		// Cau lenh lay thue bao tra truoc
-		String resultSql = " SELECT serial SIM_SERIAL, isdn, TO_CHAR(active_datetime, 'DD/MM/YYYY') active_date, act_status"
-				+ " , psc_last_province, province, district, sub_type, prom_program_code1"
-				+ " , TO_CHAR(scratch_first_date, 'DD/MM/YYYY') scratch_first_date"
-				+ " , scratch_first, scratch, thoai_b, thoai_c, data_b, data_c, gtgt_b, gtgt_c, sms_b"
-				+ " , sms_c, rmqt_b, rmqt_c, khac_b, khac_c, total_credit, total_bonus"
-				+ " , TO_CHAR(last_vlr, 'DD/MM/YYYY') last_vlr, vlr, vlr_appear, vlr_3k3d, psc_3k3d, ma_cua_hang"
-				+ " , emp_code, TO_CHAR(pkg_reg_code_date, 'DD/MM/YYYY') pkg_reg_code_date"
-				+ " , pkg_reg_code, pkg_reg, reg_by_ez FROM sub_analyze_tmp ORDER BY serial, isdn";
+		String resultSql = " SELECT * from sub_analyze_tmp_v ORDER BY serial, isdn";
 
 		try {
 			JSONObject jsonObject = new JSONObject(json);
@@ -2611,63 +2792,9 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 				conn.setAutoCommit(false);
 				buildIsdnTmp(jsonObject, conn, Integer.valueOf(type));
 
-				// String isdn_list =
-				// String.valueOf(jsonObject.get("isdn_list")).replaceAll("\n",
-				// separator).replaceAll(",", separator).replaceAll(" ",
-				// separator).replaceAll("\t", separator);
-				// aliving_date =
-				// String.valueOf(jsonObject.get("aliving_date"));
-				// if (aliving_date == null || aliving_date.equals(""))
-				// aliving_date = "4000-01-01";
-				// String[] subArray = isdn_list.split(separator);
-				// int k = subArray.length / 15000;
-				// int d = subArray.length % 15000;
-				// prpStm = conn.prepareStatement("BEGIN delete sub_act_temp;
-				// END;");
-				// prpStm.execute();
-				//
-				// for (int j = 0; j < k; j++) {
-				// prpStm = conn.prepareStatement("BEGIN INSERT INTO
-				// sub_act_temp(isdn,active_time,is_gold,step) "
-				// + "VALUES (?,TO_DATE(?, 'YYYY-MM-DD'),?,0);EXCEPTION WHEN
-				// OTHERS THEN NULL; END;");
-				//
-				// for (int i = j * 15000; i < j * 15000 + 14999; i++) {
-				// try {
-				// prpStm.setString(1, subArray[i]);
-				// prpStm.setString(2, aliving_date);
-				// prpStm.setInt(3, Integer.valueOf(type));
-				// prpStm.addBatch();
-				// } catch (Exception e) {
-				// syslog(subArray[i] + " Loi o so nay " +
-				// e.toString());
-				// }
-				// }
-				// prpStm.executeBatch();
-				// prpStm.close();
-				// }
-				//
-				// prpStm = conn.prepareStatement("BEGIN INSERT INTO
-				// sub_act_temp(isdn,active_time,is_gold,step) "
-				// + "VALUES (?,TO_DATE(?, 'YYYY-MM-DD'),?,0);EXCEPTION WHEN
-				// OTHERS THEN NULL; END;");
-				//
-				// for (int i = k * 15000; i < k * 15000 + d; i++) {
-				// try {
-				// prpStm.setString(1, subArray[i]);
-				// prpStm.setString(2, aliving_date);
-				// prpStm.setInt(3, Integer.valueOf(type));
-				// prpStm.addBatch();
-				// } catch (Exception e) {
-				// syslog(subArray[i] + " Loi o so nay " +
-				// e.toString());
-				// }
-				// }
-				// prpStm.executeBatch();
-				// prpStm.close();
-
 				prpStm = conn.prepareStatement("BEGIN mb6app.pre_assign_sub_reg3; END;");
 				prpStm.execute();
+				prpStm.close();
 				if (type.equals("0")) {// tra truoc
 					prpStm = conn.prepareStatement("BEGIN delete sub_analyze_tmp; INSERT INTO sub_analyze_tmp(sub_id)"
 							+ " SELECT DISTINCT sub_id FROM sub_act_temp WHERE step = 1 AND is_gold = 0;"
@@ -2676,12 +2803,13 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 					prpStm.setString(2, den_ngay);
 					prpStm.execute();
 				} else {// tra sau
-					prpStm = conn.prepareStatement("BEGIN FOR v IN (SELECT DISTINCT sub_id FROM sub_act_temp"
-							+ "  WHERE step = 1 AND is_gold = 1 AND sub_id IS NOT NULL)LOOP"
-							+ " INSERT INTO subscriber_tmp(sub_id,isdn,sta_datetime,end_datetime"
-							+ " ,status,act_status)SELECT sub_id,isdn,sta_datetime,end_datetime"
-							+ " ,status,act_status FROM out_data.subscriber_v WHERE sub_id = v.sub_id;"
-							+ " END LOOP;thuynt.mb6app.analyze_subscriber_tmp(TO_DATE(?, 'YYYYMMDD'), TO_DATE(?, 'YYYYMMDD'));END;");
+					prpStm = conn.prepareStatement(
+							"BEGIN delete subscriber_tmp; FOR v IN (SELECT DISTINCT sub_id FROM sub_act_temp"
+									+ "  WHERE step = 1 AND is_gold = 1 AND sub_id IS NOT NULL)LOOP"
+									+ " INSERT INTO subscriber_tmp(sub_id,isdn,sta_datetime,end_datetime"
+									+ " ,status,act_status)SELECT sub_id,isdn,sta_datetime,end_datetime"
+									+ " ,status,act_status FROM out_data.subscriber_v WHERE sub_id = v.sub_id;"
+									+ " END LOOP;thuynt.mb6app.analyze_subscriber_tmp(TO_DATE(?, 'YYYYMMDD'), TO_DATE(?, 'YYYYMMDD'));END;");
 					prpStm.setString(1, tu_ngay);
 					prpStm.setString(2, den_ngay);
 					prpStm.execute();
@@ -2889,7 +3017,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 			// put header
 			pojo = new TreeMap<String, String>();
 			for (int i = 2; i <= numberOfColumns; i++) {
-				pojo.put(String.format("%03d", i), "<td>" + rsMetaData.getColumnName(i));
+				pojo.put(String.format("%03d", i), "<th>" + rsMetaData.getColumnName(i));
 			}
 			pojoList.add(pojo);
 
@@ -3179,7 +3307,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 			// put header
 			pojo = new TreeMap<String, String>();
 			for (int i = 2; i <= numberOfColumns; i++) {
-				pojo.put(String.format("%03d", i), "<td>" + rsMetaData.getColumnName(i));
+				pojo.put(String.format("%03d", i), "<th>" + rsMetaData.getColumnName(i));
 			}
 			pojoList.add(pojo);
 
@@ -3694,6 +3822,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 
 				}
 				prpStm = conn.prepareStatement(sql);
+				prpStm.setString(1, donvi);
 			} else {
 				sql = "SELECT '<td>' ||a.pro_id pro_id,'<td>' ||b.pro_name pro_name"
 						+ ",'<td>' ||a.province province,'<td>' ||a.district district"
@@ -3766,7 +3895,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 							+ ",case when  hqtkc>=1 then '<td style=\"background-color:#96cdcd\"> Hiệu quả' else '<td style=\"background-color:red\"> Chưa hiệu quả' end hqtkc"
 							+ ",case when  hqkm>=1 then '<td style=\"background-color:#96cdcd\"> Hiệu quả' else '<td style=\"background-color:red\"> Chưa hiệu quả' end hqkm,"
 							+ "case when  hqnt>=1 then '<td style=\"background-color:#96cdcd\"> Hiệu quả' else '<td style=\"background-color:red\"> Chưa hiệu quả' end hqnt"
-							+ "from danh_gia_chi_phi_tmp_v where area_number=666666";
+							+ " from danh_gia_chi_phi_tmp_v where area_number=666666";
 
 				} else if (level.equals("1")) {
 					sql = "SELECT	 '<td>' || area_number area_number,'<td>' || 'MF ' || don_vi don_vi"
@@ -3838,6 +3967,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 				prpStm = conn.prepareStatement(sql);
 				prpStm.setString(1, donvi);
 			}
+			syslog(sql);
 			rs = prpStm.executeQuery();
 			return getData2(rs, 0, user_name, app);
 		} catch (Exception e) {
@@ -3882,7 +4012,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 				month = month + "-10";
 			else
 				month = month + "-20";
-
+			syslog(month);
 			if (param.equals("0")) {
 				sql = "SELECT '<td id = \"collection_group_id\" >'||a.collection_group_id id"
 						+ "		,'<td>'||b.province province,'<td>'||b.name \"TÊN ÐẠI LÝ\""
@@ -3897,7 +4027,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 						+ "  FROM		 hhtc_dl_thu_cuoc a LEFT JOIN collection_group_v b"
 						+ "		 ON a.collection_group_id = b.collection_group_id"
 						+ "  WHERE end_date = TO_DATE(?, 'YYYY-MM-DD') order by province, name";
-				// syslog(sql);
+				syslog(sql);
 				prpStm = conn.prepareStatement(sql);
 				prpStm.setString(1, month);
 				rs = prpStm.executeQuery();
@@ -3917,7 +4047,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 						+ "  FROM hhtc_dl_thu_cuoc a LEFT JOIN collection_group_v b "
 						+ "  ON a.collection_group_id = b.collection_group_id "
 						+ "  WHERE end_date = TO_DATE(?, 'YYYY-MM-DD') order by province, name";
-				// syslog(sql);
+				syslog(sql);
 				prpStm = conn.prepareStatement(sql);
 				prpStm.setString(1, month);
 				rs = prpStm.executeQuery();
@@ -3932,7 +4062,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 						+ "     ,'<td class=\"cnumber\" id = \"sl_kh\" >'||sl_kh \"SỐ LƯỢNG KHÁCH HÀNG\""
 						+ "  FROM        hhtc_pay_area a"
 						+ "  WHERE end_date = TO_DATE(?, 'YYYY-MM-DD') order by pay_area_code";
-				// syslog(sql);
+				syslog(sql);
 				prpStm = conn.prepareStatement(sql);
 				prpStm.setString(1, month);
 				rs = prpStm.executeQuery();
@@ -3956,7 +4086,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 							+ "  ON a.collection_group_id = b.collection_group_id "
 							+ "  WHERE end_date = TO_DATE(?, 'YYYY-MM-DD') order by province, name";
 
-					// syslog(sql);
+					syslog(sql);
 					prpStm = conn.prepareStatement(sql);
 					prpStm.setString(1, month);
 				} else {
@@ -3973,7 +4103,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 							+ "  FROM hhtc_dl_thu_cuoc a LEFT JOIN collection_group_v b "
 							+ "  ON a.collection_group_id = b.collection_group_id "
 							+ "  WHERE end_date = TO_DATE(?, 'YYYY-MM-DD') and b.province = get_province_code(?) order by province, name";
-
+					syslog(sql);
 					prpStm = conn.prepareStatement(sql);
 					prpStm.setString(1, month);
 					prpStm.setString(2, mbftinh);
@@ -4332,13 +4462,17 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 			prpStm = conn.prepareStatement(sql);
 			prpStm.setString(1, month + "-01");
 			prpStm.setString(2, bill_cycle_id);
+			syslog(month + ":" + bill_cycle_id);
+			syslog(sql);
 			rs = prpStm.executeQuery();
 			while (rs != null && rs.next()) {
 				v_end_date = rs.getString(1);
 			}
+			syslog("v_end_date :" + v_end_date);
 			rs.close();
 			prpStm.close();
-			if (mbftinh.equals("ALL")) {
+			syslog("mbftinh :" + mbftinh);
+			if (mbftinh.equals("666666")) {
 				sql = "select collection_group_id, province, name, to_char(sta_date,'YYYY-MM-DD') sta_date"
 						+ ", to_char(end_date,'YYYY-MM-DD') end_date, nvl(kh_90,0), nvl(th_90,0), nvl(hkh1,0), nvl(kh_no_dong_n,0)"
 						+ ", nvl(th_no_dong_n,0), nvl(kh_no_dong_n1,0), nvl(th_no_dong_n1,0)"
@@ -4359,12 +4493,13 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 						+ ",nvl(kh_no_dong_n,0)+nvl(kh_no_dong_n1,0) kh_no_dong"
 						+ ",nvl(th_no_dong_n,0)+nvl(th_no_dong_n1,0) th_no_dong,CHIPHI_TRONG_DS,CHIPHI_NGOAI_DS,CHIPHI_NODONG"
 						+ ",nvl(tm_no_dong_n,0) tm_no_dong_n,nvl(tm_no_dong_n1,0) tm_no_dong_n1 from hhtc_dl_thu_cuoc_v"
-						+ " where end_date=to_date(?,'YYYY-MM-DD') and province=?";
+						+ " where end_date=to_date(?,'YYYY-MM-DD') and province=get_province_code(?)";
 
 				prpStm = conn.prepareStatement(sql);
 				prpStm.setString(1, v_end_date);
 				prpStm.setString(2, mbftinh);
 			}
+			syslog(sql);
 			rs = prpStm.executeQuery();
 			HoaHongThuCuoc hhtc;
 			while (rs != null && rs.next()) {
@@ -4373,15 +4508,17 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 					hhtc.paramArray[i] = rs.getString(i + 1);
 				hhtcMap.put(hhtc.paramArray[HoaHongThuCuoc.COLLECTION_GROUP_ID], hhtc);
 			}
+			rs.close();
+			prpStm.close();
+
 			sql = "SELECT a.collection_group_id,loai_tt,c.name ,trong_ds thu_duoc,duoc_huong,a.vung,muc_chi,a.ty_le_thu30,a.ty_le_no90,0 thanh_tien "
 					+ "  FROM hhtc_trong_danh_sach a INNER JOIN hhtc_pay_area b"
 					+ "		 ON a.end_date = to_date(?,'YYYY-MM-DD') and a.pay_area_code = b.pay_area_code AND a.end_date = b.end_date"
 					+ "		 INNER JOIN pay_area_v c on a.pay_area_code=c.pay_area_code where loai_tt<>'other' order by a.vung,c.name,loai_tt";
 
-			rs.close();
-			prpStm.close();
 			prpStm = conn.prepareStatement(sql);
 			prpStm.setString(1, v_end_date);
+			syslog(sql);
 			rs = prpStm.executeQuery();
 			HoaHongThuCuocTrongDs hhtc_trong_ds;
 			while (rs != null && rs.next()) {
@@ -4437,7 +4574,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 						+ ",des,pay_staff_debit,pay_area_code from hhtc_chi_tiet_thu_cuoc "
 						+ " where (TYPE = 'EZ' OR (TYPE = 'TM' AND pay_collection_group_id = collection_group_id)) "
 						+ " and end_date = TO_DATE(?, 'YYYY-MM-DD') and collection_group_id = ?";
-			else if (item.equals("thu_ngoai_ds"))
+			else if (item.equals("th_nds"))
 				sql = "select type,cust_id,isdn,amount,des,pay_staff_debit,pay_area_code from hhtc_chi_tiet_thu_cuoc "
 						+ " WHERE   des = 'tm_trong_ky' AND cust_id NOT IN (SELECT	cust_id FROM hhtc_chi_tiet_thu_cuoc "
 						+ " 		WHERE	des <> 'tm_trong_ky' and end_date = TO_DATE(?, 'YYYY-MM-DD') AND TYPE = 'TM') "
@@ -4446,7 +4583,8 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 			prpStm = conn.prepareStatement(sql);
 			prpStm.setString(1, end_date);
 			prpStm.setString(2, id);
-			if (item.equals("thu_ngoai_ds")) {
+			syslog(sql + " " + end_date + " " + id);
+			if (item.equals("th_nds")) {
 				prpStm.setString(1, end_date);
 				prpStm.setString(2, end_date);
 				prpStm.setString(3, id);
@@ -4555,6 +4693,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 						+ ",'<td id = \"district\" >' || b.district district,"
 						+ "'<td id = \"sub_id\" > <a target=\"_blank\" href=\"http://qlkh.mobifone.vn/1090/mobifone.jsp?txtSubID='||b.sub_id ||'&chkCheck=ACT&frmAction=SearchSub\">'||b.sub_id sub_id"
 						+ ",'<td id = \"isdn\" >'||b.isdn isdn,'<td id = \"name\" >'||b.name name"
+						+ ",'<td id = \"address\" >'||b.pay_full_address address"
 						+ ",'<td id = \"last_act\" class = \"canclick\" >'||a.last_act last_act"
 						+ ",'<td id = \"input_type\" >'||decode(a.input_type,1,'Chặn 2 chiều',2,'Chặn 1 chiều',3,'7 ngày ko psc',4) input_type"
 						+ ",'<td id = \"status\" >' ||b.status status"
@@ -4569,6 +4708,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 						+ ",'<td id = \"district\" >' || b.district district,"
 						+ "'<td id = \"sub_id\" > <a target=\"_blank\" href=\"http://qlkh.mobifone.vn/1090/mobifone.jsp?txtSubID='||b.sub_id ||'&chkCheck=ACT&frmAction=SearchSub\">'||b.sub_id sub_id"
 						+ ",'<td id = \"isdn\" >'||b.isdn isdn,'<td id = \"name\" >'||b.name name"
+						+ ",'<td id = \"address\" >'||b.pay_full_address address"
 						+ ",'<td id = \"last_act\" class = \"canclick\" >'||a.last_act last_act"
 						+ ",'<td id = \"input_type\" >'||decode(a.input_type,1,'Chặn 2 chiều',2,'Chặn 1 chiều',3,'7 ngày ko psc',4) input_type"
 						+ ",'<td id = \"status\" >' ||b.status status"
@@ -4584,6 +4724,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 						+ ",'<td id = \"district\" >' || b.district district,"
 						+ "'<td id = \"sub_id\" > <a target=\"_blank\" href=\"http://qlkh.mobifone.vn/1090/mobifone.jsp?txtSubID='||b.sub_id ||'&chkCheck=ACT&frmAction=SearchSub\">'||b.sub_id sub_id"
 						+ ",'<td id = \"isdn\" >'||b.isdn isdn,'<td id = \"name\" >'||b.name name"
+						+ ",'<td id = \"address\" >'||b.pay_full_address address"
 						+ ",'<td id = \"last_act\" class = \"canclick\" >'||a.last_act last_act"
 						+ ",'<td id = \"input_type\" >'||decode(a.input_type,1,'Chặn 2 chiều',2,'Chặn 1 chiều',3,'7 ngày ko psc',4) input_type"
 						+ ",'<td id = \"status\" >' ||b.status status"
@@ -4599,6 +4740,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 						+ ",'<td id = \"district\" >' || b.district district,"
 						+ "'<td id = \"sub_id\" > <a target=\"_blank\" href=\"http://qlkh.mobifone.vn/1090/mobifone.jsp?txtSubID='||b.sub_id ||'&chkCheck=ACT&frmAction=SearchSub\">'||b.sub_id sub_id"
 						+ ",'<td id = \"isdn\" >'||b.isdn isdn,'<td id = \"name\" >'||b.name name"
+						+ ",'<td id = \"address\" >'||b.pay_full_address address"
 						+ ",'<td id = \"last_act\" class = \"canclick\" >'||a.last_act last_act"
 						+ ",'<td id = \"input_type\" >'||decode(a.input_type,1,'Chặn 2 chiều',2,'Chặn 1 chiều',3,'7 ngày ko psc',4) input_type"
 						+ ",'<td id = \"status\" >' ||b.status status"
@@ -4638,7 +4780,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 					+ " ,act_comment, act_time, user_name  from cskh_detai_care_history_v"
 					+ " where sub_id = ? and input_date >= to_date(?,'YYYY-MM-DD')"
 					+ " and input_date < to_date(?,'YYYY-MM-DD')+1 and act_time is not null"
-					+ " order by input_date desc";
+					+ " order by act_time desc";
 			prpStm = conn.prepareStatement(sql);
 			prpStm.setString(1, sub_id);
 			prpStm.setString(2, input_date);
@@ -4710,7 +4852,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 					to_date = String.valueOf(jsonObject.get("to_date")),
 					donvi = String.valueOf(jsonObject.get("donvi"));
 			String level = String.valueOf(jsonObject.get("level"));
-
+			String app = String.valueOf(jsonObject.get("app"));
 			conn = this.getConnection();
 			prpStm = conn.prepareStatement(
 					"begin set_mb6_program_ctx_pkg.setFromAndToDate(to_date(?,'YYYY-MM-DD'),to_date(?,'YYYY-MM-DD')) ; end;");
@@ -4847,30 +4989,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 
 			syslog(sql);
 			rs = prpStm.executeQuery();
-			ResultSetMetaData rsMetaData = rs.getMetaData();
-			int numberOfColumns = rsMetaData.getColumnCount();
-
-			Map<String, String> pojo;
-			List<Map<String, String>> pojoList = new LinkedList<Map<String, String>>();
-			// put header
-			pojo = new TreeMap<String, String>();
-			pojo.put("000", "<td>STT");
-			for (int i = 1; i <= numberOfColumns; i++) {
-				pojo.put(String.format("%03d", i), "<td>" + rsMetaData.getColumnName(i));
-			}
-			pojoList.add(pojo);
-			int rowcount = 0;
-			while (rs != null && rs.next()) {
-				pojo = new TreeMap<String, String>();
-				rowcount = rowcount + 1;
-				pojo = new TreeMap<String, String>();
-				pojo.put("000", "<td>" + rowcount);
-				for (int i = 1; i <= numberOfColumns; i++) {
-					pojo.put(String.format("%03d", i), rs.getString(i));
-				}
-				pojoList.add(pojo);
-			}
-			return pojoList;
+			return getData2(rs, 0, user_name, app);
 		} catch (Exception e) {
 			return getError(e);
 		} finally {
@@ -4917,8 +5036,8 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 			else if (column.equals("co_hanh_dong_cham_soc"))
 				column_clause = " and act_time is not null and to_date(act_time,'YYYYMMDD-HH24MISS') >=TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'fromDate'), 'YYYYMMDD') and to_date(act_time,'YYYYMMDD-HH24MISS') < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 and act <>'0'";
 
-			sql = "select distinct b.ISDN, b.SUB_ID, decode(a.input_type,1,'Chặn 2 chiều',2,'Chặn 1 chiều',3,'7 ngày ko psc',4) INPUT_TYPE, a.INPUT_DATE, a.ACT_DATE"
-					+ ", a.CLOSE_STATUS, a.CLOSE_DATE,b.PROVINCE, b.DISTRICT"
+			sql = "select distinct b.PROVINCE, b.DISTRICT, b.ISDN, b.SUB_ID, decode(a.input_type,1,'Chặn 2 chiều',2,'Chặn 1 chiều',3,'7 ngày ko psc',4) INPUT_TYPE, a.INPUT_DATE "
+					+ ", a.CLOSE_STATUS, a.CLOSE_DATE,a.last_act"
 					+ " FROM CSKH_DETAI_CARE_HISTORY_V a INNER JOIN out_data.subscriber_v b ON a.sub_id = b.sub_id"
 					+ " where input_date < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD') +1 and (close_date is null or close_date >= TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'fromDate'), 'YYYYMMDD')) "
 					+ column_clause + area_clause;
@@ -4951,6 +5070,290 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 			prpStm = conn.prepareStatement(sql);
 			rs = prpStm.executeQuery();
 			return getData(rs, 0, user_name, app);
+		} catch (Exception e) {
+			return getError(e);
+		} finally {
+			clean(conn, prpStm, rs);
+		}
+	}
+
+	@Override
+	public List<Map<String, String>> mobitv_roimang(String user_name, String json) {
+		Connection conn = null;
+		ResultSet rs = null;
+		PreparedStatement prpStm = null;
+		try {
+			String sub_id, donvi;
+			JSONObject jsonObject = new JSONObject(json);
+
+			String app = String.valueOf(jsonObject.get("app"));
+
+			try {
+				sub_id = String.valueOf(jsonObject.get("sub_id"));
+			} catch (Exception e) {
+				sub_id = "";
+			}
+			try {
+				donvi = String.valueOf(jsonObject.get("donvi"));
+			} catch (Exception e) {
+				donvi = "";
+			}
+
+			conn = this.getConnection();
+			String sql;
+			if (donvi.equals("666666")) {
+				// sql = "select SUB_ID, NAME, ADDRESS, PHONE, STATUS,
+				// SERVICE_PKG, ACTIVE_DATE, EXPIRE_DATE,SUB_TYPE, LAST_ACT from
+				// mobitv_v";
+
+				sql = "SELECT '<td id = \"province\" >' || PROVINCE PROVINCE"
+						+ ",'<td id = \"district\" >' || DISTRICT district" + ",'<td id = \"sub_id\" >'||sub_id sub_id"
+						+ ",'<td id = \"isdn\" >'||PHONE isdn" + ",'<td id = \"name\" >'||name name"
+						+ ",'<td id = \"SUB_TYPE\" >'||SUB_TYPE SUB_TYPE,'<td id = \"address\" >'||address address"
+						+ ",'<td id = \"last_act\" class = \"canclick\" >'||last_act last_act"
+						+ ",'<td id = \"status\" >' ||status status"
+						+ ",'<td id = \"SERVICE_PKG\" >'||SERVICE_PKG SERVICE_PKG"
+						+ ",'<td id = \"ACTIVE_DATE\" >'||TO_CHAR(active_date, 'YYYY-MM-DD') ACTIVE_DATE"
+						+ ",'<td id = \"EXPIRE_DATE\" >'||TO_CHAR(EXPIRE_DATE, 'YYYY-MM-DD') EXPIRE_DATE"
+						+ " FROM mobitv_v WHERE expire_date >= trunc(SYSDATE) AND expire_date < trunc(SYSDATE) + 5"
+						+ " order by EXPIRE_DATE";
+				prpStm = conn.prepareStatement(sql);
+			} else if (provinceNumberList.contains(donvi)) {
+				sql = "SELECT '<td id = \"province\" >' || PROVINCE PROVINCE"
+						+ ",'<td id = \"district\" >' || DISTRICT district" + ",'<td id = \"sub_id\" >'||sub_id sub_id"
+						+ ",'<td id = \"isdn\" >'||PHONE isdn" + ",'<td id = \"name\" >'||name name"
+						+ ",'<td id = \"SUB_TYPE\" >'||SUB_TYPE SUB_TYPE,'<td id = \"address\" >'||address address"
+						+ ",'<td id = \"last_act\" class = \"canclick\" >'||last_act last_act"
+						+ ",'<td id = \"status\" >' ||status status"
+						+ ",'<td id = \"SERVICE_PKG\" >'||SERVICE_PKG SERVICE_PKG"
+						+ ",'<td id = \"ACTIVE_DATE\" >'||TO_CHAR(active_date, 'YYYY-MM-DD') ACTIVE_DATE"
+						+ ",'<td id = \"EXPIRE_DATE\" >'||TO_CHAR(EXPIRE_DATE, 'YYYY-MM-DD') EXPIRE_DATE"
+						+ " FROM mobitv_v WHERE expire_date >= trunc(SYSDATE) AND expire_date < trunc(SYSDATE) + 5"
+						+ " and province=get_province_code(?) order by EXPIRE_DATE";
+				prpStm = conn.prepareStatement(sql);
+				prpStm.setString(1, donvi);
+			} else if (sub_id.equals("")) {
+				sql = "SELECT '<td id = \"province\" >' || PROVINCE PROVINCE"
+						+ ",'<td id = \"district\" >' || DISTRICT district" + ",'<td id = \"sub_id\" >'||sub_id sub_id"
+						+ ",'<td id = \"isdn\" >'||PHONE isdn" + ",'<td id = \"name\" >'||name name"
+						+ ",'<td id = \"SUB_TYPE\" >'||SUB_TYPE SUB_TYPE,'<td id = \"address\" >'||address address"
+						+ ",'<td id = \"last_act\" class = \"canclick\" >'||last_act last_act"
+						+ ",'<td id = \"status\" >' ||status status"
+						+ ",'<td id = \"SERVICE_PKG\" >'||SERVICE_PKG SERVICE_PKG"
+						+ ",'<td id = \"ACTIVE_DATE\" >'||TO_CHAR(active_date, 'YYYY-MM-DD') ACTIVE_DATE"
+						+ ",'<td id = \"EXPIRE_DATE\" >'||TO_CHAR(EXPIRE_DATE, 'YYYY-MM-DD') EXPIRE_DATE"
+						+ " FROM mobitv_v WHERE expire_date >= trunc(SYSDATE) AND expire_date < trunc(SYSDATE) + 5 and get_district_number(province||district) = ?"
+						+ " order by EXPIRE_DATE";
+				prpStm = conn.prepareStatement(sql);
+				prpStm.setString(1, donvi);
+			} else {
+				sql = "SELECT '<td id = \"province\" >' || PROVINCE PROVINCE"
+						+ ",'<td id = \"district\" >' || DISTRICT district" + ",'<td id = \"sub_id\" >'||sub_id sub_id"
+						+ ",'<td id = \"isdn\" >'||PHONE isdn" + ",'<td id = \"name\" >'||name name"
+						+ ",'<td id = \"SUB_TYPE\" >'||SUB_TYPE SUB_TYPE,'<td id = \"address\" >'||address address"
+						+ ",'<td id = \"last_act\" class = \"canclick\" >'||last_act last_act"
+						+ ",'<td id = \"status\" >' ||status status"
+						+ ",'<td id = \"SERVICE_PKG\" >'||SERVICE_PKG SERVICE_PKG"
+						+ ",'<td id = \"ACTIVE_DATE\" >'||TO_CHAR(active_date, 'YYYY-MM-DD') ACTIVE_DATE"
+						+ ",'<td id = \"EXPIRE_DATE\" >'||TO_CHAR(EXPIRE_DATE, 'YYYY-MM-DD') EXPIRE_DATE"
+						+ " FROM mobitv_v WHERE sub_id = ?";
+				prpStm = conn.prepareStatement(sql);
+				prpStm.setString(1, sub_id);
+			}
+
+			syslog(sql);
+			rs = prpStm.executeQuery();
+			return getData2(rs, 1, user_name, app);
+		} catch (Exception e) {
+			return getError(e);
+		} finally {
+			clean(conn, prpStm, rs);
+		}
+	}
+
+	@Override
+	public List<Map<String, String>> mobitv_care_history(String user_name, String json) {
+		Connection conn = null;
+		ResultSet rs = null;
+		PreparedStatement prpStm = null;
+		try {
+			JSONObject jsonObject = new JSONObject(json);
+			String sub_id = (String) jsonObject.get("sub_id");
+			String app = String.valueOf(jsonObject.get("app"));
+			conn = this.getConnection();
+			String sql;
+			sql = "select cskh_detai.get_act_label(act) act"
+					+ " ,decode(act_status,'0','Đang thực hiện','1','Đã xong') act_status"
+					+ " ,act_comment, act_time, user_name  from mobitv_care_history_v"
+					+ " where sub_id = ? and act_time is not null order by act_time desc";
+			prpStm = conn.prepareStatement(sql);
+			prpStm.setString(1, sub_id);
+			syslog(sql);
+			rs = prpStm.executeQuery();
+			return getData(rs, 0, user_name, app);
+		} catch (Exception e) {
+			return getError(e);
+		} finally {
+			clean(conn, prpStm, rs);
+		}
+	}
+
+	@Override
+	public List<Map<String, String>> add_mobitv_care_history(String user_name, String json) {
+		Connection conn = null;
+		ResultSet rs = null;
+		PreparedStatement prpStm = null;
+		try {
+			JSONObject jsonObject = new JSONObject(json);
+			String sub_id = (String) jsonObject.get("sub_id");
+			String act = (String) jsonObject.get("act");
+			String status = (String) jsonObject.get("status");
+			String comment = (String) jsonObject.get("comment");
+			String app = String.valueOf(jsonObject.get("app"));
+			String act_date = new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date());
+			conn = this.getConnection();
+			String sql;
+
+			/*
+			 * sql = "select add_care_history(p_input_date DATE ,p_sub_id DATE
+			 * ,p_act VARCHAR2 ,p_status VARCHAR2 ,p_comment VARCHAR2) from
+			 * dual";"
+			 */
+			sql = "begin cskh_detai.add_care_history_mobitv(?,?,?,?,?,?); end;";
+			prpStm = conn.prepareStatement(sql);
+			prpStm.setString(1, sub_id);
+			prpStm.setString(2, act);
+			prpStm.setString(3, status);
+			prpStm.setString(4, comment);
+			prpStm.setString(5, act_date);
+			prpStm.setString(6, user_name);
+			prpStm.execute();
+			prpStm.close();
+
+			sql = "select '" + act_date + "' act_date, '" + user_name + "' user_name from dual";
+			prpStm = conn.prepareStatement(sql);
+			syslog(sql);
+			rs = prpStm.executeQuery();
+			return getData(rs, 0, user_name, app);
+		} catch (Exception e) {
+			return getError(e);
+		} finally {
+			clean(conn, prpStm, rs);
+		}
+	}
+
+	@Override
+	public List<Map<String, String>> mobitv_ketqua(String user_name, String json) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<Map<String, String>> chiTietCell(String user_name, String json) {
+		Connection conn = null;
+		ResultSet rs = null;
+		PreparedStatement prpStm = null;
+		try {
+
+			JSONObject jsonObject = new JSONObject(json);
+
+			String app = String.valueOf(jsonObject.get("app"));
+			String tu_ngay = String.valueOf(jsonObject.get("tu_ngay"));
+			String den_ngay = String.valueOf(jsonObject.get("den_ngay"));
+			String donvi = String.valueOf(jsonObject.get("donvi"));
+			String rptype = String.valueOf(jsonObject.get("rptype"));
+
+			conn = this.getConnection();
+			String sql;
+			if (rptype.equals("0"))
+				if (donvi.equals("666666")) {
+					sql = "SELECT * from out_data.TBL6_RPT_CELL " + " WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
+							+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd')"
+							+ " ORDER BY site_name,cell_name,ngay_capnhat";
+					prpStm = conn.prepareStatement(sql);
+					prpStm.setString(1, tu_ngay);
+					prpStm.setString(2, den_ngay);
+				} else if (provinceNumberList.contains(donvi)) {
+					sql = "SELECT * from out_data.TBL6_RPT_CELL " + " WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
+							+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd') and province=get_province_code(?)"
+							+ " ORDER BY site_name,cell_name,ngay_capnhat";
+					prpStm = conn.prepareStatement(sql);
+					prpStm.setString(1, tu_ngay);
+					prpStm.setString(2, den_ngay);
+					prpStm.setString(3, donvi);
+				} else {
+					sql = "SELECT * from out_data.TBL6_RPT_CELL " + " WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
+							+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd') and get_district_number(province||district) = ?"
+							+ " ORDER BY site_name,cell_name,ngay_capnhat";
+					prpStm = conn.prepareStatement(sql);
+					prpStm.setString(1, tu_ngay);
+					prpStm.setString(2, den_ngay);
+					prpStm.setString(3, donvi);
+				}
+			else if (donvi.equals("666666")) {
+				sql = "SELECT SITE_NAME, province"
+						+ ",district ,sum(vlr) AS vlr,sum(dtttt) AS dtttt,sum(thoai) AS thoai"
+						+ ",sum(sms) AS sms,sum(DATA) AS DATA,sum(rmqt) AS rmqt,sum(khac) AS khac,sum(gtgt) AS gtgt"
+						+ ",sum(zp) AS zp,sum(mq) AS mq,sum(mc) AS mc, sum(qsv)AS qsv, sum(fc) AS fc"
+						+ " FROM out_data.TBL6_RPT_CELL WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
+						+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd')"
+						+ " GROUP BY SITE_NAME,province,district ORDER BY site_name";
+				prpStm = conn.prepareStatement(sql);
+				prpStm.setString(1, tu_ngay);
+				prpStm.setString(2, den_ngay);
+			} else if (provinceNumberList.contains(donvi)) {
+				sql = "SELECT SITE_NAME, province"
+						+ ",district ,sum(vlr) AS vlr,sum(dtttt) AS dtttt,sum(thoai) AS thoai"
+						+ ",sum(sms) AS sms,sum(DATA) AS DATA,sum(rmqt) AS rmqt,sum(khac) AS khac,sum(gtgt) AS gtgt"
+						+ ",sum(zp) AS zp,sum(mq) AS mq,sum(mc) AS mc, sum(qsv)AS qsv, sum(fc) AS fc"
+						+ " FROM out_data.TBL6_RPT_CELL WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
+						+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd') and province=get_province_code(?)"
+						+ " GROUP BY SITE_NAME,province,district ORDER BY site_name";
+				prpStm = conn.prepareStatement(sql);
+				prpStm.setString(1, tu_ngay);
+				prpStm.setString(2, den_ngay);
+				prpStm.setString(3, donvi);
+			} else {
+				sql = "SELECT SITE_NAME, province"
+						+ ",district ,sum(vlr) AS vlr,sum(dtttt) AS dtttt,sum(thoai) AS thoai"
+						+ ",sum(sms) AS sms,sum(DATA) AS DATA,sum(rmqt) AS rmqt,sum(khac) AS khac,sum(gtgt) AS gtgt"
+						+ ",sum(zp) AS zp,sum(mq) AS mq,sum(mc) AS mc, sum(qsv)AS qsv, sum(fc) AS fc"
+						+ " FROM out_data.TBL6_RPT_CELL " + " WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
+						+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd') and get_district_number(province||district) = ?"
+						+ " GROUP BY SITE_NAME,province,district ORDER BY site_name";
+				prpStm = conn.prepareStatement(sql);
+				prpStm.setString(1, tu_ngay);
+				prpStm.setString(2, den_ngay);
+				prpStm.setString(3, donvi);
+			}
+			syslog(sql);
+			rs = prpStm.executeQuery();
+			return getData(rs, 1, user_name, app);
+		} catch (Exception e) {
+			return getError(e);
+		} finally {
+			clean(conn, prpStm, rs);
+		}
+	}
+
+	@Override
+	public Object getVlr3k3dLatday() {
+		Connection conn = null;
+		ResultSet rs = null;
+		PreparedStatement prpStm = null;
+		String vlr3k3dLatday = "";
+		try {
+
+			conn = this.getConnection();
+			String sql = "select substr(file_name,-15,8) from (select * from out_data.process_file_history_v"
+					+ " where file_name like '3k3d_vlr_lk%'" + " order by process_date desc) where rownum=1";
+			prpStm = conn.prepareStatement(sql);
+			syslog(sql);
+			rs = prpStm.executeQuery();
+			while (rs != null && rs.next()) {
+				vlr3k3dLatday = rs.getString(1);
+			}
+			return vlr3k3dLatday;
 		} catch (Exception e) {
 			return getError(e);
 		} finally {

@@ -38,7 +38,7 @@ public class AccountOracleBase extends OracleBase implements AccountBase {
 			conn = getConnection();
 			conn.setAutoCommit(false);
 
-			prpStm = conn.prepareStatement("INSERT INTO thuynt.account(name) VALUES   (?)");
+			prpStm = conn.prepareStatement("INSERT INTO account(name) VALUES   (lower(?))");
 			prpStm.setString(1, user_name);
 			prpStm.execute();
 			conn.commit();
@@ -60,7 +60,7 @@ public class AccountOracleBase extends OracleBase implements AccountBase {
 		PreparedStatement prpStm = null;
 		try {
 			conn = getConnection();
-			prpStm = conn.prepareStatement("SELECT name from thuynt.account where name = ?");
+			prpStm = conn.prepareStatement("SELECT name from account where name = lower(?)");
 			prpStm.setString(1, name);
 			rs = prpStm.executeQuery();
 			while (rs != null && rs.next()) {
@@ -86,7 +86,8 @@ public class AccountOracleBase extends OracleBase implements AccountBase {
 		ResultSet rs = null;
 		try {
 			conn = getConnection();
-			prpStm = conn.prepareStatement("select role from account_action_v where role is not null and name=?");
+			prpStm = conn
+					.prepareStatement("select role from account_action_v where role is not null and name=lower(?)");
 			prpStm.setString(1, name);
 			rs = prpStm.executeQuery();
 			while (rs != null && rs.next()) {

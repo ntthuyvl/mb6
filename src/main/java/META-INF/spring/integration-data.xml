@@ -27,7 +27,7 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 		<property name="password" value="${database.password}" />
 		<property name="defaultAutoCommit" value="false" />
 		<!-- property name="defaultTransactionIsolation" value="2" /> -->
-		<property name="maxActive" value="10" />
+		<property name="maxActive" value="20" />
 		<property name="maxIdle" value="1" />
 		<property name="minIdle" value="1" />
 		<property name="initialSize" value="1" />

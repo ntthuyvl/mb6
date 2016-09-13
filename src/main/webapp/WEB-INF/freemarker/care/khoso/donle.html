@@ -1,4 +1,4 @@
-<#include "../header.ftl">
+<#include "/header_bt.ftl">
 <SCRIPT>
 	var curtab = '#tab1';
 	var type = 1;
@@ -19,28 +19,21 @@
 			"json" : JSON.stringify(dataObj)
 		};
 		$.post("donle", dataObj, function(data2, status) {
+			$('table, button#reload').fadeIn();
+			$('textarea#isdns, button#getdata').hide();
 			call_back_ajax(data2, status);
-			$('div#content table').fadeIn()
-			$('textarea#isdns').hide();
-			$('section2 header').html("CÁC THÔNG TIN TRONG KHO SỐ");
-			$('input#getdata').val("Tìm lô khác");
 		});
-		
-	}
 
-	function reload() {
-		location.reload();
 	}
 
 	$(document).ready(function() {
-		$('div#content table').hide();
-		$('input#getdata').click(function() {
-			if ($('input#getdata').val() == "Tra cứu")
-				getData();
-			else
-				reload();
+		$('table, button#reload').hide();
+		$('button#getdata').click(function() {
+			getData();
 		});
-		tab_present();
+		$('button#reload').click(function() {
+			location.reload();
+		});
 
 	})
 </SCRIPT>
@@ -48,16 +41,18 @@
 	CÁC THÔNG TIN TRONG KHO SỐ </header>
 <ul id="tabs">
 	<li><a href="#" name="tab1">Lô số cần tra cứu thông tin</a></li>
-	
-	<input type="submit" id="getdata" value="Tra cứu"
-		style="width: 110px; float: right" />
-
+	<div class="container-fluid form-inline">
+		<button type="button" class="btn btn-primary pull-right" id="getdata">Tra
+			cứu</button>
+		<button type="button" class="btn btn-primary pull-right" id="reload">Tìm
+			lô khác</button>
+	</div>
 </ul>
 
 <div id="content">
 	<div id="tab1">
-		<table id="datarp" class="CSSTableGenerator">
-			<tbody></tbody>
+		<table id="datarp"
+			class="CSSTableGenerator table-condensed table-bordered">
 		</table>
 		<textarea id="isdns"></textarea>
 	</div>

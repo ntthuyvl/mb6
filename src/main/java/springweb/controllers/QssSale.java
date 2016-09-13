@@ -318,6 +318,46 @@ public class QssSale extends BaseController {
 		return "OK";
 	}
 
+	@RequestMapping(value = "/sale/cell/list", method = RequestMethod.GET)
+	public String chiTietCell(ModelMap model, HttpServletRequest request) {
+		// TODO Auto-generated method stub
+		try {
+			String user_name = getUserLoginName(this.getClass().getCanonicalName() + ".chiTietCell", request);
+			if (!user_name.equals("anonymousUser")) {
+				Date from_date = new DateTime().plusDays(-9).toDate();
+				Date to_date = new DateTime().plusDays(-2).toDate();
+				model.addAttribute("from_date", from_date);
+				model.addAttribute("to_date", to_date);
+				return "/sale/cell/list";
+			} else
+				return "redirect:/login";
+		} catch (Exception e) {
+			ExceptionMode pojoMode = new ExceptionMode();
+			return HomeController.getError(e, pojoMode, model);
+		}
+	}
+
+	@RequestMapping(value = "/sale/cell/get_report", method = RequestMethod.GET)
+	public ModelAndView chiTietCell(@RequestParam String json, HttpServletRequest request) {
+		// TODO Auto-generated method stub
+		String user_name = getUserLoginName(this.getClass().getCanonicalName() + ".chiTietCell" + json, request);
+		List<Map<String, String>> list = msaleBase.chiTietCell(user_name, json);
+		JSONObject jsonObject = new JSONObject(json);
+		String tu_ngay = String.valueOf(jsonObject.get("tu_ngay"));
+		String den_ngay = String.valueOf(jsonObject.get("den_ngay"));
+		String rptype = String.valueOf(jsonObject.get("rptype"));
+		if (rptype.equals("0"))
+			rptype = "ChiTiet";
+		else
+			rptype = "TongHop";
+
+		ModelAndView model = new ModelAndView("ProAnalyzeExcel", "list", list);
+		model.getModel().put("file_name",
+				"TongHop" + tu_ngay.replaceAll("-", "") + "_" + den_ngay.replaceAll("-", "") + ".xlsx");
+		return model;
+
+	}
+
 	@RequestMapping(value = "/{app_path}/chatluongthuebao/list", method = RequestMethod.GET)
 	public String getChatLuongThueBao(@PathVariable("app_path") String app_path, ModelMap model,
 			HttpServletRequest request) {

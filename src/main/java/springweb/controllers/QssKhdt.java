@@ -1,9 +1,12 @@
 package springweb.controllers;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.joda.time.DateTime;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,7 +22,6 @@ import pojomode.ExceptionMode;
 
 @Controller
 public class QssKhdt extends BaseController {
-	
 
 	@RequestMapping(value = "/khdt", method = RequestMethod.GET)
 	public String getSale(ModelMap model, HttpServletRequest request) {
@@ -110,6 +112,11 @@ public class QssKhdt extends BaseController {
 		try {
 			String user_name = getUserLoginName(this.getClass().getCanonicalName() + ".getUpdateCpgt", request);
 			if (!user_name.equals("anonymousUser")) {
+				Date to_date = new DateTime().plusDays(-(new DateTime().getDayOfMonth())).plusMonths(-1).dayOfMonth()
+						.withMaximumValue().toDate();
+				Date from_date = new DateTime(to_date).plusDays(1 - (new DateTime(to_date).getDayOfYear())).toDate();
+				model.addAttribute("from_date", from_date);
+				model.addAttribute("to_date", to_date);
 				return "/khdt/danhgiachiphi/update_cpgt";
 			} else
 				return "redirect:/login";

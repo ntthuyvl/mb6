@@ -26,9 +26,10 @@ public class OracleBase {
 
 	// private org.apache.commons.dbcp.BasicDataSource dataSource;
 	private org.apache.tomcat.jdbc.pool.DataSource dataSource;
-	static boolean debug = true;
+	public static boolean debug = true;
+	public static String ct = "6";
 
-	void syslog(String s) {
+	public static void syslog(String s) {
 		if (debug)
 			System.out.println(s);
 	}

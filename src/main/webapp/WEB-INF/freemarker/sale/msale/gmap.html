@@ -1,32 +1,58 @@
-<#include "../header.ftl">    
-	<div id="map">
-		<#if (pojoModeList?size > 0)>
-		<script type="text/javascript">
-    var locations = [
-     <#assign	lastGaddresss = "">                      
+<#include "/header_bt.ftl">
+<section2 class="session container-fluid" style="width: 98%">
+<header> VỊ TRÍ ĐỊA LÝ CỦA CÁC ĐIỂM BÁN LẺ</header>
+<div id="map" class="container-fluid">
+	<#if (pojoModeList?size > 0)>
+	<script type="text/javascript"
+		src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA6MGtHPG1GTklAvaTJrgONuqu4TDPp3MU&sensor=true"></script>
+	<script type="text/javascript">	
+    var locations = [     
 	<#list pojoModeList as pojoMode>                     
-      ['${pojoMode.pojo.ten_cua_hang!""}-${pojoMode.pojo.so_ez_nhan_tien!""}-${pojoMode.pojo.dia_chi!""}', ${pojoMode.pojo.googelAddress!""}, ${(pojoMode_index+2)?c}],      
-      <#assign	lastGaddresss = pojoMode.pojo.googelAddress>   
+      ['${pojoMode.pojo.id!""}-${pojoMode.pojo.ten_cua_hang!""}-${pojoMode.pojo.so_ez_nhan_tien!""}-${pojoMode.pojo.dia_chi!""}', ${pojoMode.pojo.googelAddress!""},${pojoMode.pojo.new_member}, ${(pojoMode_index+2)?c}],   
      </#list>
       []
     ];
-
     var map = new google.maps.Map(document.getElementById('map'), {
-      zoom: 8,
-      center: new google.maps.LatLng(${lastGaddresss}),
+      zoom: 7,      
+      //center: new google.maps.LatLng(locations[0][1],locations[0][2]),
+      center: new google.maps.LatLng('18.87830390130997','105.305524673411'),
+      
       mapTypeId: google.maps.MapTypeId.ROADMAP
     });
 
     var infowindow = new google.maps.InfoWindow();
 
     var marker, i;
-
+    
+    var icon = {
+    	    url: "https://maps.gstatic.com/mapfiles/ms2/micons/yellow.png", // url
+    	    //url: "/images/marker.ico", // url
+    	    scaledSize: new google.maps.Size(20, 20), // scaled size
+    	    origin: new google.maps.Point(0,0), // origin
+    	    anchor: new google.maps.Point(0, 0) // anchor
+    	};
+    var icon_new = {
+    	    url: "https://maps.gstatic.com/mapfiles/ms2/micons/red.png", // url
+    	    scaledSize: new google.maps.Size(20, 20), // scaled size
+    	    origin: new google.maps.Point(0,0), // origin
+    	    anchor: new google.maps.Point(0, 0) // anchor
+    	};
+    
     for (i = 0; i < locations.length; i++) {  
+    	if (locations[i][3] == "0"){
       marker = new google.maps.Marker({
         position: new google.maps.LatLng(locations[i][1], locations[i][2]),
-        map: map
+        map: map,
+        icon: icon
       });
-
+    	}
+    	else{
+    	      marker = new google.maps.Marker({
+    	          position: new google.maps.LatLng(locations[i][1], locations[i][2]),
+    	          map: map,
+    	          icon: icon_new
+    	        });
+    	}
       google.maps.event.addListener(marker, 'click', (function(marker, i) {
         return function() {
           infowindow.setContent(locations[i][0]);
@@ -35,6 +61,6 @@
       })(marker, i));
     }
   </script>
-		</#if>
-	</div>
-<#include "/footer.ftl">
+	</#if>
+</div>
+<#include "/footer.ftl"> 

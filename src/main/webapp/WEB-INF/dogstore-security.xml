@@ -29,6 +29,7 @@
 		/> </http> -->
 
 	<http auto-config="true" use-expressions="true">
+		<intercept-url pattern="/" access="permitAll" />
 		<intercept-url pattern="/login" access="permitAll" />
 		<intercept-url pattern="/login-error" access="permitAll" />
 		<intercept-url pattern="/account"
@@ -53,7 +54,7 @@
 			access="fullyAuthenticated" />
 		<intercept-url pattern="/sale/**"
 			access="hasAnyRole('DEVELOPER','BANHANGADMIN','BANHANGMANCHINHANH','BANHANGMANCONGTY','BANHANGMANHUYEN','BANHANGREADONLY' )	and fullyAuthenticated" />
-		<intercept-url pattern="/care/khoso/donle" access="permitAll" />
+		<intercept-url pattern="/care/khoso/donle" access="permitAll" />		
 		<intercept-url pattern="/care/**"
 			access="hasAnyRole('DEVELOPER','CAREADMIN','CAREMANCONGTY','CAREMANCHINHANH','CAREMANHUYEN','CAREREADONLY')	and fullyAuthenticated" />
 

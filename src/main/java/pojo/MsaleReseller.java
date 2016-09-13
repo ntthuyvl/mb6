@@ -8,11 +8,12 @@ package pojo;
 
 @SuppressWarnings("serial")
 public class MsaleReseller implements java.io.Serializable {
-	private int id;
+	private String id;
 	private String ten_cua_hang;
 	private String dia_chi;
 	private String so_ez_nhan_tien;
 	private String googelAddress; // kinh_do,vi_do
+	private String new_member;
 
 	public void setGoogelAddress(String googelAddress) {
 		this.googelAddress = googelAddress;
@@ -22,11 +23,11 @@ public class MsaleReseller implements java.io.Serializable {
 		return googelAddress;
 	}
 
-	public void setId(int id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 
-	public int getId() {
+	public String getId() {
 		return id;
 	}
 
@@ -52,6 +53,14 @@ public class MsaleReseller implements java.io.Serializable {
 
 	public String getSo_ez_nhan_tien() {
 		return so_ez_nhan_tien;
+	}
+
+	public String getNew_member() {
+		return new_member;
+	}
+
+	public void setNew_member(String new_member) {
+		this.new_member = new_member;
 	}
 
 }

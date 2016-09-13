@@ -10,6 +10,7 @@ import org.joda.time.DateTime;
 import org.json.JSONObject;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -134,21 +135,6 @@ public class QssCare extends BaseController {
 		}
 	}
 
-	@RequestMapping(value = "/care/lncc_roimang/add_care_history", method = RequestMethod.POST)
-	public @ResponseBody List<Map<String, String>> add_care_history(@RequestParam String json,
-			HttpServletRequest request) {
-		// TODO Auto-generated method stub
-		String user_name = getUserLoginName(this.getClass().getCanonicalName() + ".add_care_history" + json, request);
-
-		try {
-			if (user_name.equals("anonymousUser"))
-				throw new Exception("Not logged");
-			return msaleBase.add_care_history(user_name, json);
-		} catch (Exception e) {
-			return getError(e);
-		}
-	}
-
 	@RequestMapping(value = "/care/lncc_roimang/sub_care_history", method = RequestMethod.POST)
 	public @ResponseBody List<Map<String, String>> sub_care_history(@RequestParam String json,
 			HttpServletRequest request) {
@@ -164,13 +150,124 @@ public class QssCare extends BaseController {
 		}
 	}
 
+	@RequestMapping(value = "/care/lncc_roimang/add_care_history", method = RequestMethod.POST)
+	public @ResponseBody List<Map<String, String>> add_care_history(@RequestParam String json,
+			HttpServletRequest request) {
+		// TODO Auto-generated method stub
+		String user_name = getUserLoginName(this.getClass().getCanonicalName() + ".add_care_history" + json, request);
+
+		try {
+			if (user_name.equals("anonymousUser"))
+				throw new Exception("Not logged");
+			return msaleBase.add_care_history(user_name, json);
+		} catch (Exception e) {
+			return getError(e);
+		}
+	}
+
+	@RequestMapping(value = "/care/mobitv_roimang/ketqua", method = RequestMethod.GET)
+	public String mobitv_ketqua(ModelMap model, HttpServletRequest request) {
+		// TODO Auto-generated method stub
+		try {
+			String user_name = getUserLoginName(this.getClass().getCanonicalName() + ".mobitv_ketqua", request);
+			if (!user_name.equals("anonymousUser")) {
+				Date to_date = new DateTime().toDate();
+				Date from_date = new DateTime().plusDays(-7).toDate();
+				model.addAttribute("from_date", from_date);
+				model.addAttribute("to_date", to_date);
+				return "/care/mobitv_roimang/ketqua";
+			} else
+				return "redirect:/login";
+		} catch (Exception e) {
+			ExceptionMode pojoMode = new ExceptionMode();
+			return HomeController.getError(e, pojoMode, model);
+		}
+	}
+
+	@RequestMapping(value = "/care/mobitv_roimang/ketqua", method = RequestMethod.POST)
+	public @ResponseBody List<Map<String, String>> mobitv_ketqua(@RequestParam String json,
+			HttpServletRequest request) {
+		// TODO Auto-generated method stub
+		String user_name = getUserLoginName(this.getClass().getCanonicalName() + ".lncc_ketqua" + json, request);
+
+		try {
+			if (user_name.equals("anonymousUser"))
+				throw new Exception("Not logged");
+			return msaleBase.mobitv_ketqua(user_name, json);
+		} catch (Exception e) {
+			return getError(e);
+		}
+	}
+
+	@RequestMapping(value = "/care/mobitv/add_care_history", method = RequestMethod.POST)
+	public @ResponseBody List<Map<String, String>> add_mobitv_care_history(@RequestParam String json,
+			HttpServletRequest request) {
+		// TODO Auto-generated method stub
+		String user_name = getUserLoginName(this.getClass().getCanonicalName() + ".add_mobitv_care_history" + json,
+				request);
+
+		try {
+			if (user_name.equals("anonymousUser"))
+				throw new Exception("Not logged");
+			return msaleBase.add_mobitv_care_history(user_name, json);
+		} catch (Exception e) {
+			return getError(e);
+		}
+	}
+
+	@RequestMapping(value = "/care/mobitv/sub_care_history", method = RequestMethod.POST)
+	public @ResponseBody List<Map<String, String>> mobitv_care_history(@RequestParam String json,
+			HttpServletRequest request) {
+		// TODO Auto-generated method stub
+		String user_name = getUserLoginName(this.getClass().getCanonicalName() + ".mobitv_care_history" + json,
+				request);
+
+		try {
+			if (user_name.equals("anonymousUser"))
+				throw new Exception("Not logged");
+			return msaleBase.mobitv_care_history(user_name, json);
+		} catch (Exception e) {
+			return getError(e);
+		}
+	}
+
+	@RequestMapping(value = "/care/mobitv/list", method = RequestMethod.GET)
+	public String getmobitv_roimang(ModelMap model, HttpServletRequest request) {
+		// TODO Auto-generated method stub
+		try {
+			String user_name = getUserLoginName(this.getClass().getCanonicalName() + ".getmobitv_roimang", request);
+			if (!user_name.equals("anonymousUser")) {
+				return "/care/mobitv/list";
+			} else
+				return "redirect:/login";
+		} catch (Exception e) {
+			ExceptionMode pojoMode = new ExceptionMode();
+			return HomeController.getError(e, pojoMode, model);
+		}
+	}
+
+	@RequestMapping(value = "/care/mobitv/list", method = RequestMethod.POST)
+	public @ResponseBody List<Map<String, String>> getmobitv_roimang(@RequestParam String json,
+			HttpServletRequest request) {
+		// TODO Auto-generated method stub
+		String user_name = getUserLoginName(this.getClass().getCanonicalName() + ".getmobitv_roimang" + json, request);
+
+		try {
+			if (user_name.equals("anonymousUser"))
+				throw new Exception("Not logged");
+			return msaleBase.mobitv_roimang(user_name, json);
+		} catch (Exception e) {
+			return getError(e);
+		}
+	}
+
 	@RequestMapping(value = "/care/hsrm/list", method = RequestMethod.GET)
 	public String getHsrmList(ModelMap model, HttpServletRequest request) {
 		// TODO Auto-generated method stub
 		try {
 			String user_name = getUserLoginName(this.getClass().getCanonicalName() + ".getHsrmList", request);
 			if (!user_name.equals("anonymousUser")) {
-
+				model.put("vlr3k3dLatday", msaleBase.getVlr3k3dLatday());
 				return "/care/hsrm/list";
 			} else
 				return "redirect:/login";
@@ -204,43 +301,53 @@ public class QssCare extends BaseController {
 		return model;
 	}
 
-	@RequestMapping(value = "/care/tttb/listdetailnw", method = RequestMethod.GET)
+	@RequestMapping(value = "/*/tttb/listdetailnw", method = RequestMethod.GET)
 	public ModelAndView getTinhTrangThueBaoDetail(@RequestParam String json, HttpServletRequest request) {
 		String user_name = getUserLoginName(this.getClass().getCanonicalName() + ".getTinhTrangThueBaoDetail" + json,
 				request);
 		JSONObject jsonObject = new JSONObject(json);
 		String from_date = String.valueOf(jsonObject.get("from_date")),
-				to_date = String.valueOf(jsonObject.get("to_date")), area = String.valueOf(jsonObject.get("area")),
-				act_status = String.valueOf(jsonObject.get("act_status"));
-		String province_clause = "", act_status_clause = "";
+				to_date = String.valueOf(jsonObject.get("to_date")), area = String.valueOf(jsonObject.get("area"));
+		String app = String.valueOf(jsonObject.get("app"));
 		String type = String.valueOf(jsonObject.get("type"));
+		String file_name;
+		String province_clause = "";
 		if (area != null && !area.equals(""))
 			province_clause = area;
 		else
 			province_clause = "MB6";
 
-		if (act_status.equals("10"))
-			act_status_clause = "_1C_OTHER";
-		else if (act_status.equals("20"))
-			act_status_clause = "_2C_OTHER";
-		else if (act_status.equals("01"))
-			act_status_clause = "_1C_DEPT";
-		else if (act_status.equals("02"))
-			act_status_clause = "_2C_DEPT";
+		if (app.equals("1")) {
+			String sub_type = String.valueOf(jsonObject.get("sub_type"));
+			file_name = "cttbkhdn_" + type + "_" + sub_type + "_" + province_clause + "_" + from_date.replace("-", "")
+					+ "_" + to_date.replace("-", "") + ".xlsx";
+		} else {
+			String act_status = String.valueOf(jsonObject.get("act_status"));
+			String act_status_clause = "";
+			if (act_status.equals("10"))
+				act_status_clause = "_1C_OTHER";
+			else if (act_status.equals("20"))
+				act_status_clause = "_2C_OTHER";
+			else if (act_status.equals("01"))
+				act_status_clause = "_1C_DEPT";
+			else if (act_status.equals("02"))
+				act_status_clause = "_2C_DEPT";
+
+			file_name = "cttb_" + type + "_" + province_clause + act_status_clause + from_date.replace("-", "") + "_"
+					+ to_date.replace("-", "") + ".xlsx";
+		}
 
 		List<Map<String, String>> list = msaleBase.getTinhTrangThueBaoDetail(user_name, json);
 		ModelAndView model = new ModelAndView("ProAnalyzeExcel", "list", list);
-		model.getModel().put("file_name", "cttb_" + type + "_" + province_clause + act_status_clause
-				+ from_date.replace("-", "") + "_" + to_date.replace("-", "") + ".xlsx");
-		// model.getModel().put("file_name", json.replaceAll("{",
-		// "").replaceAll("}", "").replaceAll(" ", "")
-		// .replaceAll("\"", "").replaceAll(",", "").replaceAll(":",
-		// "").replaceAll("-", "") + ".xls");
+		;
+		model.getModel().put("file_name", file_name);
+
 		return model;
 	}
 
-	@RequestMapping(value = "/care/tttb/list", method = RequestMethod.GET)
-	public String getTinhTrangThueBao(ModelMap model, HttpServletRequest request) {
+	@RequestMapping(value = "/{app_path}/tttb/list", method = RequestMethod.GET)
+	public String getTinhTrangThueBao(@PathVariable("app_path") String app_path, ModelMap model,
+			HttpServletRequest request) {
 		// TODO Auto-generated method stub
 		try {
 			String user_name = getUserLoginName(this.getClass().getCanonicalName() + ".getTinhTrangThueBao", request);
@@ -248,8 +355,22 @@ public class QssCare extends BaseController {
 				Date to_date = new DateTime().plusDays(-(new DateTime().getDayOfMonth())).plusMonths(-1).dayOfMonth()
 						.withMaximumValue().toDate();
 				Date from_date = new DateTime(to_date).plusDays(1 - (new DateTime(to_date).getDayOfYear())).toDate();
+				int app = 3;
+				if (app_path.equals("care"))
+					app = 3;
+				else if (app_path.equals("sale"))
+					app = 2;
+				else if (app_path.equals("khdn"))
+					app = 1;
+				if (app == 1) {
+					from_date = new DateTime().dayOfMonth().withMinimumValue().toDate();
+					to_date = new DateTime().plusDays(-1).toDate();
+				}
+
 				model.addAttribute("from_date", from_date);
 				model.addAttribute("to_date", to_date);
+				model.addAttribute("app", app);
+
 				return "/care/tttb/list";
 			} else
 				return "redirect:/login";
@@ -259,7 +380,7 @@ public class QssCare extends BaseController {
 		}
 	}
 
-	@RequestMapping(value = "/care/tttb/list", method = RequestMethod.POST)
+	@RequestMapping(value = "/*/tttb/list", method = RequestMethod.POST)
 	public @ResponseBody List<Map<String, String>> getTinhTrangThueBao(@RequestParam String json,
 			HttpServletRequest request) throws Exception {
 		String user_name = getUserLoginName(this.getClass().getCanonicalName() + ".getTinhTrangThueBao" + json,

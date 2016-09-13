@@ -1,4 +1,4 @@
-<#include "../header.ftl">
+<#include "/header_bt.ftl">
 <SCRIPT>
 	var curtab = '#tab1';
 	var add = 0;
@@ -9,6 +9,7 @@
 	var org_cpgt_txt = "";
 	var donvi = "0";
 	var level = "0";
+	var app = 5;
 	function getDesList() {
 		var dataObj = {
 			"tu_ngay" : tu_ngay,
@@ -48,6 +49,25 @@
 
 	}
 
+	function danh_gia_cpgt() {
+		$('#alertModal').show();
+		var dataObj = {
+			"tu_ngay" : tu_ngay,
+			"den_ngay" : den_ngay,
+			"donvi" : $('select#donvi').val(),
+			"level" : $('select#level').val(),
+			"app" : app
+		}
+		dataObj = {
+			"json" : JSON.stringify(dataObj)
+		};
+		$.post("danhGiaChiPhiGianTiep", dataObj, function(data2, status) {
+			call_back_ajax(data2, status);
+			$('section2 header').html("CHI PHÍ GIÁN TIẾP");
+			$('#update').attr('disabled', 'disabled');
+		});
+
+	}
 	function getData() {
 		//alert(": "+$("select#des").val() );		
 
@@ -55,27 +75,12 @@
 				&& den_ngay != "") {
 
 			getDesList();
-			$('section2 header').html("Đang load dữ liệu. Vui lòng chờ....");
-			$(curtab + ' tbody').html("");
-			$('input , select').attr('disabled', 'disabled');
-			if (cpgt_id == "-2") {//Đánh giá chi phí
-				var dataObj = {
-					"tu_ngay" : tu_ngay,
-					"den_ngay" : den_ngay,
-					"donvi" : $('select#donvi').val(),
-					"level" : $('select#level').val(),
-					"app" : app
-				}
-				dataObj = {
-					"json" : JSON.stringify(dataObj)
-				};
-				$.post("danhGiaChiPhiGianTiep", dataObj,
-						function(data2, status) {
-							call_back_ajax(data2, status);
-							$('section2 header').html("CHI PHÍ GIÁN TIẾP");
-							$('input#update').attr('disabled', 'disabled');
-						});
+			//$('section2 header').html("Đang load dữ liệu. Vui lòng chờ....");
+			//$('input , select').attr('disabled', 'disabled');
 
+			$(curtab + ' tbody').html("");
+			if (cpgt_id == "-2") {
+				danh_gia_cpgt();
 			} else if (cpgt_id != "0") {////Load chi phí để xem hoặc cập nhật 
 				var dataObj = {
 					"cpgt_id" : cpgt_id,
@@ -120,7 +125,7 @@
 			} else {//Tìm mục chi phí
 				$('section2 header').html("CHI PHÍ GIÁN TIẾP");
 				$('input, select').prop('disabled', false);
-				$('input#update').attr('disabled', 'disabled');
+				$('#update').attr('disabled', 'disabled');
 			}
 		}
 
@@ -129,7 +134,7 @@
 	}
 
 	function updateData() {
-		$('input').attr('disabled', 'disabled');
+		//$('input').attr('disabled', 'disabled');
 		var cpgt_area = [];
 		var area_code, amount;
 		var o;
@@ -140,7 +145,7 @@
 			if (area_code != "") {
 				o = {
 					"area_code" : area_code,
-					"amount" : amount.replace(/,/g,"")
+					"amount" : amount.replace(/,/g, "")
 				};
 				cpgt_area.push(o);
 			}
@@ -181,7 +186,7 @@
 
 	$(document).ready(
 			function() {
-				$(document).on('click', 'input#table2excel', function() {
+				$(document).on('click', '#table2excel', function() {
 					$("table#datarp").table2excel({
 						// exclude CSS class			
 						exclude : ".noExl",
@@ -210,23 +215,29 @@
 								+ data[i]['002'] + "</option>";
 						$(row).appendTo("select#donvi");
 					}
+					getDesList();
 				});
-				$('input#update, input#find').attr('disabled', 'disabled');
+				//$('#update, #find').attr('disabled', 'disabled');
 				$('input#des').hide();
-
-				$('input#update').click(function() {
+				
+				$('#update').click(function() {
 					updateData();
 				});
-				$('input#find').click(function() {
+				$('#find').click(function() {
 					getData();
 				});
-				$('input#add').click(function() {
+				$('#danh_gia').click(function() {
+					danh_gia_cpgt();
+				});				
+				
+				
+				$('#add').click(function() {
 					add = 1;
-					$('input#find, input#add').attr('disabled', 'disabled');
+					$('button#find, button#add').attr('disabled', 'disabled');
 					$('select#des').hide();
 					$('input#des').fadeIn();
-					$('input#update').prop('disabled', false);
-					$('select').attr('disabled', 'disabled');
+					$('button#update').prop('disabled', false);
+					//$('select').attr('disabled', 'disabled');
 					$(curtab + ' tbody').html("");
 				});
 				$('select#des').change(function() {
@@ -237,7 +248,7 @@
 						$('select#des').hide();
 						$('input#des').val(org_cpgt_txt);
 						$('input#des').fadeIn();
-						$('input#update').prop('disabled', false);
+						$('button#update').prop('disabled', false);
 						cpgt_id = org_cpgt_id;
 					} else {
 						getData();
@@ -247,13 +258,13 @@
 					tu_ngay = $('input#tu_ngay').val();
 					den_ngay = $('input#den_ngay').val();
 					if (den_ngay != "")
-						$('input#find').prop('disabled', false);
+						$('button#find').prop('disabled', false);
 				});
 				$('input#den_ngay').change(function() {
 					den_ngay = $('input#den_ngay').val();
 					tu_ngay = $('input#tu_ngay').val();
 					if (tu_ngay != "")
-						$('input#find').prop('disabled', false);
+						$('button#find').prop('disabled', false);
 				});
 
 				$(document).on(
@@ -294,37 +305,59 @@
 </SCRIPT>
 <section2 class="session" style="width: 98%"> <header>
 	CHI PHÍ GIÁN TIẾP</header>
-<ul id="tabs">
-	<in id="tu_ngay"> <label id="tu_ngay" style="">Từ ngày</label> <input
-		type="date" id="tu_ngay"> </in>
-	<in id="den_ngay"> <label id="den_ngay" style="">đến ngày</label>
-	<input type="date" id="den_ngay"> </in>
-	<in id="donvi"> <select id="donvi" value="" style="height: 25px">
-		<option value="">-- Chọn đơn vị--</option>
-	</select> </in>
-	<in id="level"> <select id="level" value="" style="height: 25px">
-		<option value="0">-- Cấp đơn vị--</option>
-		<option value="1">-- Cấp tỉnh--</option>
-		<option value="2">-- Cấp huyện-</option>
-	</select> </in>
-	<in id="des"> <label id="des" style="">Mo ta</label> <input
-		type="text" id="des" style="height: 21px; width: 275px"> <select
-		id="des" value="" style="height: 25px; width: 280px">
-		<option value="0">-- Tìm mục chi phí --</option>
-		<option value="-2">-- Đánh giá chi phí --</option>
-	</select> </in>
-	<input type="submit" id="find" value="Tìm" style="width: 60px;" />
-	<input type="submit" id="add" value="Thêm" style="width: 60px;" />
-	<input type="submit" id="update" value="Cập nhật"
-		style="width: 65px;" />
-	<input type="submit" id="table2excel" value="Excel"
-		style="width: 60px;" />
-</ul>
+<div class="container-fluid form-inline" style="padding: 10px 0 0 0">
+	<div class="form-group" id="tu_ngay">
+		<label for="tu_ngay">Từ ngày</label> <input type="date"
+			class="form-control" id="tu_ngay" value="${from_date?string["yyyy-MM-dd"]}" >
+	</div>
+
+	<div class="form-group" id="den_ngay">
+		<label for="den_ngay">đến ngày</label> <input type="date"
+			class="form-control" id="den_ngay" value="${to_date?string["yyyy-MM-dd"]}">
+	</div>
+	<div class="form-group">
+		<select id="donvi" class="form-control" value="">
+			<option value="666666">-- Chọn đơn vị--</option>
+		</select>
+	</div>
+	<div class="form-group">
+		<select id="level" class="form-control" value="">
+			<option value="0">-- Cấp đơn vị--</option>
+			<option value="1">-- Cấp tỉnh--</option>
+			<option value="2">-- Cấp huyện-</option>
+		</select>
+	</div>
+
+	<div class="form-group" id="des">
+		<label for="des">Mô tả</label> <input type="text" id="des"
+			class="form-control"> <select id="des" class="form-control"
+			value="">
+			<option value="0">-- Tìm mục chi phí --</option>
+			<option value="-2">-- Đánh giá chi phí --</option>
+		</select>
+	</div>
+	<div class="btn-group">
+		<button type="button" class="btn btn-primary" id="danh_gia">Đánh
+			giá chi phí</button>
+		<button type="button" class="btn btn-primary dropdown-toggle"
+			data-toggle="dropdown">
+			<span class="caret"></span> <span class="sr-only">Toggle
+				Dropdown</span>
+		</button>
+
+		<ul class="dropdown-menu" role="menu">
+			<li><a href="#" id="find">Tìm kiếm</a></li>
+			<li><a href="#" id="add">Thêm mục CPGT</a></li>
+			<li><a href="#" id="update">Cập nhật</a></li>
+			<li><a href="#" id="table2excel">Xuất excel</a></li>
+		</ul>
+	</div>
+</div>
 
 <div id="content">
 	<div id="tab1">
-		<table id="datarp" class="CSSTableGenerator">
-			<tbody></tbody>
+		<table id="datarp"
+			class="CSSTableGenerator table-condensed table-bordered">
 		</table>
 	</div>
 </div>
