@@ -1538,20 +1538,20 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 							+ "           ROUND ( 100"
 							+ "               * (SUM (NVL (hsrm_a, 0)) - SUM (NVL (hsrm_b, 0)))"
 							+ "               / DECODE (SUM (NVL (hsrm_a, 0)), 0, 1, SUM (NVL (hsrm_a, 0))),"
-							+ "               1) hsrm_n, ROUND ( 100"
+							+ "               2) hsrm_n, ROUND ( 100"
 							+ "               * (SUM (NVL (hsrm_c, 0)) - SUM (NVL (hsrm_d, 0)))"
 							+ "               / DECODE (SUM (NVL (hsrm_c, 0)), 0, 1, SUM (NVL (hsrm_c, 0))),"
-							+ "               1) hsrm_n1 FROM   out_data.hsrm_v GROUP BY   TYPE";
+							+ "               2) hsrm_n1 FROM   out_data.hsrm_v GROUP BY   TYPE";
 				} else if (level.equals("1")) {
 					sql = "  SELECT   TYPE,province_code,SUM (NVL (hsrm_a, 0)) hsrm_a,SUM (NVL (hsrm_b, 0)) hsrm_b,"
 							+ "           SUM (NVL (hsrm_c, 0)) hsrm_c,SUM (NVL (hsrm_d, 0)) hsrm_d,"
 							+ "           ROUND ( 100"
 							+ "               * (SUM (NVL (hsrm_a, 0)) - SUM (NVL (hsrm_b, 0)))"
 							+ "               / DECODE (SUM (NVL (hsrm_a, 0)), 0, 1, SUM (NVL (hsrm_a, 0))),"
-							+ "               1) hsrm_n, ROUND ( 100"
+							+ "               2) hsrm_n, ROUND ( 100"
 							+ "               * (SUM (NVL (hsrm_c, 0)) - SUM (NVL (hsrm_d, 0)))"
 							+ "               / DECODE (SUM (NVL (hsrm_c, 0)), 0, 1, SUM (NVL (hsrm_c, 0))),"
-							+ "               1) hsrm_n1 FROM   out_data.hsrm_v GROUP BY   TYPE,province_code";
+							+ "               2) hsrm_n1 FROM   out_data.hsrm_v GROUP BY   TYPE,province_code";
 
 				} else {
 					sql = "  SELECT   TYPE,province_code,district_code,SUM (NVL (hsrm_a, 0)) hsrm_a,SUM (NVL (hsrm_b, 0)) hsrm_b,"
@@ -1559,10 +1559,10 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 							+ "           ROUND ( 100"
 							+ "               * (SUM (NVL (hsrm_a, 0)) - SUM (NVL (hsrm_b, 0)))"
 							+ "               / DECODE (SUM (NVL (hsrm_a, 0)), 0, 1, SUM (NVL (hsrm_a, 0))),"
-							+ "               1) hsrm_n, ROUND ( 100"
+							+ "               2) hsrm_n, ROUND ( 100"
 							+ "               * (SUM (NVL (hsrm_c, 0)) - SUM (NVL (hsrm_d, 0)))"
 							+ "               / DECODE (SUM (NVL (hsrm_c, 0)), 0, 1, SUM (NVL (hsrm_c, 0))),"
-							+ "               1) hsrm_n1 FROM   out_data.hsrm_v GROUP BY   TYPE,province_code,district_code";
+							+ "               2) hsrm_n1 FROM   out_data.hsrm_v GROUP BY   TYPE,province_code,district_code";
 				}
 				prpStm = conn.prepareStatement(sql);
 
@@ -1573,10 +1573,10 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 							+ "           ROUND ( 100"
 							+ "               * (SUM (NVL (hsrm_a, 0)) - SUM (NVL (hsrm_b, 0)))"
 							+ "               / DECODE (SUM (NVL (hsrm_a, 0)), 0, 1, SUM (NVL (hsrm_a, 0))),"
-							+ "               1) hsrm_n, ROUND ( 100"
+							+ "               2) hsrm_n, ROUND ( 100"
 							+ "               * (SUM (NVL (hsrm_c, 0)) - SUM (NVL (hsrm_d, 0)))"
 							+ "               / DECODE (SUM (NVL (hsrm_c, 0)), 0, 1, SUM (NVL (hsrm_c, 0))),"
-							+ "               1) hsrm_n1 FROM   out_data.hsrm_v where province_code=get_province_code(?) "
+							+ "               2) hsrm_n1 FROM   out_data.hsrm_v where province_code=get_province_code(?) "
 							+ " GROUP BY   TYPE,province_code";
 
 				} else {
@@ -1585,10 +1585,10 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 							+ "           ROUND ( 100"
 							+ "               * (SUM (NVL (hsrm_a, 0)) - SUM (NVL (hsrm_b, 0)))"
 							+ "               / DECODE (SUM (NVL (hsrm_a, 0)), 0, 1, SUM (NVL (hsrm_a, 0))),"
-							+ "               1) hsrm_n, ROUND ( 100"
+							+ "               2) hsrm_n, ROUND ( 100"
 							+ "               * (SUM (NVL (hsrm_c, 0)) - SUM (NVL (hsrm_d, 0)))"
 							+ "               / DECODE (SUM (NVL (hsrm_c, 0)), 0, 1, SUM (NVL (hsrm_c, 0))),"
-							+ "               1) hsrm_n1 FROM   out_data.hsrm_v where province_code=get_province_code(?) "
+							+ "               2) hsrm_n1 FROM   out_data.hsrm_v where province_code=get_province_code(?) "
 							+ " GROUP BY   TYPE,province_code,district_code";
 
 				}
@@ -1599,10 +1599,10 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 						+ "           SUM (NVL (hsrm_c, 0)) hsrm_c,SUM (NVL (hsrm_d, 0)) hsrm_d,"
 						+ "           ROUND ( 100" + "               * (SUM (NVL (hsrm_a, 0)) - SUM (NVL (hsrm_b, 0)))"
 						+ "               / DECODE (SUM (NVL (hsrm_a, 0)), 0, 1, SUM (NVL (hsrm_a, 0))),"
-						+ "               1) hsrm_n, ROUND ( 100"
+						+ "               2) hsrm_n, ROUND ( 100"
 						+ "               * (SUM (NVL (hsrm_c, 0)) - SUM (NVL (hsrm_d, 0)))"
 						+ "               / DECODE (SUM (NVL (hsrm_c, 0)), 0, 1, SUM (NVL (hsrm_c, 0))),"
-						+ "               1) hsrm_n1 FROM   out_data.hsrm_v where get_district_number(province_code||district_code) = ? "
+						+ "               2) hsrm_n1 FROM   out_data.hsrm_v where get_district_number(province_code||district_code) = ? "
 						+ " GROUP BY   TYPE,province_code,district_code";
 
 				prpStm = conn.prepareStatement(sql);
@@ -5267,14 +5267,14 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 			String sql;
 			if (rptype.equals("0"))
 				if (donvi.equals("666666")) {
-					sql = "SELECT * from out_data.TBL6_RPT_CELL " + " WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
+					sql = "SELECT * from out_data.TBL6_RPT_CELL WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
 							+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd')"
 							+ " ORDER BY site_name,cell_name,ngay_capnhat";
 					prpStm = conn.prepareStatement(sql);
 					prpStm.setString(1, tu_ngay);
 					prpStm.setString(2, den_ngay);
 				} else if (provinceNumberList.contains(donvi)) {
-					sql = "SELECT * from out_data.TBL6_RPT_CELL " + " WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
+					sql = "SELECT * from out_data.TBL6_RPT_CELL WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
 							+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd') and province=get_province_code(?)"
 							+ " ORDER BY site_name,cell_name,ngay_capnhat";
 					prpStm = conn.prepareStatement(sql);
@@ -5282,7 +5282,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 					prpStm.setString(2, den_ngay);
 					prpStm.setString(3, donvi);
 				} else {
-					sql = "SELECT * from out_data.TBL6_RPT_CELL " + " WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
+					sql = "SELECT * from out_data.TBL6_RPT_CELL WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
 							+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd') and get_district_number(province||district) = ?"
 							+ " ORDER BY site_name,cell_name,ngay_capnhat";
 					prpStm = conn.prepareStatement(sql);
@@ -5292,35 +5292,35 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 				}
 			else if (donvi.equals("666666")) {
 				sql = "SELECT SITE_NAME, province"
-						+ ",district ,sum(vlr) AS vlr,sum(dtttt) AS dtttt,sum(thoai) AS thoai"
+						+ ",district ,loai_cell,is_old,sum(vlr) AS vlr,sum(dtttt) AS dtttt,sum(thoai) AS thoai"
 						+ ",sum(sms) AS sms,sum(DATA) AS DATA,sum(rmqt) AS rmqt,sum(khac) AS khac,sum(gtgt) AS gtgt"
 						+ ",sum(zp) AS zp,sum(mq) AS mq,sum(mc) AS mc, sum(qsv)AS qsv, sum(fc) AS fc"
 						+ " FROM out_data.TBL6_RPT_CELL WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
 						+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd')"
-						+ " GROUP BY SITE_NAME,province,district ORDER BY site_name";
+						+ " GROUP BY SITE_NAME,province,district,loai_cell,is_old ORDER BY site_name";
 				prpStm = conn.prepareStatement(sql);
 				prpStm.setString(1, tu_ngay);
 				prpStm.setString(2, den_ngay);
 			} else if (provinceNumberList.contains(donvi)) {
 				sql = "SELECT SITE_NAME, province"
-						+ ",district ,sum(vlr) AS vlr,sum(dtttt) AS dtttt,sum(thoai) AS thoai"
+						+ ",district ,loai_cell,is_old,sum(vlr) AS vlr,sum(dtttt) AS dtttt,sum(thoai) AS thoai"
 						+ ",sum(sms) AS sms,sum(DATA) AS DATA,sum(rmqt) AS rmqt,sum(khac) AS khac,sum(gtgt) AS gtgt"
 						+ ",sum(zp) AS zp,sum(mq) AS mq,sum(mc) AS mc, sum(qsv)AS qsv, sum(fc) AS fc"
 						+ " FROM out_data.TBL6_RPT_CELL WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
 						+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd') and province=get_province_code(?)"
-						+ " GROUP BY SITE_NAME,province,district ORDER BY site_name";
+						+ " GROUP BY SITE_NAME,province,district,loai_cell,is_old ORDER BY site_name";
 				prpStm = conn.prepareStatement(sql);
 				prpStm.setString(1, tu_ngay);
 				prpStm.setString(2, den_ngay);
 				prpStm.setString(3, donvi);
 			} else {
 				sql = "SELECT SITE_NAME, province"
-						+ ",district ,sum(vlr) AS vlr,sum(dtttt) AS dtttt,sum(thoai) AS thoai"
+						+ ",district ,loai_cell,is_old,sum(vlr) AS vlr,sum(dtttt) AS dtttt,sum(thoai) AS thoai"
 						+ ",sum(sms) AS sms,sum(DATA) AS DATA,sum(rmqt) AS rmqt,sum(khac) AS khac,sum(gtgt) AS gtgt"
 						+ ",sum(zp) AS zp,sum(mq) AS mq,sum(mc) AS mc, sum(qsv)AS qsv, sum(fc) AS fc"
 						+ " FROM out_data.TBL6_RPT_CELL " + " WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
 						+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd') and get_district_number(province||district) = ?"
-						+ " GROUP BY SITE_NAME,province,district ORDER BY site_name";
+						+ " GROUP BY SITE_NAME,province,district ,loai_cell,is_old ORDER BY site_name";
 				prpStm = conn.prepareStatement(sql);
 				prpStm.setString(1, tu_ngay);
 				prpStm.setString(2, den_ngay);

@@ -247,8 +247,11 @@ public class HoaHongThuCuocExcel extends AbstractPOIExcelView {
 			srcRow.getCell(column).setCellFormula("SUM(H20:J" + (row) + ")");
 			column = column + 10;
 			srcRow.getCell(column).setCellFormula("SUM(R20:T" + (row) + ")");
-		}
+		} else
+			row = row + 1;
+
 		row_tds = row + 1;
+
 		// II/ CHI PHÍ THU CƯỚC PHÁT SINH NGOÀI DANH SÁCH GIAO (2)
 
 		row = row + 3;
