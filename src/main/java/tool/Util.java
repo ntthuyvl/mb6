@@ -1,21 +1,280 @@
 package tool;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.Statement;
+
 /**
 * Original version available from:
 * http://www.coderanch.com/t/420958/open-source/Copying-sheet-excel-file-another
 **/
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
+
+import org.apache.poi.ss.formula.FormulaParser;
+import org.apache.poi.ss.formula.FormulaRenderer;
+import org.apache.poi.ss.formula.FormulaType;
+import org.apache.poi.ss.formula.ptg.AreaPtg;
+import org.apache.poi.ss.formula.ptg.Ptg;
+import org.apache.poi.ss.formula.ptg.RefPtgBase;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.usermodel.XSSFEvaluationWorkbook;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
+import freemarker.template.Configuration;
+import freemarker.template.DefaultObjectWrapper;
+import freemarker.template.Template;
 
 public class Util {
+	public static boolean isNumeric(String str) {
+		try {
+			Double.parseDouble(str);
+		} catch (NumberFormatException nfe) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * * Thay các biến ${p_} trong template bằng các giá trị tương ứng trong
+	 * model. Thay các biến ${s[k,j]} bằng các giá trị tương ứng với recordSet
+	 * trả về của câu lệnh sql[k] (j là cột tương ứng trong sql còn số dòng sẽ
+	 * tự duyệt cho hết recordSet)
+	 * 
+	 * @param model
+	 * @param sqlArray
+	 *            *
+	 * @param fileTemplate
+	 * @param conn
+	 * @param totRec
+	 *            Tổng số bản ghi các câu lênh sql trả về
+	 * @return
+	 * @throws Exception
+	 */
+	public static Workbook exportDataExcel(String sqlParam, String[] sqlArray, File fileTemplate, Connection conn)
+			throws Exception {
+		long totRec = 0;
+		XSSFWorkbook workbook = new XSSFWorkbook(new BufferedInputStream(new FileInputStream(fileTemplate)));
+
+		int sheetIndex = 0, sql_index = 0, col_index = 0, numberOfColumns, lastRowNum, rowNum;
+		Integer[] sqlFirstRow = new Integer[sqlArray.length];
+		String cellValue;
+		String[] headerRow;
+		ResultSetMetaData rsMetaData;
+		XSSFSheet sheet = null;
+		int sql_index_min = 0;
+		int sql_index_max = 0;
+		Map<Integer, CellStyle> styleMap = new HashMap<Integer, CellStyle>();
+		Row destRow;
+		Row srcRow;
+		Cell cell;
+		boolean check = true;
+		String[] record;
+		String value;
+
+		List<String[]> pojoList = new LinkedList<String[]>();
+		Statement sttm = conn.createStatement();
+		ResultSet rs;
+		CellFormular formular;
+		List<CellFormular> formularList;
+		CellFormular[] formularArray;
+
+		Configuration cfg = new Configuration(Configuration.VERSION_2_3_23);
+		cfg.setEncoding(Locale.getDefault(), "UTF-8");
+		cfg.setObjectWrapper(new DefaultObjectWrapper(Configuration.VERSION_2_3_23));
+		Template t;
+		Writer out;
+		rs = sttm.executeQuery(sqlParam);
+		rsMetaData = rs.getMetaData();
+		Map<String, Object> model = new TreeMap<String, Object>();
+		numberOfColumns = rsMetaData.getColumnCount();
+
+		while (rs != null && rs.next()) {
+			for (int i = 1; i <= numberOfColumns; i++) {
+				model.put("p_" + rsMetaData.getColumnName(i).toLowerCase(), rs.getString(i));
+			}
+		}
+
+		while (check) {
+			try {
+				sheet = (XSSFSheet) workbook.getSheetAt(sheetIndex);
+			} catch (Exception e) {
+				check = false;
+			}
+			if (sheet != null) {
+				sql_index = sql_index - 1;
+				sql_index_min = sql_index + 1;
+				lastRowNum = sheet.getLastRowNum();
+				rowNum = sheet.getFirstRowNum();
+				formularList = new LinkedList<CellFormular>();
+				while (rowNum <= lastRowNum) {
+					srcRow = sheet.getRow(rowNum);
+					if (srcRow != null) {
+						for (int j = srcRow.getFirstCellNum(); j <= srcRow.getLastCellNum(); j++) {
+							cell = srcRow.getCell(j);
+							if (cell != null) {
+								try {
+									cellValue = srcRow.getCell(j).getStringCellValue().trim();
+								} catch (Exception e) {
+									cellValue = "";
+								}
+
+								if (cellValue.indexOf("${p_") >= 0) {
+									t = new Template("templateName", new StringReader(cellValue), cfg);
+									out = new StringWriter();
+									t.process(model, out);
+									value = out.toString();
+									if (value != null && isNumeric(value)) {
+										cell.setCellValue(Double.valueOf(value));
+									} else
+										cell.setCellValue(value);
+
+								} else if (cellValue.startsWith("${s[") && cellValue.endsWith("]}") && (cellValue
+										.substring(cellValue.indexOf(",") + 1, cellValue.length() - 2).equals("0"))) {
+									sql_index_max = Integer.parseInt(cellValue.substring(4, cellValue.indexOf(",")));
+									sqlFirstRow[sql_index_max] = rowNum;
+								} else if (cell.getCellType() == Cell.CELL_TYPE_FORMULA
+										&& !cell.getCellFormula().equals("")) {
+									formular = new CellFormular();
+									formular.setRow(rowNum);
+									formular.setCol(j);
+									formular.setFormula(cell.getCellFormula());
+									formularList.add(formular);
+								}
+							}
+						}
+					}
+					rowNum++;
+				}
+				formularArray = formularList.toArray(new CellFormular[formularList.size()]);
+				for (sql_index = sql_index_min; sql_index <= sql_index_max; sql_index++) {
+					rs = sttm.executeQuery(sqlArray[sql_index]);
+					rsMetaData = rs.getMetaData();
+					numberOfColumns = rsMetaData.getColumnCount();
+					headerRow = new String[numberOfColumns];
+					for (int i = 1; i <= numberOfColumns; i++) {
+						headerRow[i - 1] = rsMetaData.getColumnName(i);
+					}
+					rowNum = sqlFirstRow[sql_index];
+
+					pojoList = new LinkedList<String[]>();
+
+					rsMetaData = rs.getMetaData();
+					numberOfColumns = rsMetaData.getColumnCount();
+					headerRow = new String[numberOfColumns];
+					for (int i = 1; i <= numberOfColumns; i++) {
+						headerRow[i - 1] = rsMetaData.getColumnName(i);
+					}
+					while (rs != null && rs.next()) {
+						record = new String[numberOfColumns];
+						for (int i = 1; i < numberOfColumns + 1; i++) {
+							record[i - 1] = rs.getString(i);
+						}
+						pojoList.add(record);
+					}
+
+					int k = pojoList.size();
+					for (String[] objs : pojoList) {
+						k--;
+						srcRow = sheet.getRow(rowNum);
+						if (k > 0) {
+							for (int i = 0; i < formularArray.length; i++) {
+								if (formularArray[i].getRow() >= rowNum) {
+									formularArray[i]
+											.setFormula(getNewRefrenceFormula(sheet, formularArray[i].getFormula(),
+													rowNum, formularArray[i].getRow(), formularArray[i].getCol(),
+													formularArray[i].getRow() + 1, formularArray[i].getCol()));
+									if (k > 1 && sql_index + 1 < sqlFirstRow.length
+											&& sqlFirstRow[sql_index + 1] != null
+											&& formularArray[i].getRow() >= sqlFirstRow[sql_index + 1] + 1
+											&& formularArray[i].getFormula().indexOf("$") > 0) {
+										formularArray[i]
+												.setFormula(increaseStaticAddress(formularArray[i].getFormula()));
+
+									}
+
+									formularArray[i].setRow(formularArray[i].getRow() + 1);
+								}
+							}
+							sheet.shiftRows(rowNum + 1, lastRowNum, 1, true, false);
+							destRow = (XSSFRow) sheet.getRow(rowNum + 1);
+							if (destRow == null)
+								destRow = (XSSFRow) sheet.createRow(rowNum + 1);
+							Util.copyRow(sheet, sheet, srcRow, destRow, styleMap);
+							// Tăng địa chỉ của row đầu tiên tương ứng với các
+							// sql
+							// sau lên 1
+							for (int i = sql_index_min + 1; i <= sql_index_max; i++) {
+								sqlFirstRow[i] = sqlFirstRow[i] + 1;
+							}
+						}
+
+						lastRowNum++;
+						totRec++;
+						for (int j = srcRow.getFirstCellNum(); j <= srcRow.getLastCellNum(); j++) {
+							cell = srcRow.getCell(j);
+							if (cell != null) {
+								try {
+									cellValue = cell.getStringCellValue().trim();
+								} catch (Exception e) {
+									cellValue = "";
+								}
+								if (cellValue.startsWith("${s[") && cellValue.endsWith("]}")) {
+									col_index = Integer.parseInt(
+											cellValue.substring(cellValue.indexOf(",") + 1, cellValue.length() - 2));
+									value = objs[col_index];
+
+									if (value != null && isNumeric(value) && !headerRow[col_index].equals("ISDN")
+											&& !headerRow[col_index].equals("SIM_SERIAL")
+											&& !headerRow[col_index].equals("IMSI")
+											&& !headerRow[col_index].equals("SERIAL")) {
+										cell.setCellValue(Double.valueOf(value));
+									} else
+										cell.setCellValue(value);
+								} else if (cell.getCellType() == Cell.CELL_TYPE_FORMULA) {
+									cellValue = cell.getCellFormula();
+									cell.setCellFormula(cell.getCellFormula());
+								}
+							}
+						}
+						rowNum++;
+
+					}
+				}
+				for (int i = 0; i < formularArray.length; i++) {
+					sheet.getRow(formularArray[i].getRow()).getCell(formularArray[i].getCol())
+							.setCellFormula(formularArray[i].getFormula());
+				}
+
+			}
+			sheetIndex++;
+		}
+		if (totRec > 0)
+			return workbook;
+		else
+			return null;
+	}
 
 	/**
 	 * @param newSheet
@@ -150,6 +409,7 @@ public class Util {
 			break;
 		case Cell.CELL_TYPE_FORMULA:
 			newCell.setCellFormula(oldCell.getCellFormula());
+			copyFormula(oldCell.getSheet(), oldCell, newCell);
 			break;
 		default:
 			break;
@@ -196,6 +456,135 @@ public class Util {
 		return !mergedRegions.contains(newMergedRegion);
 	}
 
+	public static String increaseStaticAddress(String org_formula) {
+		String str = org_formula;
+		String formula = org_formula;
+		str = str.replaceAll("[^0-9]+", " ");
+		String[] rowArray = str.trim().split(" ");
+		for (int i = 0; i < rowArray.length; i++) {
+			formula = formula.replace("$" + rowArray[i], "$" + (Integer.parseInt(rowArray[i]) + 1));
+		}
+		// System.out.println("formula: " + formula);
+		return formula;
+
+	}
+
+	public static String getNewRefrenceFormula(Sheet sheet, String org_formula, int move_row, int org_row,
+			int org_column, int dest_row, int dest_column) {
+		Cell org = sheet.getRow(org_row).getCell(org_column);
+
+		if (org_formula == null || org_formula.equals("") || org == null || sheet == null
+				|| org.getCellType() != Cell.CELL_TYPE_FORMULA)
+			return "";
+		if (org.isPartOfArrayFormulaGroup())
+			return "org.isPartOfArrayFormulaGroup()";
+
+		String formula = org_formula;
+
+		int shiftRows = dest_row - org_row;
+		int shiftCols = dest_column - org_column;
+		XSSFEvaluationWorkbook workbookWrapper = XSSFEvaluationWorkbook.create((XSSFWorkbook) sheet.getWorkbook());
+		Ptg[] ptgs = FormulaParser.parse(formula, workbookWrapper, FormulaType.CELL,
+				sheet.getWorkbook().getSheetIndex(sheet));
+		for (Ptg ptg : ptgs) {
+			if (ptg instanceof RefPtgBase) // base class for cell references
+			{
+				RefPtgBase ref = (RefPtgBase) ptg;
+				if (ref.isColRelative())
+					ref.setColumn(ref.getColumn() + shiftCols);
+				if (ref.isRowRelative() && move_row <= ref.getRow())
+					ref.setRow(ref.getRow() + shiftRows);
+			} else if (ptg instanceof AreaPtg) // base class for range
+												// references
+			{
+				AreaPtg ref = (AreaPtg) ptg;
+				if (ref.isFirstColRelative())
+					ref.setFirstColumn(ref.getFirstColumn() + shiftCols);
+				if (ref.isLastColRelative())
+					ref.setLastColumn(ref.getLastColumn() + shiftCols);
+				if (ref.isFirstRowRelative() && move_row <= ref.getFirstRow())
+					ref.setFirstRow(ref.getFirstRow() + shiftRows);
+				if (ref.isLastRowRelative() && move_row <= ref.getFirstRow())
+					ref.setLastRow(ref.getLastRow() + shiftRows);
+			}
+		}
+		formula = FormulaRenderer.toFormulaString(workbookWrapper, ptgs);
+		return formula;
+	}
+
+	public static void copyFormula(Sheet sheet, Cell org, Cell dest) {
+		if (org == null || dest == null || sheet == null || org.getCellType() != Cell.CELL_TYPE_FORMULA)
+			return;
+		if (org.isPartOfArrayFormulaGroup())
+			return;
+		String formula = org.getCellFormula();
+		int shiftRows = dest.getRowIndex() - org.getRowIndex();
+		int shiftCols = dest.getColumnIndex() - org.getColumnIndex();
+		XSSFEvaluationWorkbook workbookWrapper = XSSFEvaluationWorkbook.create((XSSFWorkbook) sheet.getWorkbook());
+		Ptg[] ptgs = FormulaParser.parse(formula, workbookWrapper, FormulaType.CELL,
+				sheet.getWorkbook().getSheetIndex(sheet));
+		for (Ptg ptg : ptgs) {
+			if (ptg instanceof RefPtgBase) // base class for cell references
+			{
+				RefPtgBase ref = (RefPtgBase) ptg;
+				if (ref.isColRelative())
+					ref.setColumn(ref.getColumn() + shiftCols);
+				if (ref.isRowRelative())
+					ref.setRow(ref.getRow() + shiftRows);
+			} else if (ptg instanceof AreaPtg) // base class for range
+												// references
+			{
+				AreaPtg ref = (AreaPtg) ptg;
+				if (ref.isFirstColRelative())
+					ref.setFirstColumn(ref.getFirstColumn() + shiftCols);
+				if (ref.isLastColRelative())
+					ref.setLastColumn(ref.getLastColumn() + shiftCols);
+				if (ref.isFirstRowRelative())
+					ref.setFirstRow(ref.getFirstRow() + shiftRows);
+				if (ref.isLastRowRelative())
+					ref.setLastRow(ref.getLastRow() + shiftRows);
+			}
+		}
+		formula = FormulaRenderer.toFormulaString(workbookWrapper, ptgs);
+		dest.setCellFormula(formula);
+	}
+
+}
+
+class CellFormular implements Comparable<CellFormular> {
+	private int row;
+	private int col;
+	private String formula;
+
+	public int getRow() {
+		return row;
+	}
+
+	public void setRow(int row) {
+		this.row = row;
+	}
+
+	public int getCol() {
+		return col;
+	}
+
+	public void setCol(int col) {
+		this.col = col;
+	}
+
+	public String getFormula() {
+		return formula;
+	}
+
+	public void setFormula(String formula) {
+		this.formula = formula;
+	}
+
+	public int compareTo(CellFormular o) {
+		// TODO Auto-generated method stub
+		return formula.compareTo(o.getFormula());
+	}
+
 }
 
 class CellRangeAddressWrapper implements Comparable<CellRangeAddressWrapper> {
@@ -227,5 +616,4 @@ class CellRangeAddressWrapper implements Comparable<CellRangeAddressWrapper> {
 		}
 
 	}
-
 }

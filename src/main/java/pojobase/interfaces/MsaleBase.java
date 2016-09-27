@@ -1,5 +1,6 @@
 package pojobase.interfaces;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
@@ -159,4 +160,6 @@ public interface MsaleBase {
 	List<Map<String, String>> chiTietCell(String user_name, String json);
 
 	Object getVlr3k3dLatday();
+
+	public Connection getConnection() throws SQLException;
 }

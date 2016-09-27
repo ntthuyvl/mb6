@@ -1,5 +1,7 @@
 package springweb.controllers;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -146,7 +148,7 @@ public class QssPayment extends BaseController {
 	}
 
 	@RequestMapping(value = "/ttcp/hoahongthucuoc/xuat_bien_ban", method = RequestMethod.GET)
-	public ModelAndView xuat_bien_ban(@RequestParam String json, HttpServletRequest request) {
+	public ModelAndView xuat_bien_ban(@RequestParam String json, HttpServletRequest request) throws SQLException {
 		String user_name = getUserLoginName(this.getClass().getCanonicalName() + ".xuat_bien_ban" + json, request);
 
 		JSONObject jsonObject = new JSONObject(json);
@@ -155,9 +157,10 @@ public class QssPayment extends BaseController {
 		month = String.valueOf(jsonObject.get("month"));
 		bill_cycle_id = String.valueOf(jsonObject.get("bill_cycle_id"));
 		String mbftinh = String.valueOf(jsonObject.get("mbftinh"));
-
+		Connection cnn = msaleBase.getConnection();
 		Map<String, HoaHongThuCuoc> hoaHongThuCuocMap = msaleBase.getHoaHongThuCuocList(user_name, json);
 		ModelAndView model = new ModelAndView("hoa_hong_thu_cuoc");
+		model.getModel().put("cnn", cnn);
 		model.getModel().put("file_name", "hhtc_" + mbftinh + "_" + month + "ky_" + bill_cycle_id + ".xlsx");
 		model.getModel().put("month", month);
 		model.getModel().put("bill_cycle_id", bill_cycle_id);

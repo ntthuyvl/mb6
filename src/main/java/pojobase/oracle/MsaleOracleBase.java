@@ -7,6 +7,8 @@ import java.util.TreeMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.poi.ss.usermodel.Workbook;
 import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -19,6 +21,9 @@ import pojo.MsaleReseller;
 import pojo.SubReg;
 import pojobase.interfaces.MsaleBase;
 import springweb.controllers.AjaxController;
+import tool.Util;
+
+import java.io.File;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -1135,11 +1140,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 
 					prpStm.execute();
 					prpStm.close();
-					prpStm = conn
-							.prepareStatement("select isdn,PROSUB_CODE,to_char(sta_datetime,'dd/mm/yyyy') sta_datetime,"
-									+ " to_char(end_datetime,'dd/mm/yyyy') end_datetime,act_status"
-									+ " ,charge,prom_amount, to_char(last_bill_date,'dd/mm/yyyy') last_bill_date, "
-									+ "  shop_code, province, district,bare_audit, vasp_reg_audit, name, pay_full_address from mb6_subscriber_v order by isdn");
+					prpStm = conn.prepareStatement("select * from mb6_subscriber_v order by isdn");
 
 					rs = prpStm.executeQuery();
 					pojoList = this.getData(rs, 1, user_name, app);
@@ -1541,7 +1542,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 							+ "               2) hsrm_n, ROUND ( 100"
 							+ "               * (SUM (NVL (hsrm_c, 0)) - SUM (NVL (hsrm_d, 0)))"
 							+ "               / DECODE (SUM (NVL (hsrm_c, 0)), 0, 1, SUM (NVL (hsrm_c, 0))),"
-							+ "               2) hsrm_n1 FROM   out_data.hsrm_v GROUP BY   TYPE";
+							+ "               2) hsrm_n1 FROM   out_data.hsrm_v GROUP BY   TYPE order by type";
 				} else if (level.equals("1")) {
 					sql = "  SELECT   TYPE,province_code,SUM (NVL (hsrm_a, 0)) hsrm_a,SUM (NVL (hsrm_b, 0)) hsrm_b,"
 							+ "           SUM (NVL (hsrm_c, 0)) hsrm_c,SUM (NVL (hsrm_d, 0)) hsrm_d,"
@@ -1551,7 +1552,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 							+ "               2) hsrm_n, ROUND ( 100"
 							+ "               * (SUM (NVL (hsrm_c, 0)) - SUM (NVL (hsrm_d, 0)))"
 							+ "               / DECODE (SUM (NVL (hsrm_c, 0)), 0, 1, SUM (NVL (hsrm_c, 0))),"
-							+ "               2) hsrm_n1 FROM   out_data.hsrm_v GROUP BY   TYPE,province_code";
+							+ "               2) hsrm_n1 FROM   out_data.hsrm_v GROUP BY   TYPE,province_code  order by type";
 
 				} else {
 					sql = "  SELECT   TYPE,province_code,district_code,SUM (NVL (hsrm_a, 0)) hsrm_a,SUM (NVL (hsrm_b, 0)) hsrm_b,"
@@ -1562,7 +1563,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 							+ "               2) hsrm_n, ROUND ( 100"
 							+ "               * (SUM (NVL (hsrm_c, 0)) - SUM (NVL (hsrm_d, 0)))"
 							+ "               / DECODE (SUM (NVL (hsrm_c, 0)), 0, 1, SUM (NVL (hsrm_c, 0))),"
-							+ "               2) hsrm_n1 FROM   out_data.hsrm_v GROUP BY   TYPE,province_code,district_code";
+							+ "               2) hsrm_n1 FROM   out_data.hsrm_v GROUP BY   TYPE,province_code,district_code   order by type, province_code";
 				}
 				prpStm = conn.prepareStatement(sql);
 
@@ -1577,7 +1578,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 							+ "               * (SUM (NVL (hsrm_c, 0)) - SUM (NVL (hsrm_d, 0)))"
 							+ "               / DECODE (SUM (NVL (hsrm_c, 0)), 0, 1, SUM (NVL (hsrm_c, 0))),"
 							+ "               2) hsrm_n1 FROM   out_data.hsrm_v where province_code=get_province_code(?) "
-							+ " GROUP BY   TYPE,province_code";
+							+ " GROUP BY   TYPE,province_code order by type ";
 
 				} else {
 					sql = "SELECT   TYPE,province_code,district_code,SUM (NVL (hsrm_a, 0)) hsrm_a,SUM (NVL (hsrm_b, 0)) hsrm_b,"
@@ -1589,7 +1590,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 							+ "               * (SUM (NVL (hsrm_c, 0)) - SUM (NVL (hsrm_d, 0)))"
 							+ "               / DECODE (SUM (NVL (hsrm_c, 0)), 0, 1, SUM (NVL (hsrm_c, 0))),"
 							+ "               2) hsrm_n1 FROM   out_data.hsrm_v where province_code=get_province_code(?) "
-							+ " GROUP BY   TYPE,province_code,district_code";
+							+ " GROUP BY   TYPE,province_code,district_code order by type, province_code";
 
 				}
 				prpStm = conn.prepareStatement(sql);
@@ -2814,10 +2815,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 					prpStm.setString(2, den_ngay);
 					prpStm.execute();
 					// Cau lenh lay thue bao tra sau
-					resultSql = "select isdn,PROSUB_CODE,to_char(sta_datetime,'dd/mm/yyyy') sta_datetime,"
-							+ " to_char(end_datetime,'dd/mm/yyyy') end_datetime,act_status"
-							+ " ,charge,prom_amount, to_char(last_bill_date,'dd/mm/yyyy') last_bill_date, "
-							+ "  shop_code, province, district,bare_audit,vasp_reg_audit,cha_pkg_audit, name, pay_full_address from mb6_subscriber_v order by isdn";
+					resultSql = "select * from mb6_subscriber_v order by isdn";
 				}
 
 			}
@@ -5163,7 +5161,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 
 			syslog(sql);
 			rs = prpStm.executeQuery();
-			return getData2(rs, 1, user_name, app);
+			return getData2(rs, 0, user_name, app);
 		} catch (Exception e) {
 			return getError(e);
 		} finally {
@@ -5262,6 +5260,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 			String den_ngay = String.valueOf(jsonObject.get("den_ngay"));
 			String donvi = String.valueOf(jsonObject.get("donvi"));
 			String rptype = String.valueOf(jsonObject.get("rptype"));
+			String level = String.valueOf(jsonObject.get("level"));
 
 			conn = this.getConnection();
 			String sql;
@@ -5290,50 +5289,135 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 					prpStm.setString(2, den_ngay);
 					prpStm.setString(3, donvi);
 				}
-			else if (donvi.equals("666666")) {
-				sql = "SELECT SITE_NAME, province"
-						+ ",district ,loai_cell,is_old,sum(vlr) AS vlr,sum(dtttt) AS dtttt,sum(thoai) AS thoai"
-						+ ",sum(sms) AS sms,sum(DATA) AS DATA,sum(rmqt) AS rmqt,sum(khac) AS khac,sum(gtgt) AS gtgt"
-						+ ",sum(zp) AS zp,sum(mq) AS mq,sum(mc) AS mc, sum(qsv)AS qsv, sum(fc) AS fc"
-						+ " FROM out_data.TBL6_RPT_CELL WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
-						+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd')"
-						+ " GROUP BY SITE_NAME,province,district,loai_cell,is_old ORDER BY site_name";
-				prpStm = conn.prepareStatement(sql);
-				prpStm.setString(1, tu_ngay);
-				prpStm.setString(2, den_ngay);
-			} else if (provinceNumberList.contains(donvi)) {
-				sql = "SELECT SITE_NAME, province"
-						+ ",district ,loai_cell,is_old,sum(vlr) AS vlr,sum(dtttt) AS dtttt,sum(thoai) AS thoai"
-						+ ",sum(sms) AS sms,sum(DATA) AS DATA,sum(rmqt) AS rmqt,sum(khac) AS khac,sum(gtgt) AS gtgt"
-						+ ",sum(zp) AS zp,sum(mq) AS mq,sum(mc) AS mc, sum(qsv)AS qsv, sum(fc) AS fc"
-						+ " FROM out_data.TBL6_RPT_CELL WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
-						+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd') and province=get_province_code(?)"
-						+ " GROUP BY SITE_NAME,province,district,loai_cell,is_old ORDER BY site_name";
-				prpStm = conn.prepareStatement(sql);
-				prpStm.setString(1, tu_ngay);
-				prpStm.setString(2, den_ngay);
-				prpStm.setString(3, donvi);
+			else if (rptype.equals("1")) {
+				if (donvi.equals("666666")) {
+					sql = "SELECT SITE_NAME, province"
+							+ ",district ,loai_cell,is_old,sum(vlr) AS vlr,sum(dtttt) AS dtttt,sum(thoai) AS thoai"
+							+ ",sum(sms) AS sms,sum(DATA) AS DATA,sum(rmqt) AS rmqt,sum(khac) AS khac,sum(gtgt) AS gtgt"
+							+ ",sum(zp) AS zp,sum(mq) AS mq,sum(mc) AS mc, sum(qsv)AS qsv, sum(fc) AS fc"
+							+ " FROM out_data.TBL6_RPT_CELL WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
+							+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd')"
+							+ " GROUP BY SITE_NAME,province,district,loai_cell,is_old ORDER BY site_name";
+					prpStm = conn.prepareStatement(sql);
+					prpStm.setString(1, tu_ngay);
+					prpStm.setString(2, den_ngay);
+				} else if (provinceNumberList.contains(donvi)) {
+					sql = "SELECT SITE_NAME, province"
+							+ ",district ,loai_cell,is_old,sum(vlr) AS vlr,sum(dtttt) AS dtttt,sum(thoai) AS thoai"
+							+ ",sum(sms) AS sms,sum(DATA) AS DATA,sum(rmqt) AS rmqt,sum(khac) AS khac,sum(gtgt) AS gtgt"
+							+ ",sum(zp) AS zp,sum(mq) AS mq,sum(mc) AS mc, sum(qsv)AS qsv, sum(fc) AS fc"
+							+ " FROM out_data.TBL6_RPT_CELL WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
+							+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd') and province=get_province_code(?)"
+							+ " GROUP BY SITE_NAME,province,district,loai_cell,is_old ORDER BY site_name";
+					prpStm = conn.prepareStatement(sql);
+					prpStm.setString(1, tu_ngay);
+					prpStm.setString(2, den_ngay);
+					prpStm.setString(3, donvi);
+				} else {
+					sql = "SELECT SITE_NAME, province"
+							+ ",district ,loai_cell,is_old,sum(vlr) AS vlr,sum(dtttt) AS dtttt,sum(thoai) AS thoai"
+							+ ",sum(sms) AS sms,sum(DATA) AS DATA,sum(rmqt) AS rmqt,sum(khac) AS khac,sum(gtgt) AS gtgt"
+							+ ",sum(zp) AS zp,sum(mq) AS mq,sum(mc) AS mc, sum(qsv)AS qsv, sum(fc) AS fc"
+							+ " FROM out_data.TBL6_RPT_CELL " + " WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
+							+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd') and get_district_number(province||district) = ?"
+							+ " GROUP BY SITE_NAME,province,district ,loai_cell,is_old ORDER BY site_name";
+					prpStm = conn.prepareStatement(sql);
+					prpStm.setString(1, tu_ngay);
+					prpStm.setString(2, den_ngay);
+					prpStm.setString(3, donvi);
+				}
 			} else {
-				sql = "SELECT SITE_NAME, province"
-						+ ",district ,loai_cell,is_old,sum(vlr) AS vlr,sum(dtttt) AS dtttt,sum(thoai) AS thoai"
-						+ ",sum(sms) AS sms,sum(DATA) AS DATA,sum(rmqt) AS rmqt,sum(khac) AS khac,sum(gtgt) AS gtgt"
-						+ ",sum(zp) AS zp,sum(mq) AS mq,sum(mc) AS mc, sum(qsv)AS qsv, sum(fc) AS fc"
-						+ " FROM out_data.TBL6_RPT_CELL " + " WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
-						+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd') and get_district_number(province||district) = ?"
-						+ " GROUP BY SITE_NAME,province,district ,loai_cell,is_old ORDER BY site_name";
-				prpStm = conn.prepareStatement(sql);
-				prpStm.setString(1, tu_ngay);
-				prpStm.setString(2, den_ngay);
-				prpStm.setString(3, donvi);
+				if (donvi.equals("666666")) {
+					if (level.equals("0")) {
+						sql = "SELECT loai_cell,is_old,sum(vlr) AS vlr,sum(dtttt) AS dtttt,sum(thoai) AS thoai"
+								+ ",sum(sms) AS sms,sum(DATA) AS DATA,sum(rmqt) AS rmqt,sum(khac) AS khac,sum(gtgt) AS gtgt"
+								+ ",sum(zp) AS zp,sum(mq) AS mq,sum(mc) AS mc, sum(qsv)AS qsv, sum(fc) AS fc"
+								+ " FROM out_data.TBL6_RPT_CELL WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
+								+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd')"
+								+ " GROUP BY loai_cell,is_old ORDER BY loai_cell,is_old";
+						prpStm = conn.prepareStatement(sql);
+						prpStm.setString(1, tu_ngay);
+						prpStm.setString(2, den_ngay);
+					} else if (level.equals("1")) {
+						sql = "SELECT province,loai_cell,is_old,sum(vlr) AS vlr,sum(dtttt) AS dtttt,sum(thoai) AS thoai"
+								+ ",sum(sms) AS sms,sum(DATA) AS DATA,sum(rmqt) AS rmqt,sum(khac) AS khac,sum(gtgt) AS gtgt"
+								+ ",sum(zp) AS zp,sum(mq) AS mq,sum(mc) AS mc, sum(qsv)AS qsv, sum(fc) AS fc"
+								+ " FROM out_data.TBL6_RPT_CELL WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
+								+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd')"
+								+ " GROUP BY province,loai_cell,is_old ORDER BY province,loai_cell,is_old";
+						prpStm = conn.prepareStatement(sql);
+						prpStm.setString(1, tu_ngay);
+						prpStm.setString(2, den_ngay);
+
+					} else {
+						sql = "SELECT province,district ,loai_cell,is_old,sum(vlr) AS vlr,sum(dtttt) AS dtttt,sum(thoai) AS thoai"
+								+ ",sum(sms) AS sms,sum(DATA) AS DATA,sum(rmqt) AS rmqt,sum(khac) AS khac,sum(gtgt) AS gtgt"
+								+ ",sum(zp) AS zp,sum(mq) AS mq,sum(mc) AS mc, sum(qsv)AS qsv, sum(fc) AS fc"
+								+ " FROM out_data.TBL6_RPT_CELL WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
+								+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd')"
+								+ " GROUP BY province,district,loai_cell,is_old ORDER BY province,district,loai_cell,is_old";
+						prpStm = conn.prepareStatement(sql);
+						prpStm.setString(1, tu_ngay);
+						prpStm.setString(2, den_ngay);
+
+					}
+				} else if (provinceNumberList.contains(donvi)) {
+					if (level.equals("0") || level.equals("1")) {
+						sql = "SELECT province,loai_cell,is_old,sum(vlr) AS vlr,sum(dtttt) AS dtttt,sum(thoai) AS thoai"
+								+ ",sum(sms) AS sms,sum(DATA) AS DATA,sum(rmqt) AS rmqt,sum(khac) AS khac,sum(gtgt) AS gtgt"
+								+ ",sum(zp) AS zp,sum(mq) AS mq,sum(mc) AS mc, sum(qsv)AS qsv, sum(fc) AS fc"
+								+ " FROM out_data.TBL6_RPT_CELL WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
+								+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd') and province=get_province_code(?) "
+								+ " GROUP BY province,loai_cell,is_old ORDER BY province,loai_cell,is_old";
+						prpStm = conn.prepareStatement(sql);
+						prpStm.setString(1, tu_ngay);
+						prpStm.setString(2, den_ngay);
+						prpStm.setString(3, donvi);
+					} else {
+						sql = "SELECT province,district ,loai_cell,is_old,sum(vlr) AS vlr,sum(dtttt) AS dtttt,sum(thoai) AS thoai"
+								+ ",sum(sms) AS sms,sum(DATA) AS DATA,sum(rmqt) AS rmqt,sum(khac) AS khac,sum(gtgt) AS gtgt"
+								+ ",sum(zp) AS zp,sum(mq) AS mq,sum(mc) AS mc, sum(qsv)AS qsv, sum(fc) AS fc"
+								+ " FROM out_data.TBL6_RPT_CELL WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
+								+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd') and province=get_province_code(?) "
+								+ " GROUP BY province,district,loai_cell,is_old ORDER BY province,district,loai_cell,is_old";
+						prpStm = conn.prepareStatement(sql);
+						prpStm.setString(1, tu_ngay);
+						prpStm.setString(3, donvi);
+						prpStm.setString(3, donvi);
+					}
+				} else {
+					sql = "SELECT province,district ,loai_cell,is_old,sum(vlr) AS vlr,sum(dtttt) AS dtttt,sum(thoai) AS thoai"
+							+ ",sum(sms) AS sms,sum(DATA) AS DATA,sum(rmqt) AS rmqt,sum(khac) AS khac,sum(gtgt) AS gtgt"
+							+ ",sum(zp) AS zp,sum(mq) AS mq,sum(mc) AS mc, sum(qsv)AS qsv, sum(fc) AS fc"
+							+ " FROM out_data.TBL6_RPT_CELL WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
+							+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd') and get_district_number(province||district) = ? "
+							+ " GROUP BY province,district,loai_cell,is_old ORDER BY province,district,loai_cell,is_old";
+					prpStm = conn.prepareStatement(sql);
+					prpStm.setString(1, tu_ngay);
+					prpStm.setString(3, donvi);
+					prpStm.setString(3, donvi);
+				}
 			}
 			syslog(sql);
 			rs = prpStm.executeQuery();
 			return getData(rs, 1, user_name, app);
-		} catch (Exception e) {
+		} catch (
+
+		Exception e) {
 			return getError(e);
 		} finally {
 			clean(conn, prpStm, rs);
 		}
+	}
+
+	public Workbook exportDataExcel(String sqlParam, String[] sqlArray, File fileTemplate) throws Exception {
+		Connection conn = getConnection();
+		try {
+			return Util.exportDataExcel(sqlParam, sqlArray, fileTemplate, conn);
+		} finally {
+			conn.close();
+		}
+
 	}
 
 	@Override

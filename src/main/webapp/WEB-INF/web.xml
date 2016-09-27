@@ -57,15 +57,10 @@
 		<servlet-name>dogstore</servlet-name>
 		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
 		<init-param>
-			<param-name>contextClass</param-name>
-			<param-value>org.springframework.web.context.support.AnnotationConfigWebApplicationContext</param-value>
-		</init-param>
-		<init-param>
 			<param-name>contextConfigLocation</param-name>
-			<param-value>birt.spring.example.BirtWebConfiguration</param-value>
+			<param-value> 
+			/WEB-INF/dogstore-servlet.xml </param-value>
 		</init-param>
-		<!-- <init-param> <param-name>contextConfigLocation</param-name> <param-value> 
-			/WEB-INF/dogstore-servlet.xml </param-value> </init-param> -->
 		<load-on-startup>1</load-on-startup>
 	</servlet>
 	<servlet-mapping>

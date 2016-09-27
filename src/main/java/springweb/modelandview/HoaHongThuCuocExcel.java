@@ -3,6 +3,7 @@ package springweb.modelandview;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.sql.Connection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,6 +27,7 @@ import tool.Util;
 
 public class HoaHongThuCuocExcel extends AbstractPOIExcelView {
 	private String month, bill_cycle_id;
+	private Connection cnn;
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -35,6 +37,7 @@ public class HoaHongThuCuocExcel extends AbstractPOIExcelView {
 
 		month = (String) model.get("month");
 		bill_cycle_id = (String) model.get("bill_cycle_id");
+		cnn = (Connection) model.get("cnn");
 		// SXSSFSheet destSheet = (SXSSFSheet) workbook.createSheet("hoahong");
 		// Util.copySheets(destSheet, template.getSheet("hoahong"), true);
 		// templateSheet = destSheet;
@@ -127,9 +130,9 @@ public class HoaHongThuCuocExcel extends AbstractPOIExcelView {
 		srcRow.getCell(column).setCellValue(Double.parseDouble(hhtc.paramArray[HoaHongThuCuoc.KH_90]));
 		column = column + 2;
 		srcRow.getCell(column).setCellValue(Double.parseDouble(hhtc.paramArray[HoaHongThuCuoc.TH_90]));
-		column = column + 2;
+		column = column + 3;
 		srcRow.getCell(column).setCellValue(Double.parseDouble(hhtc.paramArray[HoaHongThuCuoc.HKH1]));
-		column = column + 2;
+		column = column + 1;
 		srcRow.getCell(column).setCellValue(Double.parseDouble(hhtc.paramArray[HoaHongThuCuoc.KH_NO_DONG_N]));
 		column = column + 2;
 		srcRow.getCell(column).setCellValue(Double.parseDouble(hhtc.paramArray[HoaHongThuCuoc.TH_NO_DONG_N]));

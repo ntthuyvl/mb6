@@ -20,7 +20,7 @@
 	<!-- context:component-scan base-package="org.springframework.samples.mvc.basic" 
 		/ -->
 	<context:annotation-config />
-	<context:component-scan base-package="springweb.controllers, birt.spring.example">
+	<context:component-scan base-package="springweb.controllers">
 		<context:include-filter type="annotation"
 			expression="org.springframework.stereotype.Controller" />
 	</context:component-scan>
