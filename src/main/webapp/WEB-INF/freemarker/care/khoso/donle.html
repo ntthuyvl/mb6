@@ -19,7 +19,7 @@
 			"json" : JSON.stringify(dataObj)
 		};
 		$.post("donle", dataObj, function(data2, status) {
-			$('table, button#reload').fadeIn();
+			$('table, button#reload, button#table2excel').fadeIn();
 			$('textarea#isdns, button#getdata').hide();
 			call_back_ajax(data2, status);
 		});
@@ -27,12 +27,19 @@
 	}
 
 	$(document).ready(function() {
-		$('table, button#reload').hide();
+		$('table, button#reload,  button#table2excel').hide();
 		$('button#getdata').click(function() {
 			getData();
 		});
 		$('button#reload').click(function() {
 			location.reload();
+		});
+		$(document).on('click', 'button#table2excel', function() {
+			$(curtab + ' table#datarp').table2excel({
+				// exclude CSS class			
+				exclude : ".noExl",
+				name : "TraThuong"
+			});
 		});
 
 	})
@@ -42,9 +49,10 @@
 <ul id="tabs">
 	<li><a href="#" name="tab1">Lô số cần tra cứu thông tin</a></li>
 	<div class="container-fluid form-inline">
-		<button type="button" class="btn btn-primary pull-right" id="getdata">Tra
+		<button type="button" class="btn  btn-primary" id="table2excel">Excel</button>
+		<button type="button" class="btn btn-primary" id="getdata">Tra
 			cứu</button>
-		<button type="button" class="btn btn-primary pull-right" id="reload">Tìm
+		<button type="button" class="btn btn-primary" id="reload">Tìm
 			lô khác</button>
 	</div>
 </ul>

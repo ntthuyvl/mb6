@@ -22,6 +22,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import pojo.HoaHongThuCuoc;
 import pojobase.interfaces.MsaleBase;
+import pojobase.oracle.MsaleOracleBase;
 import pojomode.ExceptionMode;
 
 /**
@@ -157,7 +158,7 @@ public class QssPayment extends BaseController {
 		month = String.valueOf(jsonObject.get("month"));
 		bill_cycle_id = String.valueOf(jsonObject.get("bill_cycle_id"));
 		String mbftinh = String.valueOf(jsonObject.get("mbftinh"));
-		Connection cnn = msaleBase.getConnection();
+		Connection cnn = MsaleOracleBase.getConnection();
 		Map<String, HoaHongThuCuoc> hoaHongThuCuocMap = msaleBase.getHoaHongThuCuocList(user_name, json);
 		ModelAndView model = new ModelAndView("hoa_hong_thu_cuoc");
 		model.getModel().put("cnn", cnn);

@@ -5,9 +5,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,6 +22,7 @@ import pojobase.interfaces.MsaleBase;
 public class BaseController {
 	@Autowired
 	protected MsaleBase msaleBase;
+	protected Map<String, String> jsonDataMap = new TreeMap<String, String>();
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	List<Map<String, String>> getError(Exception e) {
@@ -106,4 +110,5 @@ public class BaseController {
 	public Map<String, String> getInsuraceCo() {
 		return null;
 	}
+
 }

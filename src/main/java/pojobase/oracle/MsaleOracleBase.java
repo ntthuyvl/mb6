@@ -3,7 +3,13 @@ package pojobase.oracle;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.TreeMap;
+import java.util.Vector;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +19,16 @@ import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+
+import com.fss.cdrbin.thread.CDRBinManagerTnt;
+import com.fss.dictionary.Dictionary;
+import com.fss.dictionary.DictionaryNode;
+import com.fss.thread.ManageableThread;
+import com.fss.thread.ThreadConstant;
+import com.fss.thread.ThreadManager;
+
 import pojo.HoaHongThuCuoc;
 import pojo.HoaHongThuCuocTrongDs;
 import pojo.Mb6Fillter;
@@ -21,6 +37,7 @@ import pojo.MsaleReseller;
 import pojo.SubReg;
 import pojobase.interfaces.MsaleBase;
 import springweb.controllers.AjaxController;
+import springweb.controllers.BaseController;
 import tool.Util;
 
 import java.io.File;
@@ -43,6 +60,26 @@ import java.text.SimpleDateFormat;
 public class MsaleOracleBase extends OracleBase implements MsaleBase {
 	private static HashMap<String, Mb6Fillter> filterBuiledMap = new HashMap<String, Mb6Fillter>();
 	private static ArrayList<String> provinceNumberList = new ArrayList<String>();
+	public File template_dir;
+	public static File download_dir = new File(
+			BaseController.class.getClassLoader().getResource("").getPath() + "/../../../download");
+	CDRBinManagerTnt tntService;
+
+	@PostConstruct
+	public void init() throws Exception {
+		if (!download_dir.exists())
+			download_dir.mkdirs();
+
+		// tntService = new CDRBinManagerTnt();
+		// tntService.start();
+
+		// com.fss.cdrbin.thread.CDRBinManagerTnt.main(null);
+	}
+
+	@PreDestroy
+	public void cleanUp() throws Exception {
+		// tntService.stop();
+	}
 
 	// private static Logger logger =
 	// Logger.getLogger(OracleBase.class.getName());
@@ -77,6 +114,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 		pojo.put("000", "<th>STT");
 		for (int i = 1; i <= numberOfColumns; i++) {
 			pojo.put(String.format("%03d", i), "<th>" + rsMetaData.getColumnName(i));
+
 		}
 		pojoList.add(pojo);
 		int rowcount = 0;
@@ -111,7 +149,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 
 			}
 		}
-
+		syslog("so ban tin:" + rowcount);
 		return pojoList;
 	}
 
@@ -1532,85 +1570,49 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 			String app = String.valueOf(jsonObject.get("app"));
 			conn = this.getConnection();
 			String sql;
+			String sql_fix = ",SUM (NVL (hsrm_a, 0)) hsrm_a,SUM (NVL (hsrm_b, 0)) hsrm_b,"
+					+ "           SUM (NVL (hsrm_c, 0)) hsrm_c,SUM (NVL (hsrm_d, 0)) hsrm_d," + "           ROUND ( 100"
+					+ "               * (SUM (NVL (hsrm_a, 0)) - SUM (NVL (hsrm_b, 0)))"
+					+ "               / DECODE (SUM (NVL (hsrm_a, 0)), 0, 1, SUM (NVL (hsrm_a, 0))),"
+					+ "               2) hsrm_n, ROUND ( 100"
+					+ "               * (SUM (NVL (hsrm_c, 0)) - SUM (NVL (hsrm_d, 0)))"
+					+ "               / DECODE (SUM (NVL (hsrm_c, 0)), 0, 1, SUM (NVL (hsrm_c, 0))),"
+					+ "               2) hsrm_n1 FROM   out_data.hsrm_v";
 			if (donvi.equals("666666")) {
 				if (level.equals("0")) {
-					sql = "  SELECT   TYPE,SUM (NVL (hsrm_a, 0)) hsrm_a,SUM (NVL (hsrm_b, 0)) hsrm_b,"
-							+ "           SUM (NVL (hsrm_c, 0)) hsrm_c,SUM (NVL (hsrm_d, 0)) hsrm_d,"
-							+ "           ROUND ( 100"
-							+ "               * (SUM (NVL (hsrm_a, 0)) - SUM (NVL (hsrm_b, 0)))"
-							+ "               / DECODE (SUM (NVL (hsrm_a, 0)), 0, 1, SUM (NVL (hsrm_a, 0))),"
-							+ "               2) hsrm_n, ROUND ( 100"
-							+ "               * (SUM (NVL (hsrm_c, 0)) - SUM (NVL (hsrm_d, 0)))"
-							+ "               / DECODE (SUM (NVL (hsrm_c, 0)), 0, 1, SUM (NVL (hsrm_c, 0))),"
-							+ "               2) hsrm_n1 FROM   out_data.hsrm_v GROUP BY   TYPE order by type";
+					sql = "  SELECT   TYPE" + sql_fix + " GROUP BY   TYPE order by type";
 				} else if (level.equals("1")) {
-					sql = "  SELECT   TYPE,province_code,SUM (NVL (hsrm_a, 0)) hsrm_a,SUM (NVL (hsrm_b, 0)) hsrm_b,"
-							+ "           SUM (NVL (hsrm_c, 0)) hsrm_c,SUM (NVL (hsrm_d, 0)) hsrm_d,"
-							+ "           ROUND ( 100"
-							+ "               * (SUM (NVL (hsrm_a, 0)) - SUM (NVL (hsrm_b, 0)))"
-							+ "               / DECODE (SUM (NVL (hsrm_a, 0)), 0, 1, SUM (NVL (hsrm_a, 0))),"
-							+ "               2) hsrm_n, ROUND ( 100"
-							+ "               * (SUM (NVL (hsrm_c, 0)) - SUM (NVL (hsrm_d, 0)))"
-							+ "               / DECODE (SUM (NVL (hsrm_c, 0)), 0, 1, SUM (NVL (hsrm_c, 0))),"
-							+ "               2) hsrm_n1 FROM   out_data.hsrm_v GROUP BY   TYPE,province_code  order by type";
+					sql = "  SELECT   TYPE,province_code" + sql_fix + " GROUP BY   TYPE,province_code  order by type";
 
 				} else {
-					sql = "  SELECT   TYPE,province_code,district_code,SUM (NVL (hsrm_a, 0)) hsrm_a,SUM (NVL (hsrm_b, 0)) hsrm_b,"
-							+ "           SUM (NVL (hsrm_c, 0)) hsrm_c,SUM (NVL (hsrm_d, 0)) hsrm_d,"
-							+ "           ROUND ( 100"
-							+ "               * (SUM (NVL (hsrm_a, 0)) - SUM (NVL (hsrm_b, 0)))"
-							+ "               / DECODE (SUM (NVL (hsrm_a, 0)), 0, 1, SUM (NVL (hsrm_a, 0))),"
-							+ "               2) hsrm_n, ROUND ( 100"
-							+ "               * (SUM (NVL (hsrm_c, 0)) - SUM (NVL (hsrm_d, 0)))"
-							+ "               / DECODE (SUM (NVL (hsrm_c, 0)), 0, 1, SUM (NVL (hsrm_c, 0))),"
-							+ "               2) hsrm_n1 FROM   out_data.hsrm_v GROUP BY   TYPE,province_code,district_code   order by type, province_code";
+					sql = "  SELECT   TYPE,province_code,district_code" + sql_fix
+							+ " GROUP BY   TYPE,province_code,district_code   order by type, province_code";
 				}
 				prpStm = conn.prepareStatement(sql);
 
 			} else if (provinceNumberList.contains(donvi)) {
 				if (level.equals("0") || level.equals("1")) {
-					sql = "  SELECT   TYPE,province_code,SUM (NVL (hsrm_a, 0)) hsrm_a,SUM (NVL (hsrm_b, 0)) hsrm_b,"
-							+ "           SUM (NVL (hsrm_c, 0)) hsrm_c,SUM (NVL (hsrm_d, 0)) hsrm_d,"
-							+ "           ROUND ( 100"
-							+ "               * (SUM (NVL (hsrm_a, 0)) - SUM (NVL (hsrm_b, 0)))"
-							+ "               / DECODE (SUM (NVL (hsrm_a, 0)), 0, 1, SUM (NVL (hsrm_a, 0))),"
-							+ "               2) hsrm_n, ROUND ( 100"
-							+ "               * (SUM (NVL (hsrm_c, 0)) - SUM (NVL (hsrm_d, 0)))"
-							+ "               / DECODE (SUM (NVL (hsrm_c, 0)), 0, 1, SUM (NVL (hsrm_c, 0))),"
-							+ "               2) hsrm_n1 FROM   out_data.hsrm_v where province_code=get_province_code(?) "
+					sql = "  SELECT   TYPE,province_code" + sql_fix + " where province_code=get_province_code(?) "
 							+ " GROUP BY   TYPE,province_code order by type ";
 
 				} else {
-					sql = "SELECT   TYPE,province_code,district_code,SUM (NVL (hsrm_a, 0)) hsrm_a,SUM (NVL (hsrm_b, 0)) hsrm_b,"
-							+ "           SUM (NVL (hsrm_c, 0)) hsrm_c,SUM (NVL (hsrm_d, 0)) hsrm_d,"
-							+ "           ROUND ( 100"
-							+ "               * (SUM (NVL (hsrm_a, 0)) - SUM (NVL (hsrm_b, 0)))"
-							+ "               / DECODE (SUM (NVL (hsrm_a, 0)), 0, 1, SUM (NVL (hsrm_a, 0))),"
-							+ "               2) hsrm_n, ROUND ( 100"
-							+ "               * (SUM (NVL (hsrm_c, 0)) - SUM (NVL (hsrm_d, 0)))"
-							+ "               / DECODE (SUM (NVL (hsrm_c, 0)), 0, 1, SUM (NVL (hsrm_c, 0))),"
-							+ "               2) hsrm_n1 FROM   out_data.hsrm_v where province_code=get_province_code(?) "
+					sql = "SELECT   TYPE,province_code,district_code" + sql_fix
+							+ "  where province_code=get_province_code(?) "
 							+ " GROUP BY   TYPE,province_code,district_code order by type, province_code";
 
 				}
 				prpStm = conn.prepareStatement(sql);
 				prpStm.setString(1, donvi);
 			} else {
-				sql = "SELECT   TYPE,province_code,district_code,SUM (NVL (hsrm_a, 0)) hsrm_a,SUM (NVL (hsrm_b, 0)) hsrm_b,"
-						+ "           SUM (NVL (hsrm_c, 0)) hsrm_c,SUM (NVL (hsrm_d, 0)) hsrm_d,"
-						+ "           ROUND ( 100" + "               * (SUM (NVL (hsrm_a, 0)) - SUM (NVL (hsrm_b, 0)))"
-						+ "               / DECODE (SUM (NVL (hsrm_a, 0)), 0, 1, SUM (NVL (hsrm_a, 0))),"
-						+ "               2) hsrm_n, ROUND ( 100"
-						+ "               * (SUM (NVL (hsrm_c, 0)) - SUM (NVL (hsrm_d, 0)))"
-						+ "               / DECODE (SUM (NVL (hsrm_c, 0)), 0, 1, SUM (NVL (hsrm_c, 0))),"
-						+ "               2) hsrm_n1 FROM   out_data.hsrm_v where get_district_number(province_code||district_code) = ? "
+				sql = "SELECT   TYPE,province_code,district_code" + sql_fix
+						+ " where get_district_number(province_code||district_code) = ? "
 						+ " GROUP BY   TYPE,province_code,district_code";
 
 				prpStm = conn.prepareStatement(sql);
 				prpStm.setString(1, donvi);
 
 			}
-
+			syslog(sql);
 			rs = prpStm.executeQuery();
 			return getData(rs, 0, user_name, app);
 		} catch (Exception e) {
@@ -1657,7 +1659,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 							sql = " SELECT '<td id=\"sub_type\">' || sub_type sub_type"
 									+ ",'<td class=\"canclick cnumber\">' || COUNT(sub_id) tot_sub"
 									+ " FROM subscriber_khdn_ptm_v WHERE sta_datetime >= TO_DATE(?, 'YYYY-MM-DD')"
-									+ "  AND sta_datetime < TO_DATE(?, 'YYYY-MM-DD') + 1" + "GROUP BY ROLLUP(sub_type)";
+									+ "  AND sta_datetime < TO_DATE(?, 'YYYY-MM-DD') + 1 GROUP BY ROLLUP(sub_type)";
 						} else if (level.equals("1")) {
 							sql = " SELECT '<td id=\"province\">' || province province"
 									+ ",'<td id=\"sub_type\">' || sub_type sub_type"
@@ -4069,38 +4071,26 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 			} else {
 				String mbftinh = String.valueOf(jsonObject.get("mbftinh"));
 				sql = "";
+				String sql_fix = "SELECT '<td id = \"collection_group_id\" >'||a.collection_group_id id"
+						+ "		,'<td>'||b.province province,'<td>'||b.name \"TÊN ÐẠI LÝ\""
+						+ "		,'<td>'||TO_CHAR(a.sta_date, 'YYYY-MM-DD') \"NGÀY ÐẦU KỲ\""
+						+ "		,'<td id = \"end_date\">'||TO_CHAR(a.end_date, 'YYYY-MM-DD') \"NGÀY CUỐI KỲ\""
+						+ ",'<td class=\"canclick cnumber\" id = \"th_90\" >'|| th_90 \"THU 90 NGÀY\""
+						+ ",'<td class=\"canclick cnumber\" id = \"th_no_dong_n\" >'|| th_no_dong_n \"NỢ ĐỌNG NĂM N\""
+						+ ",'<td class=\"canclick cnumber\" id = \"th_no_dong_n1\" >'|| th_no_dong_n1 \"NỢ ĐỌNG NĂM N-1\""
+						+ ",'<td class=\"canclick cnumber\" id = \"tm_thu_tk\" >'|| tm_thu_tk \"TIỀN MẶT THU TRONG KỲ\""
+						+ ",'<td class=\"canclick cnumber\" id = \"thu_trong_ds\" >'|| thu_trong_ds \"THU TRONG DS\""
+						+ ",'<td class=\"canclick cnumber\" id = \"th_nds\" >'|| th_nds \"THU NGOÀI DS\""
+						+ "  FROM hhtc_dl_thu_cuoc a LEFT JOIN collection_group_v b "
+						+ "  ON a.collection_group_id = b.collection_group_id "
+						+ "  WHERE end_date = TO_DATE(?, 'YYYY-MM-DD')";
 				if (mbftinh.equals("666666")) {
-					sql = "SELECT '<td id = \"collection_group_id\" >'||a.collection_group_id id"
-							+ "		,'<td>'||b.province province,'<td>'||b.name \"TÊN ÐẠI LÝ\""
-							+ "		,'<td>'||TO_CHAR(a.sta_date, 'YYYY-MM-DD') \"NGÀY ÐẦU KỲ\""
-							+ "		,'<td id = \"end_date\">'||TO_CHAR(a.end_date, 'YYYY-MM-DD') \"NGÀY CUỐI KỲ\""
-							+ ",'<td class=\"canclick cnumber\" id = \"th_90\" >'|| th_90 \"THU 90 NGÀY\""
-							+ ",'<td class=\"canclick cnumber\" id = \"th_no_dong_n\" >'|| th_no_dong_n \"NỢ ĐỌNG NĂM N\""
-							+ ",'<td class=\"canclick cnumber\" id = \"th_no_dong_n1\" >'|| th_no_dong_n1 \"NỢ ĐỌNG NĂM N-1\""
-							+ ",'<td class=\"canclick cnumber\" id = \"tm_thu_tk\" >'|| tm_thu_tk \"TIỀN MẶT THU TRONG KỲ\""
-							+ ",'<td class=\"canclick cnumber\" id = \"thu_trong_ds\" >'|| thu_trong_ds \"THU TRONG DS\""
-							+ ",'<td class=\"canclick cnumber\" id = \"th_nds\" >'|| th_nds \"THU NGOÀI DS\""
-							+ "  FROM hhtc_dl_thu_cuoc a LEFT JOIN collection_group_v b "
-							+ "  ON a.collection_group_id = b.collection_group_id "
-							+ "  WHERE end_date = TO_DATE(?, 'YYYY-MM-DD') order by province, name";
-
+					sql = sql_fix + " order by province, name";
 					syslog(sql);
 					prpStm = conn.prepareStatement(sql);
 					prpStm.setString(1, month);
 				} else {
-					sql = "SELECT '<td id = \"collection_group_id\" >'||a.collection_group_id id"
-							+ "		,'<td>'||b.province province,'<td>'||b.name \"TÊN ÐẠI LÝ\""
-							+ "		,'<td>'||TO_CHAR(a.sta_date, 'YYYY-MM-DD') \"NGÀY ÐẦU KỲ\""
-							+ "		,'<td id = \"end_date\">'||TO_CHAR(a.end_date, 'YYYY-MM-DD') \"NGÀY CUỐI KỲ\""
-							+ ",'<td class=\"canclick cnumber\" id = \"th_90\" >'|| th_90 \"THU 90 NGÀY\""
-							+ ",'<td class=\"canclick cnumber\" id = \"th_no_dong_n\" >'|| th_no_dong_n \"NỢ ĐỌNG NĂM N\""
-							+ ",'<td class=\"canclick cnumber\" id = \"th_no_dong_n1\" >'|| th_no_dong_n1 \"NỢ ĐỌNG NĂM N-1\""
-							+ ",'<td class=\"canclick cnumber\" id = \"tm_thu_tk\" >'|| tm_thu_tk \"TIỀN MẶT THU TRONG KỲ\""
-							+ ",'<td class=\"canclick cnumber\" id = \"thu_trong_ds\" >'|| thu_trong_ds \"THU TRONG DS\""
-							+ ",'<td class=\"canclick cnumber\" id = \"thu_ngoai_ds\" >'|| th_nds \"THU NGOÀI DS\""
-							+ "  FROM hhtc_dl_thu_cuoc a LEFT JOIN collection_group_v b "
-							+ "  ON a.collection_group_id = b.collection_group_id "
-							+ "  WHERE end_date = TO_DATE(?, 'YYYY-MM-DD') and b.province = get_province_code(?) order by province, name";
+					sql = sql_fix + " and b.province = get_province_code(?) order by province, name";
 					syslog(sql);
 					prpStm = conn.prepareStatement(sql);
 					prpStm.setString(1, month);
@@ -4470,29 +4460,21 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 			rs.close();
 			prpStm.close();
 			syslog("mbftinh :" + mbftinh);
+			String sql_fix = "select collection_group_id, province, name, to_char(sta_date,'YYYY-MM-DD') sta_date"
+					+ ", to_char(end_date,'YYYY-MM-DD') end_date, nvl(kh_90,0), nvl(th_90,0), nvl(hkh1,0), nvl(kh_no_dong_n,0)"
+					+ ", nvl(th_no_dong_n,0), nvl(kh_no_dong_n1,0), nvl(th_no_dong_n1,0)"
+					+ ", nvl(hkh2,0), nvl(no_dk,0), nvl(tm_thu_tk,0), nvl(tien_nop_nh,0), nvl(tien_dc_thanh_toan_cp,0)"
+					+ ", nvl(no_ck,0), nvl(kh_tttd,0), nvl(th_tttd,0), hstd, hscl, dg_nds, dg_ndn, dg_ndn1,th_nds,th_nds*dg_nds thanh_tien_nds"
+					+ ",nvl(kh_no_dong_n,0)+nvl(kh_no_dong_n1,0) kh_no_dong"
+					+ ",nvl(th_no_dong_n,0)+nvl(th_no_dong_n1,0) th_no_dong,CHIPHI_TRONG_DS,CHIPHI_NGOAI_DS,CHIPHI_NODONG"
+					+ ",nvl(tm_no_dong_n,0) tm_no_dong_n,nvl(tm_no_dong_n1,0) tm_no_dong_n1 from hhtc_dl_thu_cuoc_v"
+					+ " where end_date=to_date(?,'YYYY-MM-DD')";
 			if (mbftinh.equals("666666")) {
-				sql = "select collection_group_id, province, name, to_char(sta_date,'YYYY-MM-DD') sta_date"
-						+ ", to_char(end_date,'YYYY-MM-DD') end_date, nvl(kh_90,0), nvl(th_90,0), nvl(hkh1,0), nvl(kh_no_dong_n,0)"
-						+ ", nvl(th_no_dong_n,0), nvl(kh_no_dong_n1,0), nvl(th_no_dong_n1,0)"
-						+ ", nvl(hkh2,0), nvl(no_dk,0), nvl(tm_thu_tk,0), nvl(tien_nop_nh,0), nvl(tien_dc_thanh_toan_cp,0)"
-						+ ", nvl(no_ck,0), nvl(kh_tttd,0), nvl(th_tttd,0), hstd, hscl, dg_nds, dg_ndn, dg_ndn1,th_nds,th_nds*dg_nds thanh_tien_nds"
-						+ ",nvl(kh_no_dong_n,0)+nvl(kh_no_dong_n1,0) kh_no_dong"
-						+ ",nvl(th_no_dong_n,0)+nvl(th_no_dong_n1,0) th_no_dong,CHIPHI_TRONG_DS,CHIPHI_NGOAI_DS,CHIPHI_NODONG"
-						+ ",nvl(tm_no_dong_n,0) tm_no_dong_n,nvl(tm_no_dong_n1,0) tm_no_dong_n1 from hhtc_dl_thu_cuoc_v"
-						+ " where end_date=to_date(?,'YYYY-MM-DD')";
+				sql = sql_fix;
 				prpStm = conn.prepareStatement(sql);
 				prpStm.setString(1, v_end_date);
 			} else {
-				sql = "select collection_group_id, province, name, to_char(sta_date,'YYYY-MM-DD') sta_date"
-						+ ", to_char(end_date,'YYYY-MM-DD') end_date, nvl(kh_90,0), nvl(th_90,0), nvl(hkh1,0), nvl(kh_no_dong_n,0)"
-						+ ", nvl(th_no_dong_n,0), nvl(kh_no_dong_n1,0), nvl(th_no_dong_n1,0)"
-						+ ", nvl(hkh2,0), nvl(no_dk,0), nvl(tm_thu_tk,0), nvl(tien_nop_nh,0), nvl(tien_dc_thanh_toan_cp,0)"
-						+ ", nvl(no_ck,0), nvl(kh_tttd,0), nvl(th_tttd,0), hstd, hscl, dg_nds, dg_ndn, dg_ndn1,th_nds,th_nds*dg_nds thanh_tien_nds"
-						+ ",nvl(kh_no_dong_n,0)+nvl(kh_no_dong_n1,0) kh_no_dong"
-						+ ",nvl(th_no_dong_n,0)+nvl(th_no_dong_n1,0) th_no_dong,CHIPHI_TRONG_DS,CHIPHI_NGOAI_DS,CHIPHI_NODONG"
-						+ ",nvl(tm_no_dong_n,0) tm_no_dong_n,nvl(tm_no_dong_n1,0) tm_no_dong_n1 from hhtc_dl_thu_cuoc_v"
-						+ " where end_date=to_date(?,'YYYY-MM-DD') and province=get_province_code(?)";
-
+				sql = sql_fix + " and province=get_province_code(?)";
 				prpStm = conn.prepareStatement(sql);
 				prpStm.setString(1, v_end_date);
 				prpStm.setString(2, mbftinh);
@@ -5261,146 +5243,114 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 			String donvi = String.valueOf(jsonObject.get("donvi"));
 			String rptype = String.valueOf(jsonObject.get("rptype"));
 			String level = String.valueOf(jsonObject.get("level"));
+			conn = getConnection();
+			String sql = "BEGIN set_mb6_program_ctx_pkg.setfromandtodate(TO_DATE(?, 'YYYY-MM-DD'), TO_DATE(?, 'YYYY-MM-DD')); END;";
+			prpStm = conn.prepareStatement(sql);
+			prpStm.setString(1, tu_ngay);
+			prpStm.setString(2, den_ngay);
+			prpStm.execute();
 
-			conn = this.getConnection();
-			String sql;
+			String sql_fix = ",count(distinct site_name) so_tram ,count(distinct CELL_ID) so_cell"
+					+ ",round(SUM(VLR)/count(distinct ngay_tong_hop)) VLR"
+					+ ",round(SUM(ZP)/count(distinct ngay_tong_hop)) ZP"
+					+ ",round(SUM(MQ)/count(distinct ngay_tong_hop)) MQ"
+					+ ",round(SUM(MC)/count(distinct ngay_tong_hop)) MC"
+					+ ",round(SUM(QSV)/count(distinct ngay_tong_hop)) QSV"
+					+ ",round(SUM(FC)/count(distinct ngay_tong_hop)) FC"
+					+ ",round(SUM(OTHER)/count(distinct ngay_tong_hop)) TT_OTHER"
+					+ ",round(SUM(TS)/count(distinct ngay_tong_hop)) TS"
+					+ ",round(SUM(TOTAL_BONUS)/count(distinct ngay_tong_hop)) TOTAL_BONUS"
+					+ ",round(SUM(TOTAL_CREDIT)/count(distinct ngay_tong_hop)) TOTAL_CREDIT"
+					+ ",round(SUM(THOAI)/count(distinct ngay_tong_hop)) THOAI"
+					+ ",round(SUM(DATA)/count(distinct ngay_tong_hop)) DATA"
+					+ ",round(SUM(GTGT)/count(distinct ngay_tong_hop)) GTGT"
+					+ ",round(SUM(SMS)/count(distinct ngay_tong_hop)) SMS"
+					+ ",round(SUM(RMQT)/count(distinct ngay_tong_hop)) RMQT"
+					+ ",round(SUM(KHAC)/count(distinct ngay_tong_hop)) KHAC"
+					+ ",round(SUM(MULTIMEDIA)/count(distinct ngay_tong_hop)) MULTIMEDIA"
+					+ ",round(SUM(THOAI_B)/count(distinct ngay_tong_hop)) THOAI_B"
+					+ ",round(SUM(DATA_B)/count(distinct ngay_tong_hop)) DATA_B"
+					+ ",round(SUM(GTGT_B)/count(distinct ngay_tong_hop)) GTGT_B"
+					+ ",round(SUM(SMS_B)/count(distinct ngay_tong_hop)) SMS_B"
+					+ ",round(SUM(RMQT_B)/count(distinct ngay_tong_hop)) RMQT_B"
+					+ ",round(SUM(KHAC_B)/count(distinct ngay_tong_hop)) KHAC_B"
+					+ ",round(SUM(MULTIMEDIA_B)/count(distinct ngay_tong_hop)) MULTIMEDIA_B"
+					+ ",round(SUM(VOLUMN_DATA)/count(distinct ngay_tong_hop),2) VOLUMN_DATA"
+					+ ",round(SUM(VOLUMN_SMS)/count(distinct ngay_tong_hop)) VOLUMN_SMS"
+					+ ",round(SUM(VOLUMN_VOICE)/count(distinct ngay_tong_hop)) VOLUMN_VOICE                "
+					+ " FROM RPT_CELLDATA_V";
 			if (rptype.equals("0"))
 				if (donvi.equals("666666")) {
-					sql = "SELECT * from out_data.TBL6_RPT_CELL WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
-							+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd')"
-							+ " ORDER BY site_name,cell_name,ngay_capnhat";
+					sql = "SELECT * from RPT_CELLDATA_V ORDER BY site_name,cell_name,ngay_tong_hop";
 					prpStm = conn.prepareStatement(sql);
-					prpStm.setString(1, tu_ngay);
-					prpStm.setString(2, den_ngay);
 				} else if (provinceNumberList.contains(donvi)) {
-					sql = "SELECT * from out_data.TBL6_RPT_CELL WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
-							+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd') and province=get_province_code(?)"
-							+ " ORDER BY site_name,cell_name,ngay_capnhat";
+					sql = "SELECT * from RPT_CELLDATA_V WHERE province=get_province_code(?)"
+							+ " ORDER BY site_name,cell_name,ngay_tong_hop";
 					prpStm = conn.prepareStatement(sql);
-					prpStm.setString(1, tu_ngay);
-					prpStm.setString(2, den_ngay);
-					prpStm.setString(3, donvi);
+					prpStm.setString(1, donvi);
 				} else {
-					sql = "SELECT * from out_data.TBL6_RPT_CELL WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
-							+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd') and get_district_number(province||district) = ?"
-							+ " ORDER BY site_name,cell_name,ngay_capnhat";
+					sql = "SELECT * from RPT_CELLDATA_V WHERE get_district_number(province||district) = ?"
+							+ " ORDER BY site_name,cell_name,ngay_tong_hop";
 					prpStm = conn.prepareStatement(sql);
-					prpStm.setString(1, tu_ngay);
-					prpStm.setString(2, den_ngay);
-					prpStm.setString(3, donvi);
+					prpStm.setString(1, donvi);
 				}
 			else if (rptype.equals("1")) {
 				if (donvi.equals("666666")) {
-					sql = "SELECT SITE_NAME, province"
-							+ ",district ,loai_cell,is_old,sum(vlr) AS vlr,sum(dtttt) AS dtttt,sum(thoai) AS thoai"
-							+ ",sum(sms) AS sms,sum(DATA) AS DATA,sum(rmqt) AS rmqt,sum(khac) AS khac,sum(gtgt) AS gtgt"
-							+ ",sum(zp) AS zp,sum(mq) AS mq,sum(mc) AS mc, sum(qsv)AS qsv, sum(fc) AS fc"
-							+ " FROM out_data.TBL6_RPT_CELL WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
-							+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd')"
-							+ " GROUP BY SITE_NAME,province,district,loai_cell,is_old ORDER BY site_name";
+					sql = "SELECT SITE_NAME,ngay_phat_song, province,district ,loai_cell,level_time" + sql_fix
+							+ " GROUP BY SITE_NAME,ngay_phat_song,province,district,loai_cell,level_time ORDER BY site_name";
 					prpStm = conn.prepareStatement(sql);
-					prpStm.setString(1, tu_ngay);
-					prpStm.setString(2, den_ngay);
 				} else if (provinceNumberList.contains(donvi)) {
-					sql = "SELECT SITE_NAME, province"
-							+ ",district ,loai_cell,is_old,sum(vlr) AS vlr,sum(dtttt) AS dtttt,sum(thoai) AS thoai"
-							+ ",sum(sms) AS sms,sum(DATA) AS DATA,sum(rmqt) AS rmqt,sum(khac) AS khac,sum(gtgt) AS gtgt"
-							+ ",sum(zp) AS zp,sum(mq) AS mq,sum(mc) AS mc, sum(qsv)AS qsv, sum(fc) AS fc"
-							+ " FROM out_data.TBL6_RPT_CELL WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
-							+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd') and province=get_province_code(?)"
-							+ " GROUP BY SITE_NAME,province,district,loai_cell,is_old ORDER BY site_name";
+					sql = "SELECT SITE_NAME,ngay_phat_song, province,district ,loai_cell,level_time" + sql_fix
+							+ " where province=get_province_code(?)"
+							+ " GROUP BY SITE_NAME,ngay_phat_song,province,district,loai_cell,level_time ORDER BY site_name";
 					prpStm = conn.prepareStatement(sql);
-					prpStm.setString(1, tu_ngay);
-					prpStm.setString(2, den_ngay);
-					prpStm.setString(3, donvi);
+					prpStm.setString(1, donvi);
 				} else {
-					sql = "SELECT SITE_NAME, province"
-							+ ",district ,loai_cell,is_old,sum(vlr) AS vlr,sum(dtttt) AS dtttt,sum(thoai) AS thoai"
-							+ ",sum(sms) AS sms,sum(DATA) AS DATA,sum(rmqt) AS rmqt,sum(khac) AS khac,sum(gtgt) AS gtgt"
-							+ ",sum(zp) AS zp,sum(mq) AS mq,sum(mc) AS mc, sum(qsv)AS qsv, sum(fc) AS fc"
-							+ " FROM out_data.TBL6_RPT_CELL " + " WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
-							+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd') and get_district_number(province||district) = ?"
-							+ " GROUP BY SITE_NAME,province,district ,loai_cell,is_old ORDER BY site_name";
+					sql = "SELECT SITE_NAME,ngay_phat_song, province,district ,loai_cell,level_time," + sql_fix
+							+ " where get_district_number(province||district) = ?"
+							+ " GROUP BY SITE_NAME,ngay_phat_song,province,district ,loai_cell,level_time ORDER BY site_name";
 					prpStm = conn.prepareStatement(sql);
-					prpStm.setString(1, tu_ngay);
-					prpStm.setString(2, den_ngay);
-					prpStm.setString(3, donvi);
+					prpStm.setString(1, donvi);
 				}
 			} else {
 				if (donvi.equals("666666")) {
 					if (level.equals("0")) {
-						sql = "SELECT loai_cell,is_old,sum(vlr) AS vlr,sum(dtttt) AS dtttt,sum(thoai) AS thoai"
-								+ ",sum(sms) AS sms,sum(DATA) AS DATA,sum(rmqt) AS rmqt,sum(khac) AS khac,sum(gtgt) AS gtgt"
-								+ ",sum(zp) AS zp,sum(mq) AS mq,sum(mc) AS mc, sum(qsv)AS qsv, sum(fc) AS fc"
-								+ " FROM out_data.TBL6_RPT_CELL WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
-								+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd')"
-								+ " GROUP BY loai_cell,is_old ORDER BY loai_cell,is_old";
-						prpStm = conn.prepareStatement(sql);
-						prpStm.setString(1, tu_ngay);
-						prpStm.setString(2, den_ngay);
+						sql = "SELECT loai_cell,level_time" + sql_fix
+								+ " GROUP BY loai_cell,level_time ORDER BY loai_cell,level_time";
+
 					} else if (level.equals("1")) {
-						sql = "SELECT province,loai_cell,is_old,sum(vlr) AS vlr,sum(dtttt) AS dtttt,sum(thoai) AS thoai"
-								+ ",sum(sms) AS sms,sum(DATA) AS DATA,sum(rmqt) AS rmqt,sum(khac) AS khac,sum(gtgt) AS gtgt"
-								+ ",sum(zp) AS zp,sum(mq) AS mq,sum(mc) AS mc, sum(qsv)AS qsv, sum(fc) AS fc"
-								+ " FROM out_data.TBL6_RPT_CELL WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
-								+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd')"
-								+ " GROUP BY province,loai_cell,is_old ORDER BY province,loai_cell,is_old";
-						prpStm = conn.prepareStatement(sql);
-						prpStm.setString(1, tu_ngay);
-						prpStm.setString(2, den_ngay);
+						sql = "SELECT province,loai_cell,level_time" + sql_fix
+								+ " GROUP BY province,loai_cell,level_time ORDER BY province,loai_cell,level_time";
 
 					} else {
-						sql = "SELECT province,district ,loai_cell,is_old,sum(vlr) AS vlr,sum(dtttt) AS dtttt,sum(thoai) AS thoai"
-								+ ",sum(sms) AS sms,sum(DATA) AS DATA,sum(rmqt) AS rmqt,sum(khac) AS khac,sum(gtgt) AS gtgt"
-								+ ",sum(zp) AS zp,sum(mq) AS mq,sum(mc) AS mc, sum(qsv)AS qsv, sum(fc) AS fc"
-								+ " FROM out_data.TBL6_RPT_CELL WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
-								+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd')"
-								+ " GROUP BY province,district,loai_cell,is_old ORDER BY province,district,loai_cell,is_old";
-						prpStm = conn.prepareStatement(sql);
-						prpStm.setString(1, tu_ngay);
-						prpStm.setString(2, den_ngay);
+						sql = "SELECT province,district ,loai_cell,level_time" + sql_fix
+								+ " GROUP BY province,district,loai_cell,level_time ORDER BY province,district,loai_cell,level_time";
 
 					}
+					prpStm = conn.prepareStatement(sql);
 				} else if (provinceNumberList.contains(donvi)) {
 					if (level.equals("0") || level.equals("1")) {
-						sql = "SELECT province,loai_cell,is_old,sum(vlr) AS vlr,sum(dtttt) AS dtttt,sum(thoai) AS thoai"
-								+ ",sum(sms) AS sms,sum(DATA) AS DATA,sum(rmqt) AS rmqt,sum(khac) AS khac,sum(gtgt) AS gtgt"
-								+ ",sum(zp) AS zp,sum(mq) AS mq,sum(mc) AS mc, sum(qsv)AS qsv, sum(fc) AS fc"
-								+ " FROM out_data.TBL6_RPT_CELL WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
-								+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd') and province=get_province_code(?) "
-								+ " GROUP BY province,loai_cell,is_old ORDER BY province,loai_cell,is_old";
-						prpStm = conn.prepareStatement(sql);
-						prpStm.setString(1, tu_ngay);
-						prpStm.setString(2, den_ngay);
-						prpStm.setString(3, donvi);
+						sql = "SELECT province,loai_cell,level_time" + sql_fix + " where province=get_province_code(?) "
+								+ " GROUP BY province,loai_cell,level_time ORDER BY province,loai_cell,level_time";
 					} else {
-						sql = "SELECT province,district ,loai_cell,is_old,sum(vlr) AS vlr,sum(dtttt) AS dtttt,sum(thoai) AS thoai"
-								+ ",sum(sms) AS sms,sum(DATA) AS DATA,sum(rmqt) AS rmqt,sum(khac) AS khac,sum(gtgt) AS gtgt"
-								+ ",sum(zp) AS zp,sum(mq) AS mq,sum(mc) AS mc, sum(qsv)AS qsv, sum(fc) AS fc"
-								+ " FROM out_data.TBL6_RPT_CELL WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
-								+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd') and province=get_province_code(?) "
-								+ " GROUP BY province,district,loai_cell,is_old ORDER BY province,district,loai_cell,is_old";
-						prpStm = conn.prepareStatement(sql);
-						prpStm.setString(1, tu_ngay);
-						prpStm.setString(3, donvi);
-						prpStm.setString(3, donvi);
+						sql = "SELECT province,district ,loai_cell,level_time" + sql_fix
+								+ " where province=get_province_code(?) "
+								+ " GROUP BY province,district,loai_cell,level_time ORDER BY province,district,loai_cell,level_time";
 					}
-				} else {
-					sql = "SELECT province,district ,loai_cell,is_old,sum(vlr) AS vlr,sum(dtttt) AS dtttt,sum(thoai) AS thoai"
-							+ ",sum(sms) AS sms,sum(DATA) AS DATA,sum(rmqt) AS rmqt,sum(khac) AS khac,sum(gtgt) AS gtgt"
-							+ ",sum(zp) AS zp,sum(mq) AS mq,sum(mc) AS mc, sum(qsv)AS qsv, sum(fc) AS fc"
-							+ " FROM out_data.TBL6_RPT_CELL WHERE ngay_capnhat >= to_date(?,'yyyy-mm-dd')"
-							+ " AND ngay_capnhat <= to_date(?,'yyyy-mm-dd') and get_district_number(province||district) = ? "
-							+ " GROUP BY province,district,loai_cell,is_old ORDER BY province,district,loai_cell,is_old";
 					prpStm = conn.prepareStatement(sql);
-					prpStm.setString(1, tu_ngay);
-					prpStm.setString(3, donvi);
-					prpStm.setString(3, donvi);
+					prpStm.setString(1, donvi);
+				} else {
+					sql = "SELECT province,district ,loai_cell,level_time" + sql_fix
+							+ " where get_district_number(province||district) = ? "
+							+ " GROUP BY province,district,loai_cell,level_time ORDER BY province,district,loai_cell,level_time";
+					prpStm = conn.prepareStatement(sql);
+					prpStm.setString(1, donvi);
 				}
+
 			}
 			syslog(sql);
 			rs = prpStm.executeQuery();
-			return getData(rs, 1, user_name, app);
+			return getData(rs, 0, user_name, app);
 		} catch (
 
 		Exception e) {
@@ -5410,10 +5360,11 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 		}
 	}
 
-	public Workbook exportDataExcel(String sqlParam, String[] sqlArray, File fileTemplate) throws Exception {
+	public Workbook exportDataExcel(String sqlParam, String[] sqlArray, File fileTemplate, long[] totRec)
+			throws Exception {
 		Connection conn = getConnection();
 		try {
-			return Util.exportDataExcel(sqlParam, sqlArray, fileTemplate, conn);
+			return Util.exportDataExcel(sqlParam, sqlArray, fileTemplate, conn, totRec);
 		} finally {
 			conn.close();
 		}
@@ -5443,6 +5394,99 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 		} finally {
 			clean(conn, prpStm, rs);
 		}
+	}
+
+	@Override
+	public List<Map<String, String>> get_auto_report(String user_name, String json) {
+		try {
+			JSONObject jsonObject = new JSONObject(json);
+			String configpath = String.valueOf(jsonObject.get("configpath"));
+			template_dir = new File(configpath + File.separator + "template");
+			syslog(template_dir.getAbsolutePath());
+			return ThreadManager.listNode(configpath);
+		} catch (Exception e) {
+			return getError(e);
+		}
+	}
+
+	@Override
+	public List<Map<String, String>> add_modify_rp(String user_name, String json, MultipartHttpServletRequest request) {
+		Connection conn = null;
+		ResultSet rs = null;
+		PreparedStatement prpStm = null;
+		try {
+			JSONObject jsonObject = new JSONObject(json);
+			String configpath = String.valueOf(jsonObject.get("configpath"));
+			// String app = String.valueOf(jsonObject.get("app"));
+			// String file_name = String.valueOf(jsonObject.get("file_name"));
+			// CommonsMultipartFile formData = CommonsMultipartFile.
+			// jsonObject.get("formData");
+			JSONArray jsonArray = new JSONArray(String.valueOf(jsonObject.get("updateparam")));
+			Iterator<String> iterator = request.getFileNames();
+			MultipartFile file = null;
+			File[] fileAray = new File[jsonArray.length()];
+			File file2 = null;
+			// template_dir = new File(configpath + File.separator +
+			// "template");
+			if (!template_dir.exists())
+				template_dir.mkdirs();
+			while (iterator.hasNext()) {
+				file = request.getFile(iterator.next());
+				syslog(file.getName().substring(0, 4));
+				file2 = new File(template_dir, file.getName().substring(4));
+				fileAray[Integer.parseInt(file.getName().substring(0, 4)) - 1] = file2;
+				file.transferTo(file2);
+				// do something with the file.....
+			}
+
+			String id, org_id, name, classname, startuptype;
+
+			Dictionary dicThreadList = ManageableThread
+					.loadThreadConfig(configpath + File.separator + ThreadConstant.THREAD_CONFIG_FILE);
+			Dictionary dictionaryNew = new Dictionary();
+
+			@SuppressWarnings("rawtypes")
+			Vector vtThreadList = dicThreadList.mndRoot.mvtChild;
+
+			for (int i = 0; i < jsonArray.length(); i++) {
+				jsonObject = new JSONObject(jsonArray.get(i).toString());
+				id = String.valueOf(jsonObject.get("id"));
+				org_id = String.valueOf(jsonObject.get("org_id"));
+				name = String.valueOf(jsonObject.get("name"));
+				classname = String.valueOf(jsonObject.get("classname"));
+				startuptype = String.valueOf(jsonObject.get("startuptype"));
+
+				for (int iIndex = 0; iIndex < vtThreadList.size(); iIndex++) {
+					// Get thread info
+					DictionaryNode node = (DictionaryNode) vtThreadList.elementAt(iIndex);
+
+					String strThreadID = node.mstrName;
+					if (strThreadID.equals(org_id)) {
+						DictionaryNode newNode = node.clone();
+						newNode.mstrName = String.valueOf(i + 1);
+						if (id.equals("0"))
+							newNode.setChildValue("ThreadName", newNode.mstrName);
+						if (fileAray[i] != null)
+							newNode.getChild("Parameter").setChildValue("TemplatePath", fileAray[i].getAbsolutePath());
+						newNode.setChildValue("StartupType", "2");
+						dictionaryNew.mndRoot.mvtChild.add(newNode);
+					}
+
+				}
+			}
+
+			ManageableThread.storeThreadConfig(dictionaryNew,
+					configpath + File.separator + ThreadConstant.THREAD_CONFIG_FILE);
+			return ThreadManager.listNode(configpath);
+		} catch (Exception e) {
+			return getError(e);
+		}
+	}
+
+	@Override
+	public File getTemplateDir() {
+		// TODO Auto-generated method stub
+		return template_dir;
 	}
 
 }

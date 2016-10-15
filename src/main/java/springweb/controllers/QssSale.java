@@ -34,8 +34,6 @@ import pojomode.MsaleResellerMode;
 
 @Controller
 public class QssSale extends BaseController {
-	private Map<String, String> jsonDataMap = new TreeMap<String, String>();
-
 	@RequestMapping(value = "/sale/welcome", method = RequestMethod.GET)
 	public String getSaleWelcome(ModelMap model, HttpServletRequest request) {
 		return "/sale/welcome";
@@ -348,12 +346,14 @@ public class QssSale extends BaseController {
 		String rptype = String.valueOf(jsonObject.get("rptype"));
 		if (rptype.equals("0"))
 			rptype = "ChiTiet";
+		else if (rptype.equals("1"))
+			rptype = "TongHopSite";
 		else
 			rptype = "TongHop";
 
 		ModelAndView model = new ModelAndView("ProAnalyzeExcel", "list", list);
 		model.getModel().put("file_name",
-				"TongHop" + tu_ngay.replaceAll("-", "") + "_" + den_ngay.replaceAll("-", "") + ".xlsx");
+				rptype + tu_ngay.replaceAll("-", "") + "_" + den_ngay.replaceAll("-", "") + ".xlsx");
 		return model;
 
 	}

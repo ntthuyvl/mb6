@@ -26,7 +26,7 @@
 
 	function getData() {
 		var dd = (new Date()).getDate();
-		if (dd < "10") {
+		if (dd > "02" && dd < "10") {
 			$('section2 header').html(
 					"CHỨC NĂNG CHỈ CHẠY ĐƯỢC TỪ NGÀY 10 HÀNG THÁNG");
 			$('select, button').attr('disabled', 'disabled');

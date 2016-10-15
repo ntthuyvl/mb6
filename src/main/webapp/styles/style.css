@@ -488,4 +488,6 @@ error {
 
 .modal-body {
 	padding: 2px 16px;
+	height: 15em;
+	overflow: auto;
 }

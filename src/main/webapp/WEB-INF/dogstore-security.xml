@@ -54,7 +54,7 @@
 			access="fullyAuthenticated" />
 		<intercept-url pattern="/sale/**"
 			access="hasAnyRole('DEVELOPER','BANHANGADMIN','BANHANGMANCHINHANH','BANHANGMANCONGTY','BANHANGMANHUYEN','BANHANGREADONLY' )	and fullyAuthenticated" />
-		<intercept-url pattern="/care/khoso/donle" access="permitAll" />		
+		<intercept-url pattern="/care/khoso/donle" access="permitAll" />
 		<intercept-url pattern="/care/**"
 			access="hasAnyRole('DEVELOPER','CAREADMIN','CAREMANCONGTY','CAREMANCHINHANH','CAREMANHUYEN','CAREREADONLY')	and fullyAuthenticated" />
 
@@ -64,6 +64,10 @@
 		<intercept-url pattern="/khdt/khsxkd/donvi" access="fullyAuthenticated" />
 		<intercept-url pattern="/khdt/**"
 			access="hasAnyRole('KHDT_KHSXKD_NHAP','KHDT_KHSXKD_VIEW')	and fullyAuthenticated" />
+		<intercept-url pattern="/cntt/**"
+			access="hasAnyRole('CNTT_AUTO_REPORT','DEVELOPER')	and fullyAuthenticated" />
+
+
 		<intercept-url pattern="/msale/reseller/gmap" access="fullyAuthenticated" />
 		<form-login login-page="/login" default-target-url="/homebuff"
 			authentication-failure-url="/login-error" />
@@ -73,7 +77,6 @@
 		<intercept-url pattern="/scripts/**" access="permitAll" />
 		<intercept-url pattern="/images/**" access="permitAll" />
 		<intercept-url pattern="/favicon.ico" access="permitAll" />
-
 		<intercept-url pattern="/homebuff" access="fullyAuthenticated" />
 		<intercept-url pattern="/" access="fullyAuthenticated" />
 		<intercept-url pattern="/**"

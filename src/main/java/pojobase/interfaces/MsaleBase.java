@@ -1,5 +1,6 @@
 package pojobase.interfaces;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Date;
@@ -8,6 +9,8 @@ import java.util.Map;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import pojo.HoaHongThuCuoc;
 import pojo.Mb6Program;
@@ -51,7 +54,7 @@ public interface MsaleBase {
 
 	List<Map<String, String>> getProgramSub(String user_name, String json);
 
-	@PreAuthorize("hasAnyRole('CAREPROGRAMMAN','BANHANGMANCONGTY','BANHANGADMIN','KHDNADMIN','KHDNMANCONGTY','CAREADMIN','CAREMANCONGTY')")
+	@PreAuthorize("hasAnyRole('CAREPROGRAMMAN','BANHANGMANCONGTY','BANHANGADMIN','BANHANGMANCHINHANH','KHDNADMIN','KHDNMANCONGTY','CAREADMIN','CAREMANCONGTY')")
 	List<Map<String, String>> programUpdateSub(String user_name, String json);
 
 	@PreAuthorize("hasAnyRole('CAREPROGRAMMAN','BANHANGMANCONGTY','BANHANGADMIN','KHDNADMIN','KHDNMANCONGTY','CAREADMIN','CAREMANCONGTY')")
@@ -161,5 +164,11 @@ public interface MsaleBase {
 
 	Object getVlr3k3dLatday();
 
-	public Connection getConnection() throws SQLException;
+	// public static Connection getConnection() throws SQLException;
+
+	List<Map<String, String>> get_auto_report(String user_name, String json);
+
+	List<Map<String, String>> add_modify_rp(String user_name, String json, MultipartHttpServletRequest request);
+
+	File getTemplateDir();
 }

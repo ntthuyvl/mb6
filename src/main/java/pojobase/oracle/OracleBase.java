@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
@@ -25,7 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class OracleBase {
 
 	// private org.apache.commons.dbcp.BasicDataSource dataSource;
-	private org.apache.tomcat.jdbc.pool.DataSource dataSource;
+	private static org.apache.tomcat.jdbc.pool.DataSource dataSource;
 	public static boolean debug = true;
 	public static String ct = "6";
 
@@ -71,7 +73,7 @@ public class OracleBase {
 	}
 
 	@Transactional
-	public Connection getConnection() throws SQLException {
+	public static Connection getConnection() throws SQLException {
 		return dataSource.getConnection();
 	}
 
