@@ -1,0 +1,151 @@
+<#include "/header_bt.ftl">
+<SCRIPT>
+	var curtab = "#tab1";
+	var app = 3;
+	var dataLoad = {
+		"#tab1" : 0,
+		"#tab2" : 0,
+		"#tab3" : 0
+	};
+	function load_tab_data() {
+		if (dataLoad[curtab] == 0) {//Tab chua load du lieu
+			//bcth();
+			dataLoad[curtab] = 1;
+
+		}
+	};
+
+	function bcth() {
+		$('input').attr('disabled', 'disabled');
+		var dataObj = {
+			"from_date" : $('input#from_date').val(),
+			"to_date" : $('input#to_date').val(),
+			"donvi" : $('select#donvi').val(),
+			"level" : $('select#level').val(),
+			"app" : app
+		}
+		dataObj = {
+			"json" : JSON.stringify(dataObj)
+		};
+		$.post("ketqua", dataObj, function(data2, status) {
+			call_back_ajax(data2, status);
+		});
+	}
+
+	$(document).ready(
+			function() {
+				var dataObj = {
+					"app" : app
+				};
+
+				dataObj = {
+					"json" : JSON.stringify(dataObj)
+				};
+				$.getJSON("/khdt/khsxkd/donvi", dataObj, function(data,
+						textStatus) {
+					$('select#donvi option').remove();
+					var row;
+					/*
+					 row = "<option value=\"" + "0" + "\">" + "Chọn đơn vị"							+ "</option>"
+					 $(row).appendTo("select#donvi");
+					 */
+					for (i = 1; i < data.length; i++) {
+						row = "<option value=\""
+								+ data[i]['001'].replace('<td>', '') + "\">"
+								+ data[i]['002'] + "</option>";
+						$(row).appendTo("select#donvi");
+					}
+					bcth();
+				});
+				tab_present();
+				//bcth();
+				$(document).on('click', 'button#table2excel', function() {
+					$(curtab + ' table#datarp').table2excel({
+						// exclude CSS class			
+						exclude : ".noExl",
+						name : "data"
+					});
+				});
+
+				//$('input#from_date').val("${from_date?string["yyyy-MM-dd"]}");
+				//$('input#to_date').val("${to_date?string["yyyy-MM-dd"]}");
+				//$('input#from_date').val("2015-07-01");
+				$('button#bcth').click(function() {
+					bcth();
+				});
+
+				$('button#danhsachcs').click(function() {
+					//var x = window.open("ketqua");	x.focus();
+					window.location.href = "list"
+
+				});
+
+				$(document).on(
+						'click',
+						'td.canclick',
+						function() {
+							var dataObj = {
+								"from_date" : $('input#from_date').val(),
+								"to_date" : $('input#to_date').val(),
+								"app" : app,
+								"area" : $(this).closest("tr")
+										.find("#province").text()
+										+ $(this).closest("tr").find(
+												"#district").text(),
+								"column" : $(this).attr('id')
+
+							};
+							var x = window.open("resultdetailnw?json="
+									+ JSON.stringify(dataObj), "MyWindow");
+							x.focus();
+
+						});
+
+			})
+</SCRIPT>
+
+<section2 class="session" style="width: 98%"> <header>
+	KẾT QUẢ CHĂM SÓC KHÁCH HÀNG LÂU NĂM CƯỚC CAO</header>
+<ul id="tabs">
+	<div class="container-fluid form-inline">
+		<div class="form-group">
+			<label for="from_date">Từ ngày</label> <input type="date"
+				class="form-control" id="from_date" value="${from_date?string["yyyy-MM-dd"]}" >
+		</div>
+		<div class="form-group">
+			<label for="to_date">Đến ngày</label> <input type="date"
+				class="form-control" id="to_date" value="${to_date?string["yyyy-MM-dd"] }">
+		</div>
+		<div class="form-group">
+			<select id="donvi" class="form-control" value="">
+				<option value="666666">-- Chọn đơn vị--</option>
+			</select>
+		</div>
+
+
+		<div class="form-group">
+			<select id="level" class="form-control" value="0">
+				<option value="0">-- Cấp đơn vị--</option>
+				<option value="1">-- Cấp tỉnh--</option>
+				<option value="2">-- Cấp huyện-</option>
+			</select>
+		</div>
+
+		<button type="button" class="btn btn-primary" id="table2excel">Excel</button>
+		<button type="button" class="btn btn-primary" id="bcth">Tổng
+			hợp</button>
+		<button type="button" class="btn btn-primary"
+			id="danhsachcs">Danh sách cần chăm sóc</button>
+
+	</div>
+
+</ul>
+
+<div id="content">
+	<div id="tab1">
+		<table id="datarp" class="CSSTableGenerator table-condensed table-bordered">			
+		</table>
+	</div>
+</div>
+</section2>
+<#include "/footer.ftl">

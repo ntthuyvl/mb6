@@ -1,0 +1,269 @@
+<#include "/header.ftl">
+<SCRIPT>
+	var curtab = '#tab1';
+	var app = 1;
+	var dest_type = "KHDN PTM";
+	var chanel_select = "<select style =\"height:100%; margin: 0px 0px 0px 0px\"> <option value=\"1\">Cửa hàng - ĐL chuyên</option>"
+			+ "<option value=\"2\">VN - Post</option>"
+			+ "<option value=\"3\">Ðiểm bán lẻ</option>"
+			+ "<option value=\"4\">Showroom điện thoại</option>"
+			+ "<option value=\"5\">Bán hàng trực tiếp</option>"
+			+ "<option value=\"0\">Chưa xác định</option></select>"
+
+	function load_tab_data() {
+		if (dataLoad[curtab] == 0) {//Tab chua load du lieu
+			var account = $('input#account').val();
+			if (account != null && account != "") {//khong can load du lieu neu account rong
+				var dataObj = {
+					"account" : account,
+					"province_code" : province_code,
+					"curtab" : curtab,
+					"app" : app
+				}
+				dataObj = {
+					"json" : JSON.stringify(dataObj)
+				};
+				$.post("/account", dataObj, function(data2, status) {
+					call_back_ajax(data2, status);
+					if (curtab == "#tab2") {//Tab 2 vua dc chon
+						province_count = 0;
+						$('input#pro_check:checked').each(function() {
+							province_code = $(this).attr("province_code");
+							//alert("province_code: "+province_code);
+							if (province_code != "ALL")
+								province_count = province_count + 1;
+						});
+						if (province_count != 1)
+							$('a[name="tab3"]').hide();
+						//alert("province_count: "+province_count);
+						province_count = 0;
+					}
+				});
+				dataLoad[curtab] = 1;
+
+			}
+		}
+	};
+
+	function bcth() {
+		$('input').attr('disabled', 'disabled');
+		$('input#update').hide();
+		var dataObj = {
+			"app" : app
+		};
+		$.post("/sale/msale/post", dataObj, function(data2, status) {
+			call_back_ajax(data2, status);
+		});
+	}
+
+	$(document)
+			.ready(
+					function() {
+						$('input#kh_chinhanh')
+								.click(
+										function() {
+											curtab = '#tab1';
+											tab_present();
+
+											if (macuahang != null
+													&& macuahang != "") {
+												var dataObj = {
+													"macuahang" : macuahang,
+													"app" : app
+												};
+												dataObj = {
+													"json" : JSON
+															.stringify(dataObj)
+												};
+												// alert(JSON.stringify(dataObj));	
+												$('input').attr('disabled',
+														'disabled');
+												//	$('#pro_add').prop('disabled',false);
+												$
+														.post(
+																"listdetail",
+																dataObj,
+																function(data,
+																		status) {
+																	call_back_ajax(
+																			data,
+																			status,
+																			curtab);
+																	$(
+																			'section2 header')
+																			.html(
+																					"Chi tiết điểm bán");
+																});
+											}
+										});
+						tab_present();
+						bcth();
+						$(document).on('click', 'input#table2excel',
+								function() {
+									$("table#datarp").table2excel({
+										// exclude CSS class			
+										exclude : ".noExl",
+										name : "Excel Document Name"
+									});
+								});
+
+						$('input#update')
+								.click(
+										function() {
+											var results = [];
+											var ez_deal;
+											var chanel;
+											var id;
+											var o;
+											var old_chanel_id, old_ez_deal;
+											$('#datarp tr')
+													.each(
+															function() {
+																id = $(this)
+																		.find(
+																				"td.id")
+																		.html();
+																ez_deal = $(
+																		this)
+																		.find(
+																				"td.thc2")
+																		.text();
+																chanel = $(this)
+																		.find(
+																				"td select")
+																		.val();
+																old_ez_deal = $(
+																		this)
+																		.find(
+																				"td.thc2")
+																		.attr(
+																				'ez_deal');
+																old_chanel_id = $(
+																		this)
+																		.find(
+																				"td[chanel_id]")
+																		.attr(
+																				'chanel_id');
+																if ((ez_deal != null
+																		&& ez_deal != "" && ez_deal != old_ez_deal)
+																		|| (chanel != null && chanel != old_chanel_id)) {
+																	//ez_deal = $(this).find("td input.ez_deal").val();            	    
+																	//alert("ez_deal:"+ez_deal+", chanel:"+chanel+"old_ez_deal:"+old_ez_deal+", old_chanel_id:"+old_chanel_id);
+																	if (isNaN(ez_deal))
+																		alert("EZ thỏa thuận phải là số giá trị: "
+																				+ ez_deal
+																				+ " sẽ không được cập nhật");
+																	else {
+																		o = {
+																			"id" : id,
+																			"ez_deal" : ez_deal,
+																			"chanel" : chanel
+																		};
+																		results
+																				.push(o);
+																	}
+																}
+															});
+											//alert(results.toString());
+											//alert(JSON.stringify(results));
+											//dataObj=JSON.stringify(results);
+											dataObj = {
+												"json" : JSON
+														.stringify(results)
+											};
+
+											$
+													.post(
+															"/sale/msale/listdetailupdate",
+															dataObj,
+															function(data,
+																	status) {
+																call_back_ajax(
+																		data,
+																		status);
+																$(
+																		'input#update')
+																		.hide();
+																$(
+																		'section2 header')
+																		.html(
+																				"Điểm bán đã cập nhật thông tin");
+															});
+
+										});
+						$(document).on(
+								'click',
+								'td.thc1',
+								function() {
+									var dataObj = {
+										"province" : $(this).attr('id_tinh'),
+										"district" : $(this).attr('id_huyen'),
+										"chanel" : $(this).attr('id_chanel'),
+										"app" : app
+									};
+									// dataObj = {"json":JSON.stringify(dataObj)};
+									// alert(JSON.stringify(dataObj));	
+									//$('input').attr('disabled', 'disabled');
+									//	$('#pro_add').prop('disabled',false);
+									/*
+									$.post("/sale/msale/listdetail",
+											dataObj,
+									    function(data,
+									        status) {
+										call_back_ajax(data,status,curtab);
+										$('section2 header').html("Chi tiết điểm bán");
+									    });
+									 */
+									var x = window.open("listdetailnw?json="
+											+ JSON.stringify(dataObj),
+											"MyWindow");
+									x.focus();
+
+								});
+						$(document).on('click', 'td.thc2', function() {
+							var ez_deal = $(this).html();
+							$(this).css("padding", "0px 0px 0px 0px");
+							//$(this).html("<input style =\"height:100%; margin: 0px 0px 0px 0px\" type=\"text\" class=\"ez_deal\" value=\""+$(this).html()+"\">");
+							$(this).attr('contenteditable', 'true');
+							//$(this).removeClass();
+							$('input#update').fadeIn();
+
+						});
+						$(document).on('click', 'td.thc3', function() {
+							$(this).css("padding", "0px 0px 0px 0px");
+							$(this).removeClass("thc3");
+							$(this).html(chanel_select);
+							//$(this).find("td select").val(chanel_id);
+							$('input#update').fadeIn();
+						});
+
+					})
+</SCRIPT>
+<section2 class="session" style="width: 98%"> <header>Tổng
+	hợp điểm bán lẻ </header>
+<ul id="tabs">
+	<li><a href="#" name="tab1">Kế hoạch năm</a></li>
+	<li><a href="#" name="tab2">Kế hoạch tháng</a></li>
+	<in>
+	<label style="width: 120px;">Mã cửa hàng</label>
+	<input type="text" id="madiemban"> </in>
+	<input type="submit" id="kh_chinhanh" value="Nhập KH CN" />
+	<input type="submit" id="kh_huyen" value="Nhập KH Huyện" />
+	<input type="submit" id="update" value="Cập nhật thông tin" />
+	<input type="submit" id="table2excel" value="Export to excel" />
+
+</ul>
+<div id="content">
+	<div id="tab1">
+		<table id="datarp" class="CSSTableGenerator">
+			<tbody></tbody>
+		</table>
+	</div>
+	<div id="tab2">
+		<table id="datarp" class="CSSTableGenerator">
+			<tbody></tbody>
+		</table>
+	</div>
+</div>
+</section2>
+<#include "/footer.ftl">

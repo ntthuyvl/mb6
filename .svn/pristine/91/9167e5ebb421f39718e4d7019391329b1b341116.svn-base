@@ -1,0 +1,438 @@
+<#include "/header.ftl">
+<SCRIPT>
+	var curtab = '#tab1';
+	var type = 1;
+	var table_amar = 'div#list';
+	var isdn_list = '';	
+	var isclosed='0';
+	var param=${param};
+	var input_number = "<input type=\"number\">";
+	var app = 4;
+	
+	function close() {
+		$('input').attr('disabled', 'disabled');
+		var dataObj = {
+			"month" : $('input#month').val(),
+			"bill_cycle_id" : $('select#bill_cycle_id').val(),
+			"param" :param,
+			"mbftinh":$("select#donvi").val(),
+			"app":app
+		};
+		dataObj = {
+			"json" : JSON.stringify(dataObj)
+		};
+		
+		$.post("/ttcp/hoahongthucuoc/close", dataObj, function(data2, status) {			
+			alert("Đã chốt số liệu");
+			$('input, select').prop('disabled', false);
+			$('input#tonghop, input#chotsolieu').attr('disabled', 'disabled');
+		});		
+	}
+	
+	
+	
+	function tonghop() {
+		$('input').attr('disabled', 'disabled');
+		var dataObj = {
+			"month" : $('input#month').val(),
+			"bill_cycle_id" : $('select#bill_cycle_id').val(),
+			"param" :param,
+			"mbftinh":$("select#donvi").val(),
+			"app":app
+		};
+		dataObj = {
+			"json" : JSON.stringify(dataObj)
+		};
+		$('section2 header').html("DỮ LIỆU ĐANG ĐƯỢC TỔNG HỢP...");
+		$('in, input, div#content table').hide();
+		$.post("/ttcp/hoahongthucuoc/tonghop", dataObj, function(data2, status) {
+			call_back_ajax(data2, status);
+			$('section2 header').html("KẾT QỦA THU CƯỚC");
+			$('in, input, div#content table').fadeIn();
+		});		
+	}
+	
+	function bcth() {
+		$('input').attr('disabled', 'disabled');
+		var dataObj = {
+			"month" : $('input#month').val(),
+			"bill_cycle_id" : $('select#bill_cycle_id').val(),
+			"param" :param,
+			"mbftinh":$("select#donvi").val(),
+			"app":app
+		};
+		dataObj = {
+			"json" : JSON.stringify(dataObj)
+		};		
+		$.getJSON("/ttcp/hoahongthucuoc/isclosed", dataObj, function(data,
+                textStatus) {            
+            for (i = 1; i < data.length; i++) {
+            	isclosed = data[i]['001'].replace('<td>', '');                
+            }             
+        });		
+		
+		$.post("/ttcp/hoahongthucuoc/listdetail", dataObj, function(data2, status) {
+			call_back_ajax(data2, status);
+			if (isclosed=='1')
+				$('input#tonghop, input#chotsolieu').attr('disabled', 'disabled');			
+		});
+		if (param==1)		
+			$('section2 header').html("THÔNG TIN DẠI LÝ");
+		else 		if (param==0)
+			$('section2 header').html("KẾ HOẠCH THU CƯỚC");
+		else if (param==2)
+			$('section2 header').html("KẾT QỦA THU CƯỚC");
+		else if (param==3)
+			$('section2 header').html("VÙNG THU CƯỚC");		
+		$('input#update').hide();
+	}
+
+	$(document)
+			.ready(
+					function() {
+						if (param!=2) {
+							$('in#donvi, input#xuat_bien_ban, input#tonghop, input#chotsolieu').hide();						
+						}else {
+							var dataObj = {
+									"app" : app
+								};
+
+								dataObj = {
+									"json" : JSON.stringify(dataObj)
+								};
+								$.getJSON("/khdt/khsxkd/donvi", dataObj, function(data,
+										textStatus) {
+									$('select#donvi option').remove();
+									var row;
+									/*
+									 row = "<option value=\"" + "0" + "\">" + "Chọn đơn vị"							+ "</option>"
+									 $(row).appendTo("select#donvi");
+									 */
+									for (i = 1; i < data.length; i++) {
+										row = "<option value=\""
+												+ data[i]['001'].replace('<td>', '') + "\">"
+												+ data[i]['002'] + "</option>";
+										$(row).appendTo("select#donvi");
+									}
+								});						
+						}
+						$("select#bill_cycle_id").val(${bill_cycle_id});
+						$('input#update').hide();
+						
+						$(document).on('click', 'td.editable', function() {
+								if (isclosed != '1') 
+									$('input#update').fadeIn();									
+								else 
+								$(this).attr('contenteditable', 'false');
+
+						});
+						$(document).on(
+								'click',
+								'td.canclick',								
+								function() {							
+									var dataObj = {
+										"id" : $(this).closest("tr") // Finds the closest row <tr> 
+										.find("td#collection_group_id") // Gets a descendent with id="id"
+										.text(),										
+										"item" : $(this).attr('id'),
+										"end_date" : $(this).closest("tr") // Finds the closest row <tr> 
+										.find("td#end_date") // Gets a descendent with id="id"
+										.text()
+									};
+									var x = window.open("/ttcp/hoahongthucuoc/chitietthucuoc?json="
+											+ JSON.stringify(dataObj), "MyWindow");
+									x.focus();
+								});
+						
+						$(document).on('blur', 'td.editable', function() {
+							var cur_contents = $(this).html()
+							if (contents != cur_contents) {
+								var id = $(this).closest("tr") // Finds the closest row <tr> 
+								.find("td#collection_group_id") // Gets a descendent with id="id"
+								.text();								
+								/*
+								if (isNaN(cur_contents))
+									$(this).html(contents)
+								else
+									id_changeds.push(id);
+								 */
+
+								id_changeds.push(id)
+								
+							}
+						});
+						
+						$(document).on('blur', 'td.cnumber', function() {
+							var cur_contents = $(this).html();
+							var content=$(this).text().replace(/,/g,"");
+							//alert(content);
+							if (content.length > 0){								
+								$(this).text(addCommas(Number(content)));
+							}						
+							
+							
+							if (contents != cur_contents) {
+								var id = $(this).closest("tr") // Finds the closest row <tr> 
+								.find("td#collection_group_id") // Gets a descendent with id="id"
+								.html();								
+								/*
+								if (isNaN(cur_contents))
+									$(this).html(contents)
+								else
+									id_changeds.push(id);
+								 */
+
+								id_changeds.push(id)
+								
+							}
+						});
+					
+						$('input#getdata').click(function() {
+							bcth();
+						});
+						$('input#tonghop').click(function() {
+							tonghop();
+						});
+						$('input#chotsolieu').click(function() {
+							close();
+						});
+						
+						$('input#xuat_bien_ban').click(function() {
+							var dataObj = {
+									"month" : $("input#month").val(),
+									"bill_cycle_id" : $("select#bill_cycle_id").val(),									
+									"mbftinh" : $("select#donvi").val(),
+									"app":app
+								};
+								
+								var x = window
+								.open(
+										"/ttcp/hoahongthucuoc/xuat_bien_ban?json="
+												+ JSON
+														.stringify(dataObj),
+										"MyWindow");
+								x.focus();
+						});						
+						
+						$('input#update')
+								.click(
+										function() {
+											//var uploadFile =true;
+											//alert($('#file')[0].files[0]);
+											//if ($('#file')[0].files[0] != null) {												
+											if (false) {	
+												var formData = new FormData();
+												formData.append('file', $('#file')[0].files[0]);												
+												$.ajax({
+												       url : 'updateExcel',
+												       type : 'POST',
+												       data : formData,
+												       processData: false,  // tell jQuery not to process the data
+												       contentType: false,  // tell jQuery not to set contentType
+												       success : function(data) {
+												           console.log(data);
+												           alert(data);
+												       }
+												});
+											}
+											else {
+											var results = [];
+											var id,kh_90, kh_no_dong_n, kh_no_dong_n1
+											,no_dk, tien_nop_nh, ma_nv, ma_ez_daily,end_date
+											, pay_area_code_man, kh_tttd,  hscl, dg_nds, dg_ndn,dg_ndn1; 
+											var o;
+
+											$('#datarp tr')
+													.each(
+															function() {
+																
+																id = $(this)
+																		.find(
+																				"td#collection_group_id")
+																		.text();
+																kh_90 = $(this)
+																		.find(
+																				"td#kh_90")
+																		.text();
+
+																kh_no_dong_n = $(
+																		this)
+																		.find(
+																				"td#kh_no_dong_n")
+																		.text();
+																kh_no_dong_n1 = $(
+																		this)
+																		.find(
+																				"td#kh_no_dong_n1")
+																		.text();
+																																
+																no_dk = $(this)
+																		.find(
+																				"td#no_dk")
+																		.text();
+																tien_nop_nh = $(
+																		this)
+																		.find(
+																				"td#tien_nop_nh")
+																		.text();
+																
+																ma_nv = $(
+																		this)
+																		.find(
+																				"td#ma_nv")
+																		.text();
+																ma_ez_daily = $(
+																		this)
+																		.find(
+																				"td#ma_ez_daily")
+																		.text();
+																pay_area_code_man = $(
+																		this)
+																		.find(
+																				"td#pay_area_code_man")
+																		.text();
+																end_date = $(
+																		this)
+																		.find(
+																				"td#end_date")
+																		.text();																
+																kh_tttd = $(
+																		this)
+																		.find(
+																				"td#kh_tttd")
+																		.text();
+																hscl = $(
+																		this)
+																		.find(
+																				"td#hscl")
+																		.text();
+																dg_nds = $(
+																		this)
+																		.find(
+																				"td#dg_nds")
+																		.text();
+																dg_ndn = $(
+																		this)
+																		.find(
+																				"td#dg_ndn")
+																		.text();
+																dg_ndn1 = $(
+																		this)
+																		.find(
+																				"td#dg_ndn1")
+																		.text();
+																vung=$(
+																		this)
+																		.find(
+																				"td#vung")
+																		.text();
+																
+
+																if (id_changeds
+																		.indexOf(id) >= 0) {
+																	o = {
+																		"id" : id,
+																		"kh_90" : kh_90.replace(/,/g,""),
+																		"kh_no_dong_n" : kh_no_dong_n.replace(/,/g,""),
+																		"kh_no_dong_n1" : kh_no_dong_n1.replace(/,/g,""),
+																		"no_dk" : no_dk.replace(/,/g,""),
+																		"tien_nop_nh" : tien_nop_nh.replace(/,/g,""),
+																		"ma_nv" : ma_nv,
+																		"ma_ez_daily" : ma_ez_daily,
+																		"end_date" : end_date,
+																		"pay_area_code_man" : pay_area_code_man,
+																		"kh_tttd" : kh_tttd.replace(/,/g,""),
+																		"hscl" : hscl.replace(/,/g,""),
+																		"dg_nds" : dg_nds.replace(/,/g,""),
+																		"dg_ndn" : dg_ndn.replace(/,/g,""),
+																		"dg_ndn1" : dg_ndn1.replace(/,/g,""),
+																		"vung" : vung.replace(/,/g,"")																		
+																	};
+																	results
+																			.push(o);
+
+																}
+															});
+											//alert(results.toString());
+											//alert(JSON.stringify(results));
+											//dataObj=JSON.stringify(results);
+ 											var dataObj = {
+ 													"month" : $('input#month').val(),
+ 													"bill_cycle_id" : $('select#bill_cycle_id').val(),
+ 													"param":param,
+ 													"updateparam":results,
+ 													"app":app
+ 												};
+											dataObj = {
+
+												"json" : JSON
+														.stringify(dataObj)
+											};											
+
+											$.post(
+															"/ttcp/hoahongthucuoc/listdetailupdate/"+param,
+															dataObj,
+															function(data,
+																	status) {
+																call_back_ajax(
+																		data,
+																		status);
+																$(
+																		'input#update')
+																		.hide();
+																$(
+																		'section2 header')
+																		.html(
+																				"CÁC THÔNG TIN VỪA CẬP NHẬT");
+															});
+
+										}});
+
+						tab_present();
+						bcth();
+
+					})
+</SCRIPT>
+<section2 class="session" style="width: 98%"> <header>
+	HOA HỒNG THU CƯỚC CỦA ĐẠI LÝ</header>
+<ul id="tabs">
+
+	<in id="month"> <label id="active_month" style="">Tháng</label> <input
+		type="month" id="month" value="${month?string["yyyy-MM"]}"> </in>
+	<in id="bill_cycle_id"> <label id="bill_cycle_id" style="">Chukỳ
+	</label> <select id="bill_cycle_id" value="${bill_cycle_id}">
+		<option value="1">1</option>
+		<option value="11">11</option>
+		<option value="21">21</option>
+	</select> </in>
+	<input type="submit" id="update" value="Cập nhật"
+		style="width: 110px; float: right;" />
+	<in id="donvi"> <select id="donvi" value="" style="height: 25px">
+		<option value="666666">-- Chọn đơn vị--</option>
+	</select> </in>
+
+
+
+	<input type="submit" id="getdata" value="Lấy số liệu"
+		style="width: 110px;" />
+	<input type="submit" id="xuat_bien_ban" value="Xuất biên bản"
+		style="width: 110px;" />
+	<input type="submit" id="tonghop" value="Tổng hợp"
+		style="width: 110px;" />
+	<input type="submit" id="chotsolieu" value="Chốt số liệu"
+		style="width: 110px;" />
+	<!-- <input name="excelUpload" type="file" id="file" />
+	 -->
+
+
+</ul>
+
+<div id="content">
+	<div id="tab1">
+		<table id="datarp" class="CSSTableGenerator">
+			<tbody></tbody>
+		</table>
+	</div>
+</div>
+</section2>
+<#include "/footer.ftl">

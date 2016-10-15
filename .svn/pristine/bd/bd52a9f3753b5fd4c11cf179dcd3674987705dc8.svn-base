@@ -1,0 +1,106 @@
+<#include "/header.ftl">
+<SCRIPT>
+	var curtab = '#tab1';
+	var type = 1;
+	var table_amar = 'div#list';
+	var isdn_list = '';
+	var id_changeds = [];
+	var contents
+	var app = 5;
+
+	function getData() {
+		$('input').attr('disabled', 'disabled');
+
+		var dataObj = {
+			"thang_kh" : $('input#thang_kh').val(),
+			"donvi" : $('select#donvi').val(),
+			"dg_tu_ngay" : $('input#dg_tu_ngay').val(),
+			"dg_den_ngay" : $('input#dg_den_ngay').val(),
+			"level" : $('select#level').val(),
+			"app" : app
+		}
+		dataObj = {
+			"json" : JSON.stringify(dataObj)
+		};
+		$.post("danhgiaChiPhiTrucTiep", dataObj, function(data2, status) {
+			call_back_ajax(data2, status);
+		});
+		$('section2 header').html(
+				"ĐÁNH GIÁ CHI PHÍ TRỰC TIẾP CÁC CHƯƠNG TRÌNH");
+	}
+
+	$(document).ready(
+			function() {
+				$(document).on('click', 'input#table2excel', function() {
+					$("table#datarp").table2excel({
+						// exclude CSS class			
+						exclude : ".noExl",
+						name : "Excel Document Name"
+					});
+				});
+				var dataObj = {						
+						"app" : app
+					};
+
+					dataObj = {
+						"json" : JSON
+								.stringify(dataObj)
+					};
+				$.getJSON("/khdt/khsxkd/donvi", dataObj, function(data, textStatus) {
+					$('select#donvi option').remove();
+					var row;
+					/*
+					row = "<option value=\"" + "0" + "\">"
+							+ "Chọn đơn vị" + "</option>"
+					$(row).appendTo("select#donvi");
+					 */
+					for (i = 1; i < data.length; i++) {
+						row = "<option value=\""
+								+ data[i]['001'].replace('<td>', '') + "\">"
+								+ data[i]['002'] + "</option>";
+						$(row).appendTo("select#donvi");
+					}
+				});
+				$('input#getdata').click(function() {
+					getData();
+				});
+				tab_present();
+
+			})
+</SCRIPT>
+<section2 class="session" style="width: 98%"> <header>
+	ĐÁNH GIÁ CHI PHÍ TRỰC TIẾP CÁC CHƯƠNG TRÌNH </header>
+<ul id="tabs">
+
+	<in id="thang_kh"> <label id="thang_kh" style="">Tháng
+		kích hoạt</label> <input type="month" id="thang_kh"> </in>
+	<in id="tu_ngay"> <label id="dg_tu_ngay" style="">Đánh
+		giá từ ngày</label> <input type="date" id="dg_tu_ngay"> </in>
+	<in id="den_ngay"> <label id="dg_den_ngay" style="">đến
+		ngày</label> <input type="date" id="dg_den_ngay"> </in>
+	<in id="donvi"> <select id="donvi" value="" style="height: 25px">
+		>
+		<option value="">-- Chọn đơn vị--</option>
+	</select> </in>
+	<in id="level"> <select id="level" value="" style="height: 25px">
+		>
+		<option value="0">-- Cấp đơn vị--</option>
+		<option value="1">-- Cấp tỉnh--</option>
+		<option value="2">-- Cấp huyện-</option>
+	</select> </in>
+	<input type="submit" id="table2excel" value="ToExcel"
+		style="width: 80px;" />
+	<input type="submit" id="getdata" value="Đánh giá"
+		style="width: 80px;" />
+
+</ul>
+
+<div id="content">
+	<div id="tab1">
+		<table id="datarp" class="CSSTableGenerator">
+			<tbody></tbody>
+		</table>
+	</div>
+</div>
+</section2>
+<#include "/footer.ftl">

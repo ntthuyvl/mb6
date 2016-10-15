@@ -1,0 +1,84 @@
+<#include "/header.ftl">
+<SCRIPT>
+	var curtab = '#tab1';
+	var app = 2;
+	function getData() {
+		var dataObj = {
+			"donvi" : $('select#donvi').val(),
+			"rptype" : $('select#rptype').val(),
+			"tu_ngay" : $('input#tu_ngay').val(),
+			"den_ngay" : $('input#den_ngay').val(),
+			"app" : app
+
+		};
+
+		var x = window.open("get_report?json=" + JSON.stringify(dataObj),
+				"MyWindow");
+		x.focus();
+
+	};
+
+	function load_donvi_list() {
+		var dataObj = {
+			"app" : app
+		};
+
+		dataObj = {
+			"json" : JSON.stringify(dataObj)
+		};
+		$.getJSON("/khdt/khsxkd/donvi", dataObj, function(data, textStatus) {
+			$('select#donvi option').remove();
+			var row;
+			/*
+			 row = "<option value=\"" + "0" + "\">" + "Chọn đơn vị"							+ "</option>"
+			 $(row).appendTo("select#donvi");
+			 */
+			for (i = 1; i < data.length; i++) {
+				row = "<option value=\"" + data[i]['001'].replace('<td>', '')
+						+ "\">" + data[i]['002'] + "</option>";
+				$(row).appendTo("select#donvi");
+			}
+		});
+	}
+
+	$(document).ready(function() {
+		tab_present();
+		load_donvi_list();
+		$('input#get_data').click(function() {
+			getData();
+		});
+
+	})
+</SCRIPT>
+<section2 class="session" style="width: 98%"> <header>
+	<h class="vn"> BÁO CÁO THEO CELL </h>
+</header>
+<ul id="tabs">
+	<in id="donvi"> <select id="donvi" value="" style="height: 25px">
+		<option value="666666">-- Chọn đơn vị--</option>
+	</select> </in>
+
+	<in id="tu_ngay"> <label id="tu_ngay" style="">Từ ngày</label> <input
+		type="date" id="tu_ngay" value="${from_date?string["yyyy-MM-dd"]}" >
+	</in>
+	<in id="den_ngay"> <label id="den_ngay" style="">Đến ngày</label>
+	<input type="date" id="den_ngay" value="${to_date?string["yyyy-MM-dd"] }">
+	</in>
+
+	<in id="rptype"> <label id="rptype" style="">Loại báo cáo</label>
+	<select id="rptype" value="0" style="height: 25px">
+		<option value="0">Chi tiết từng cell theo ngày</option>
+		<option value="1">Tổng hợp từng site theo thời gian</option>
+	</select> </in>
+
+	<input type="submit" id="get_data" value="Lấy số liệu"
+		style="width: 120px;" />
+</ul>
+
+<div id="content">
+	<div id="tab1">
+		<table id="datarp" class="CSSTableGenerator">
+		</table>
+	</div>
+</div>
+</section2>

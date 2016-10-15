@@ -1,0 +1,144 @@
+<#include "/header.ftl">
+<SCRIPT LANGUAGE="JavaScript">
+	$(document)
+			.ready(
+					function() {
+						var tientn;
+						$.getJSON("../../insuracefeemaintype", { //maintype: "02" 
+						}, function(data, textStatus) {
+							$('select#maintype option').remove();
+							var row;
+							row = "<option value=\"" + "" + "\">"
+									+ "Chọn loại xe" + "</option>"
+							$(row).appendTo("select#maintype");
+							for ( var key in data) {
+								row = "<option value=\"" + key + "\">"
+										+ data[key] + "</option>";
+								$(row).appendTo("select#maintype");
+							}
+
+						});
+
+						$('select#maintype')
+								.change(
+										function() {
+											//alert("do Ajax: " + $(this).val());
+											$('select[name=pojo.type] option')
+													.remove();
+											var row;
+											row = "<option value=\"" + "" + "\">"
+													+ "Chọn xe" + "</option>"
+											$(row).appendTo(
+													"select[name=pojo.type]");
+
+											$
+													.getJSON(
+															"../../insuracefeetype",
+															{
+																maintype : $(
+																		this)
+																		.val()
+															},
+															function(data2,
+																	textStatus) {
+																//alert("textStatus: " + textStatus);
+																//$("#time").html(JSON.stringify(data2));
+																//alert("SON.string: " + JSON.stringify(data2));
+																for ( var key2 in data2) {
+																	row2 = "<option value=\"" + key2 + "\">"
+																			+ data2[key2]
+																			+ "</option>";
+																	$(row2)
+																			.appendTo(
+																					'select[name=pojo.type]');
+																}
+															});
+
+										})
+						$('select[name=pojo.type]')
+								.change(
+										function() {
+											//alert("do Ajax: " + $(this).val());
+											$
+													.getJSON(
+															"../../insuracefee",
+															{
+																type : $(this)
+																		.val()
+															},
+															function(data2,
+																	textStatus) {
+																//alert("textStatus: " + textStatus);
+																//$("#time").html(JSON.stringify(data2));
+																//alert("SON.string: " + JSON.stringify(data2));
+																$(
+																		'input[name=pojo.mainFee]')
+																		.val(
+																				data2.fee);
+																$(
+																'input[name=pojo.tax]')
+																.val(
+																		data2.fee/10);
+																$(
+																		'#bs001')
+																		.attr(
+																				'checked',
+																				false);
+																$(
+																		'input[name=pojo.bs001]')
+																		.val(0);
+																$('#phainop')
+																		.val(
+																				data2.fee + data2.fee/10);
+																tientn = data2.tien_mguoingoitrenxe;
+															});
+										})
+
+						$('#bs001')
+								.click(
+										function() {
+											//alert("do Ajax: " + $(this).val());
+											if ($(
+													'#bs001')
+													.is(':checked'))
+												$(
+														'input[name=pojo.bs001]')
+														.val(tientn);
+											else
+												$(
+														'input[name=pojo.bs001]')
+														.val(0);
+											$('#phainop')
+													.val(
+															Math.round(parseFloat($(
+																	'input[name=pojo.mainFee]')
+																	.val())*1.1
+																	+ parseFloat($(
+																			'input[name=pojo.bs001]')
+																			.val())));
+										})
+					})
+</SCRIPT>
+<!-- button id="demo" onclick=doAjax() title="Button">Get the time!</button -->
+<div id="time"></div>
+<h1>Cấp Bảo Hiểm TNDS Xe Cơ Giới</h1>
+<form action="" method="POST" class="entry">
+<@spring.bind "pojoMode"/>
+<label>Hãng bảo hiểm</label> <@spring.formSingleSelect "pojoMode.pojo.anchi.insuranceCo.id" insurancecoMap/><br />
+<label>Serial</label> <@spring.formInput "pojoMode.pojo.anchi.serial"/> <@spring.showErrors " </br>"/><br />
+<label>Biển số</label> <@spring.formInput "pojoMode.pojo.bienso"/><@spring.showErrors " </br>"/><br />
+<label>Tên khách hàng</label> <@spring.formInput "pojoMode.pojo.cus_name",'size =40'/> <@spring.showErrors " </br>"/><br />
+<label>Địa chỉ</label> <@spring.formInput "pojoMode.pojo.address" 'size =40'/><@spring.showErrors " </br>"/><br />
+<label>Số điện thoại</label> <@spring.formInput "pojoMode.pojo.telnum"/><@spring.showErrors " </br>"/><br />
+<label>Loại Xe</label> <select name="maintype" id="maintype">
+	<option value="">-- Chọn loại xe --</option>
+</select> <br />
+<label>Xe</label> <@spring.formSingleSelect "pojoMode.pojo.type" mainTypeMap/><@spring.showErrors "<br />"/><br />
+<label>Có bảo hiểm người ngồi trên xe</label><input type="checkbox" id="bs001"	name="bs001" /><@spring.formInput "pojoMode.pojo.bs001"  'readOnly="true"'/> <@spring.showErrors " </br> "/><br />	
+<label>Ngày cấp thẻ bảo hiểm</label> <@spring.formInput "pojoMode.pojo.sell_date"/> <@spring.showErrors " </br>"/><br />
+<label>Ngày bắt đầu có hiệu lực bảo hiểm</label> <@spring.formInput "pojoMode.pojo.sta_date"/> <@spring.showErrors " </br>"/><br />
+<label>Tiền TNDS</label> <@spring.formInput "pojoMode.pojo.mainFee", 'readOnly="true"'/> <@spring.showErrors" </br>"/><br />
+<label>Thuế</label> <@spring.formInput "pojoMode.pojo.tax", 'readOnly="true"'/><br />
+<label>Tổng phải nộp (đã có thuế)</label> <input type="text" id="phainop" name="phainop" value="0" readOnly="true"> <br />
+<input id="submitbutton" type="submit" value="Xác nhận" /></form>
+<#include "/footer.ftl">

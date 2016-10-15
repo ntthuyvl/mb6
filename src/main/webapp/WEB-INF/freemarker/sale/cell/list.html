@@ -1,0 +1,112 @@
+<#include "/header_bt.ftl">
+<SCRIPT>
+	var curtab = '#tab1';
+	var app = 2;
+	function getData(rptype) {
+		var dataObj = {
+			"donvi" : $('select#donvi').val(),
+			"level" : $('select#level').val(),
+			"rptype" : rptype,
+			"tu_ngay" : $('input#tu_ngay').val(),
+			"den_ngay" : $('input#den_ngay').val(),
+			"app" : app
+
+		};
+
+		var x = window.open("get_report?json=" + JSON.stringify(dataObj),
+				"MyWindow");
+		x.focus();
+
+	};
+
+	function load_donvi_list() {
+		var dataObj = {
+			"app" : app
+		};
+
+		dataObj = {
+			"json" : JSON.stringify(dataObj)
+		};
+		$.getJSON("/khdt/khsxkd/donvi", dataObj, function(data, textStatus) {
+			$('select#donvi option').remove();
+			var row;
+			/*
+			 row = "<option value=\"" + "0" + "\">" + "Chọn đơn vị"							+ "</option>"
+			 $(row).appendTo("select#donvi");
+			 */
+			for (i = 1; i < data.length; i++) {
+				row = "<option value=\"" + data[i]['001'].replace('<td>', '')
+						+ "\">" + data[i]['002'] + "</option>";
+				$(row).appendTo("select#donvi");
+			}
+		});
+	}
+
+	$(document).ready(function() {
+		tab_present();
+		load_donvi_list();
+		$('#area_time').click(function() {
+			getData(2);
+		});
+		$('#cell_day').click(function() {
+			getData(0);
+		});
+
+		$('#site_time').click(function() {
+			getData(1);
+		});
+
+	})
+</SCRIPT>
+<section2 class="session" style="width: 98%"> <header>
+	<h class="vn"> BÁO CÁO THEO CELL </h>
+</header>
+
+<div class="container-fluid form-inline">
+	<div class="form-group">
+		<select id="donvi" class="form-control" value="">
+			<option value="666666">-- Chọn đơn vị--</option>
+		</select>
+	</div>
+	<div class="form-group">
+		<select id="level" class="form-control" value="">
+			<option value="0">-- Cấp đơn vị--</option>
+			<option value="1">-- Cấp tỉnh--</option>
+			<option value="2">-- Cấp huyện-</option>
+		</select>
+	</div>
+	<div class="form-group" id="tu_ngay">
+		<label for="tu_ngay">Từ ngày</label> <input type="date"
+			class="form-control" id="tu_ngay" value="${from_date?string["yyyy-MM-dd"]}" >
+	</div>
+	<div class="form-group" id="den_ngay">
+		<label for="den_ngay">Đến ngày</label> <input type="date"
+			class="form-control" id="den_ngay" value="${to_date?string["yyyy-MM-dd"]}" >
+	</div>
+
+	<div class="btn-group">
+		<button type="button" class="btn btn-primary" id="area_time">Tổng
+			hợp theo thời gian và đơn vị</button>
+		<button type="button" class="btn btn-primary dropdown-toggle"
+			data-toggle="dropdown">
+			<span class="caret"></span> <span class="sr-only">Toggle
+				Dropdown</span>
+		</button>
+
+		<ul class="dropdown-menu" role="menu">
+			<li><a href="#" id="cell_day">Chi tiết từng cell theo ngày</a></li>
+			<li><a href="#" id="site_time">Tổng hợp từng site theo thời
+					gian</a></li>
+		</ul>
+	</div>
+</div>
+
+
+<div id="content">
+	<div id="tab1">
+		<table id="datarp"
+			class="CSSTableGenerator table-condensed table-bordered">
+		</table>
+	</div>
+</div>
+</section2>

@@ -1,0 +1,127 @@
+<#import "/spring.ftl" as spring /> <#assign
+datetimeformat="dd/MM/yyyy">
+<HTML>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" href="../../styles/petclinic3.css"
+			type="text/css">
+	</head>
+	<form action="" method="post">
+		<table align="center">
+			<caption class=caption_table_sub>
+				<h1>
+					Hồ Sơ Chi Tiêu
+				</h1>
+				<a href=add>@Thêm mới</a>
+			</caption>
+			<tr>
+				<th ALIGN=left>
+					Chi đến
+				</th>
+				<td>
+					<@spring.formSingleSelect "pojoMode.search.partner.id" partnerMap/>
+				</td>
+				<th ALIGN=left>
+					Loại chi
+				</th>
+				<td>
+					<@spring.formSingleSelect "pojoMode.search.spendPlan.id"
+					spendPlanMap/>
+				</td>
+				<th ALIGN=left>
+					Loại tài sản
+				</th>
+				<td>
+					<@spring.formSingleSelect "pojoMode.search.financeAccount.id"
+					financeAccountMap/>
+				</td>
+			</tr>
+			<tr>
+				<th>
+					Từ ngày:
+				</th>
+				<td>
+					<@spring.formInput "pojoMode.search.fromDate"/> <@spring.showErrors
+					"
+					</br>
+					"/>
+
+				</td>
+				<th>
+					Đến ngày:
+				</th>
+				<td>
+					<@spring.formInput "pojoMode.search.toDate"/> <@spring.showErrors "
+					</br>
+					"/>
+				</td>
+				<td colspan="2" align="center">
+					<input type="submit" value="Tìm kiếm">
+				</td>
+			</tr>
+		</table>
+		<hr />
+		<table class="table_sub">
+			<TR>
+				<th ALIGN=left>
+					Ngày
+				</th>
+				<th ALIGN=left>
+					Diễn Giải
+				</th>
+				<th ALIGN=left>
+					Loại Chi Tiêu
+				</th>
+				<th ALIGN=left>
+					Chi Đến
+				</th>
+				<th ALIGN=right>
+					Số Lượng
+				</th>
+				<th ALIGN=left>
+					Loại Tài Sản
+				</th>
+			</TR>
+			<@spring.bind "pojoModeList" /> <#assign totAmount = 0>
+			<font size="1"> <#list pojoModeList as pojoMode> 
+			<TR>
+				<td ALIGN=left>
+					${pojoMode.pojo.spendDate?string(datetimeformat)}
+				</td>
+				<td ALIGN=left>
+					${pojoMode.pojo.label}
+				</td>
+				<td ALIGN=left>
+					${spendPlanMap[pojoMode.pojo.spendPlan.id?string]}
+				</td>
+				<td ALIGN=left>
+					${partnerMap[pojoMode.pojo.partner.id?string]}
+				</td>
+				<td ALIGN=right>
+					${pojoMode.pojo.amount} <#assign totAmount =
+					totAmount+pojoMode.pojo.amount*pojoMode.pojo.financeAccount.rate>
+				</td>
+				<td ALIGN=left>
+					${financeAccountMap[pojoMode.pojo.financeAccount.id?string]}
+				</td>
+				<td ALIGN=center>
+					<a href=update/${pojoMode.pojo.id}>Sửa</a>
+					<a href=delete/${pojoMode.pojo.id}>Xóa</a>
+				</td>
+			</TR>
+			</#list> <#if (totAmount>0)>
+			<TR>
+				<th ALIGN=left colspan="4">
+					Tổng tiền tạm tính
+				</th>
+				<th ALIGN=right>
+					${totAmount}
+				</th>
+				<th ALIGN=left colspan="2">
+					ngàn VNĐ
+				</th>
+			</TR>
+			</#if>
+		</table>
+	</form>
+</HTML>

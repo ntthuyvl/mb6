@@ -1,0 +1,87 @@
+<#import "/spring.ftl" as spring />
+<html>
+	<head>
+		<title>The AK Application</title>
+		<META  http-equiv="Content-Type"  content="text/html;charset=UTF-8">
+		<link rel="stylesheet" href="../../../styles/petclinic3.css"
+			type="text/css">
+	</head>
+	<body>
+		<div id="main">
+			<h1>
+				Sửa Hồ Sơ Chuyển Khoản
+			</h1>
+			<hr />
+			<form action="" method="POST">
+				<@spring.bind "pojoMode"/>
+				<table>
+					<tr>
+						<th ALIGN=left>
+							Ngày Giờ
+						</th>
+						<td>
+							<@spring.formInput "pojoMode.pojo.actDate"/> <@spring.showErrors
+							"
+							</br>
+							"/>
+						</td>
+					</tr>
+					<tr>
+						<th ALIGN=left>
+							Diễn giải
+						</th>
+						<td>
+							<@spring.formInput "pojoMode.pojo.label"/> <@spring.showErrors "
+							</br>
+							"/>
+						</td>
+					</tr>
+					<tr>
+						<th ALIGN=left>
+							Số Lượng Chuyển
+						</th>
+						<td>
+							<@spring.formInput
+							"pojoMode.pojo.srcAmount"/><@spring.showErrors"
+							<br>
+							"/>
+						</td>
+					</tr>
+					<tr>
+						<th ALIGN=left>
+							Từ
+						</th>
+						<td>
+							<@spring.formSingleSelect "pojoMode.pojo.srcAccount.id"
+							srcAccountMap/>
+						</td>
+					</tr>
+					<tr>
+						<th ALIGN=left>
+							Số Lượng Nhận
+						</th>
+						<td>
+							<@spring.formInput
+							"pojoMode.pojo.desAmount"/><@spring.showErrors"
+							<br>
+							"/>
+						</td>
+					</tr>
+					<tr>
+						<th ALIGN=left>
+							Đến
+						</th>
+						<td>
+							<@spring.formSingleSelect "pojoMode.pojo.desAccount.id"
+							desAccountMap/>
+						</td>
+					</tr>
+				</table>
+				<p>
+					<input type="submit" value="Xác nhận" />
+				</p>
+			</form>
+			<hr>
+		</div>
+	</body>
+</html>

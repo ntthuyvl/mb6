@@ -1,0 +1,4 @@
+<#include "/header.ftl">
+<error>${pojoMode.exception.exceptionMessage}</error>
+<hr>
+${pojoMode.exception} <#include "/footer.ftl">

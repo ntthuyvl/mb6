@@ -1,0 +1,559 @@
+<#include "/header.ftl">
+<SCRIPT>
+	var curtab = '#tab1';
+	var id_pro_selected = 0;
+	var sta_date_str, end_date_str, pro_name_str;
+	var pro_type = ${pro_type};
+	var app = ${app};
+
+	var dataLoad = {
+		"#tab1" : 0,
+		"#tab2" : 0
+	};
+	var tu_ngay = "";
+	var den_ngay = "";
+	var danh_gia = "0";
+	var table_amar = 'div#list';
+	var confirmed = 0;
+
+	function modifyProgramClick() {
+		$('#pro_add').val("Cập nhật");
+		$('input[type="submit"]').attr('disabled', 'disabled');
+		$('#pro_add').prop('disabled', false);
+		//$('textarea#pro_name').fadeIn();
+		$('textarea#pro_name').val(pro_name_str);
+		$('textarea#pro_name, input#confirmed').fadeIn();
+		$('textarea#pro_name, input#confirmed').prop('disabled', false);
+		//$('textarea#pro_name , #pro_add,#pro_mod,#pro_del,#table2excel, #danh_gia, #isdn_add, #isdn_del, textarea#pro_name').fadeIn();
+
+		//$('div#item_detail ul.SEE').hide();
+		//$('div#item_detail ul.MOD_ADD').fadeIn();
+	}
+
+	function updateProgramClick() {
+		if (confirmed == 0) {
+			var var_confirmed = 1;
+			if ($('input#confirmed').is(":checked"))
+				var_confirmed = 1;
+			var dataObj = {
+				"id" : id_pro_selected,
+				"pro_type" : pro_type,
+				"name" : $('textarea#pro_name').val(),
+				"confirmed" : var_confirmed,
+				"app" : app
+			}
+			dataObj = {
+				"json" : JSON.stringify(dataObj)
+			};
+			table_amar = 'div#list';
+			$.post("update", dataObj, function(data, status) {
+				call_back_ajax2(data, status, table_amar);
+				$('div#item_detail ul.SEE').hide();
+				$('div#item_detail ul.MOD_ADD').hide();
+				location.reload();
+			});
+		} else {
+			$('input#confirmed').prop('checked', true);
+			alert("Chương trình đã xác nhận không thể thay đổi");
+
+		}
+
+	}
+
+	function load_tab_data() {
+		$('a[name="tab2"]').fadeIn()
+		$('a[name="tab1"]').html("Trả trước");
+		if (dataLoad[curtab] == 0 && id_pro_selected != 0) { //Tab chua load du lieu và đã có chuong trinh dc chon
+			$('input , textarea, in').hide();
+			$('#isdn_add').val("Thêm");
+			$('#isdn_del').val("Xóa");
+			$('#pro_add').val("Thêm");
+			$('#pro_del').val("Xóa");
+			$('#pro_mod').val("Sửa");
+			$('#danh_gia').val("Đánh giá");
+			//$('div#item_detail ul.SEE').fadeIn();
+			//$('div#item_detail ul.MOD_ADD').hide();
+			//$('textarea').hide();						
+			var fone = 0;
+			if (curtab != '#tab1')
+				fone = 1;
+			dataObj = {
+				"id" : id_pro_selected,
+				"type" : fone,
+				"from_date" : tu_ngay,
+				"to_date" : den_ngay,
+				"danh_gia" : danh_gia,
+				"app" : app
+			};
+			dataObj = {
+				"json" : JSON.stringify(dataObj)
+			};
+			table_amar = curtab;
+			$(curtab + ' tbody').html("");
+			$('section2 header').html("Đang load dữ liệu. Vui lòng chờ....");
+			$
+					.post(
+							"listsub",
+							dataObj,
+							function(data, status) {
+								call_back_ajax2(data, status, table_amar);
+								$('section2 header').html(
+										"THUÊ BAO THUỘC CHƯƠNG TRÌNH");
+								$('in, input, div#content table').hide();
+								$(
+										'div#content table, #pro_add,#pro_mod,#pro_del,#table2excel, #danh_gia, #isdn_add, #isdn_del, textarea#pro_name, input#active_min, input#active_max, input#confirmed')
+										.fadeIn();
+								$(
+										'textarea#pro_name, input#active_min, input#active_max, input#confirmed')
+										.attr("disabled", "disabled");
+								/*$('#datarp').freezeHeader({ 'height': '300px' });*/
+
+							});
+			dataLoad[curtab] = 1;
+		}
+		//$('input#sta_date').attr("disabled","disabled");		
+	};
+
+	$(document)
+			.ready(
+					function() {
+						tab_present();
+						/*
+						$(document).on('click', 'input#table2excel', function() {            	
+						    $(curtab +' table#datarp').tableToCSV();
+						});
+						 */
+
+						$(document).on('click', 'input#table2excel',
+								function() {
+									$(curtab + ' table#datarp').table2excel({
+										// exclude CSS class			
+										exclude : ".noExl",
+										name : "TraThuongKichHoat",
+										filename : 'sample'
+									});
+								});
+
+						//$('#isdn_add').hide();						
+						//$('#item_detail , section1 buttonbar').hide();
+
+						dataObj = {
+							"pro_type" : pro_type,
+							"app" : app
+						};
+						dataObj = {
+							"json" : JSON.stringify(dataObj)
+						};
+						table_amar = 'div#list';
+						$.post("list", dataObj, function(data, status) {
+							call_back_ajax2(data, status, table_amar);
+							$('in').hide();
+							$('textarea').hide();
+							$('textarea#pro_name').fadeIn();
+							$('input').attr('disabled', 'disabled');
+							$('#pro_add, input[name="KetThuc"').prop(
+									'disabled', false);
+						});
+
+						$('#pro_add').click(function() {
+							if ($('#pro_add').val() == "Thêm") {
+								id_pro_selected = 0;
+								modifyProgramClick();
+							} else {
+								updateProgramClick();
+							}
+						});
+						$('#pro_mod').click(function() {
+							//$('textarea#pro_name').val(pro_name_str);
+							//$('.input').prop('disabled', false);
+							//$('input#sta_date').val(convertDate(sta_date_str));
+							//$('input#end_date').val(convertDate(end_date_str));
+							modifyProgramClick();
+
+						});
+						$('#pro_del').click(function() {
+							var dataObj = {
+								"pro_type" : pro_type,
+								"id" : id_pro_selected,
+								"delete" : 1,
+								"app" : app
+							}
+							dataObj = {
+								"json" : JSON.stringify(dataObj)
+							};
+							table_amar = 'div#list';
+							$.post("update", dataObj, function(data, status) {
+								call_back_ajax2(data, status, table_amar);
+								$('div#item_detail ul.SEE').hide();
+								$('div#item_detail ul.MOD_ADD').hide();
+								location.reload();
+							});
+
+						});
+						$('#isdn_add')
+								.click(
+										function() {
+											if (confirmed == 0) {
+												if ($('#isdn_add').val() == "Thêm") {
+													$(
+															'in, input, div#content table')
+															.hide();
+													$(
+															'in#prosub_code, input#prosub_code,  in#aliving_date, input#aliving_date, #content textarea, #isdn_add, #pro_add,#pro_mod,#pro_del')
+															.fadeIn();
+													var today = new Date();
+													var dd = today.getDate();
+													var mm = today.getMonth() + 1; //January is 0!
+													var yyyy = today
+															.getFullYear();
+													$('input#aliving_date')
+															.val(
+																	yyyy
+																			+ "-"
+																			+ mm
+																			+ "-"
+																			+ dd);
+													$('#content textarea').val(
+															"");
+													$(this).val("Cập nhật");
+													dataLoad = {
+														"#tab1" : 1,
+														"#tab2" : 1
+													};
+													$('section2 header')
+															.html(
+																	"Nhập các thuê bao cần thêm");
+												} else {
+													var dataObj = {
+														"act_type" : 1,
+														"pro_id" : id_pro_selected,
+														"prosub_code" : $(
+																'input#prosub_code')
+																.val(),
+														"pro_type" : pro_type,
+														"aliving_date" : $(
+																'input#aliving_date')
+																.val(),
+														"pre_isdn_list" : $(
+																'textarea#pre')
+																.val(),
+														"pos_isdn_list" : $(
+																'textarea#pos')
+																.val(),
+														"app" : app
+													}
+													dataObj = {
+														"json" : JSON
+																.stringify(dataObj)
+													};
+
+													curtab = '#tab1'
+													tab_present();
+													$('a[name="tab2"]').hide();
+													$('a[name="tab1"]')
+															.html(
+																	"Đang cập nhật dữ liệu vui lòng chờ...");
+													$(
+															'in, input, div#content table')
+															.hide();
+													$('input').attr('disabled',
+															'disabled');
+													$('#content textarea')
+															.hide();
+													$('div#content table')
+															.fadeIn();
+													$
+															.post(
+																	"update_sub_pro",
+																	dataObj,
+																	function(
+																			data,
+																			status) {
+																		call_back_ajax(
+																				data,
+																				status);
+																		$(
+																				'a[name="tab1"]')
+																				.html(
+																						"Các thuê bao cập nhật không thành công");
+
+																		$(
+																				'#table2excel')
+																				.fadeIn();
+
+																	});
+												}
+											} else {
+												alert("Chương trình đã xác nhận không thể thay đổi");
+											}
+										});
+
+						$('#isdn_del')
+								.click(
+										function() {
+											if (confirmed == 0) {
+												if ($('#isdn_del').val() == "Xóa") {
+													$(
+															'in, input, div#content table')
+															.hide();
+													$(
+															'in#aliving_date, input#aliving_date, #content textarea, #isdn_del, #pro_add,#pro_mod,#pro_del')
+															.fadeIn();
+													// 													var today = new Date();
+													// 													var dd = today.getDate();
+													// 													var mm = today.getMonth() + 1; //January is 0!
+													// 													var yyyy = today
+													// 															.getFullYear();
+													// 													$('input#aliving_date')
+													// 															.val(
+													// 																	yyyy
+													// 																			+ "-"
+													// 																			+ mm
+													// 																			+ "-"
+													// 																			+ dd);
+													$('#content textarea').val(
+															"");
+													$(this).val("Cập nhật");
+													dataLoad = {
+														"#tab1" : 1,
+														"#tab2" : 1
+													};
+													$('section2 header')
+															.html(
+																	"Nhập các thuê bao cần xóa");
+												} else {
+													var dataObj = {
+														"act_type" : 0,
+														"pro_id" : id_pro_selected,
+														"prosub_code" : "",
+														"pro_type" : pro_type,
+														"aliving_date" : $(
+																'input#aliving_date')
+																.val(),
+														"pre_isdn_list" : $(
+																'textarea#pre')
+																.val(),
+														"pos_isdn_list" : $(
+																'textarea#pos')
+																.val(),
+														"app" : app
+													}
+
+													dataObj = {
+														"json" : JSON
+																.stringify(dataObj)
+													};
+													curtab = '#tab1'
+													tab_present();
+													$(
+															'in, input, div#content table')
+															.hide();
+													$('a[name="tab2"]').hide();
+													$('a[name="tab1"]')
+															.html(
+																	"Đang xóa dữ liệu vui lòng chờ...");
+													$('input').attr('disabled',
+															'disabled');
+													$('table').attr('disabled',
+															'disabled');
+													$('#content textarea')
+															.hide();
+													$('div#content table')
+															.fadeIn();
+													$
+															.post(
+																	"update_sub_pro",
+																	dataObj,
+																	function(
+																			data,
+																			status) {
+																		call_back_ajax2(
+																				data,
+																				status,
+																				curtab);
+																		$(
+																				'a[name="tab1"]')
+																				.html(
+																						"Các thuê bao xóa không thành công");
+																		$(
+																				'#table2excel')
+																				.fadeIn();
+																	});
+
+												}
+											} else {
+												alert("Chương trình đã xác nhận không thể thay đổi");
+											}
+										});
+
+						$('#danh_gia')
+								.click(
+										function() {
+											if ($('#danh_gia').val() == "Đánh giá") {
+												$(
+														'in, input, div#content table')
+														.hide();
+												$(
+														'div#content table, #pro_add,#pro_mod,#pro_del,#danh_gia, textarea#pro_name , in#den_ngay, input#den_ngay , in#tu_ngay, input#tu_ngay')
+														.fadeIn();
+												$('input#active_month').attr(
+														'disabled', 'disabled');
+												$('#content textarea').val("");
+												if (curtab != '#tab1')
+													type = 1;
+												else
+													type = 0;
+												$(this).val("Lấy dữ liệu");
+												dataLoad = {
+													"#tab1" : 1,
+													"#tab2" : 1
+												};
+											} else {
+												var dataObj = {
+													"id" : id_pro_selected,
+													"from_date" : $(
+															'input#tu_ngay')
+															.val(),
+													"to_date" : $(
+															'input#den_ngay')
+															.val(),
+													"type" : type,
+													"danh_gia" : 1,
+													"pro_name" : "Qss_proid_"
+															+ id_pro_selected,
+													"app" : app
+												};
+												var x = window
+														.open(
+																"pro_analyze?json="
+																		+ JSON
+																				.stringify(dataObj),
+																"MyWindow");
+												x.focus();
+											}
+										});
+
+						$(document)
+								.on(
+										'click',
+										'div#list td',
+										function() {
+											//$('#item_detail , section1 buttonbar').fadeIn();
+											id_pro_selected = $(this)
+													.attr('ID');
+											pro_name_str = $(this).text();
+											$('textarea#pro_name').val(
+													"ID " + id_pro_selected
+															+ " - "
+															+ pro_name_str);
+											$('input#active_min').val(
+													$(this).attr('active_min'));
+											$('input#active_max').val(
+													$(this).attr('active_max'));
+											if ($(this).attr('end_date') == null
+													|| $(this).attr('end_date') == "") {
+												confirmed = 0;
+												$('input#confirmed').prop(
+														'checked', false);
+											} else {
+												confirmed = 1;
+												$('input#confirmed').prop(
+														'checked', true);
+											}
+
+											$('section2 header')
+													.html(
+															"Đang load dữ liệu. Vui lòng chờ....");
+											dataLoad = {
+												"#tab1" : 0,
+												"#tab2" : 0
+											};
+											danh_gia = "0";
+											//tab_present();
+											load_tab_data();
+
+										});
+
+					})
+</SCRIPT>
+<section1 class="session"> <header>
+	<h class="vn"> Chương trình </h>
+</header>
+<div class="round2">
+	<div id="list">
+		<table id="datarp" class="CSSTableGenerator">
+			<tbody></tbody>
+		</table>
+	</div>
+	</br>
+	<div id="item_detail">
+		<textarea class="input" id="pro_name"
+			style="word-wrap: break-word; margin: 20px 0px 0px 0px; width: 246px; height: 3em">
+			</textarea>
+
+		<div>
+			<label style="margin: 0px 0px 0px 0px; width: 140px;">Ngày
+				kích hoạt đầu</label> <input type="text" id="active_min"
+				style="height: 1.2em; width: 88px;">
+		</div>
+		<div>
+			<label style="width: 140px;">Ngày kích hoạt cuối</label> <input
+				type="text" id="active_max" style="width: 88px; height: 1.2em;">
+		</div>
+		<div>
+			<label style="width: 140px;">Số liệu đã chốt</label><input
+				type="checkbox" id="confirmed" style="height: 1.5em;">
+		</div>
+	</div>
+	<buttonbar> <input type="submit" id="pro_add" value="Thêm" />
+	<input type="submit" id="pro_mod" value="Sửa" /> <input type="submit"
+		id="pro_del" value="Xóa" /> </buttonbar>
+
+</div>
+</section1>
+<section2 class="session"> <header>
+	<h class="vn"> THUÊ BAO THUỘC CHƯƠNG TRÌNH </h>
+</header>
+<div class="round2">
+	<ul id="tabs">
+		<li><a href="#" name="tab1">Trả trước</a></li>
+		<li><a href="#" name="tab2">Trả sau</a></li>
+		<in id="prosub_code"> <label id="prosub_code" style="">Mã
+			chương trình con </label> <input type="text" id="prosub_code"
+			style="width: 50px;"> </in>
+
+		<input type="submit" id="danh_gia" value="Đánh giá"
+			style="float: right" />
+		<in id="tu_ngay"> <label id="tu_ngay" style="">Từ ngày</label> <input
+			type="date" id="tu_ngay"> </in>
+		<in id="den_ngay"> <label id="den_ngay" style="">Đến ngày</label>
+		<input type="date" id="den_ngay"> </in>
+		<in id="aliving_date"> <label id="active_sub" style="">Đang
+			active ngày</label> <input type="date" id="aliving_date"> </in>
+		<input type="submit" id="isdn_add" value="Thêm"
+			style="width: 100px; float: right" />
+		<input type="submit" id="isdn_del" value="Xóa"
+			style="width: 100px; float: right" />
+		<input type="submit" id="table2excel" value="Export to excel"
+			style="width: 100px; float: right" " />
+
+
+	</ul>
+
+	<div id="content">
+		<div id="tab1">
+			<table id="datarp" class="CSSTableGenerator">
+				<tbody></tbody>
+			</table>
+			<textarea id="pre"></textarea>
+		</div>
+		<div id="tab2">
+			<table id="datarp" class="CSSTableGenerator">
+				<tbody></tbody>
+			</table>
+			<textarea id="pos"></textarea>
+		</div>
+		<div id="xacnhan"></div>
+	</div>
+</div>
+</section2>

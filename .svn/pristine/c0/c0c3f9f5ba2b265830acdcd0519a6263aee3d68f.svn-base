@@ -1,0 +1,69 @@
+<#import "/spring.ftl" as spring />
+<html>
+	<head>
+		<title>The AK Application</title>
+		<META  http-equiv="Content-Type"  content="text/html;charset=UTF-8">
+		<link rel="stylesheet" href="../../styles/petclinic3.css" type="text/css">
+	</head>
+	<body>
+		<div id="main">
+			<h1>
+				Tạo Hồ Sơ Đối Tác
+			</h1>
+			<hr />
+			<form action="" method="POST">
+				<@spring.bind "pojoMode"/>
+				<table>
+					<tr>
+						<th ALIGN=left>
+							Diễn giải
+						</th>
+						<td>
+							<@spring.formInput "pojoMode.partner.label"/> <@spring.showErrors
+							"
+							</br>
+							"/>
+						</td>
+					</tr>
+					<tr>
+						<th ALIGN=left>
+							Tên
+						</th>
+						<td>
+							<@spring.formInput "pojoMode.partner.name"/> <@spring.showErrors
+							"
+							</br>
+							"/>
+						</td>
+					</tr>
+					<tr>
+						<th ALIGN=left>
+							Địa chỉ
+						</th>
+						<td>
+							<@spring.formInput "pojoMode.partner.address"/>
+							<@spring.showErrors "
+							</br>
+							"/>
+						</td>
+					</tr>
+					<tr>
+						<th ALIGN=left>
+							Số điện thoại
+						</th>
+						<td>
+							<@spring.formInput "pojoMode.partner.number"/>
+							<@spring.showErrors "
+							</br>
+							"/>
+						</td>
+					</tr>
+				</table>
+				<p>
+					<input type="submit" value="Xác nhận" />
+				</p>
+			</form>
+			<hr>
+		</div>
+	</body>
+</html>

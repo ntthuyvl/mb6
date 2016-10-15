@@ -1,0 +1,48 @@
+<#include "/header.ftl">
+<h1>Bảo Hiểm Xe Cơ Giới</h1>
+<form class="entry"><@spring.bind "pojoMode"/> <label>Serial</label>
+<@spring.formInput "pojoMode.pojo.anchi.serial" 'readOnly="true"'/><br />
+
+
+<label>Tên khách hàng</label> <@spring.formInput
+"pojoMode.pojo.cus_name",'readOnly="true"'/><br />
+<label>Địa chỉ</label> <@spring.formInput "pojoMode.pojo.address",'readOnly="true"'/><br />
+
+<label>Số điện thoại</label> <@spring.formInput "pojoMode.pojo.telnum",'readOnly="true"'/><br />
+
+
+<label>Biển số</label> <@spring.formInput "pojoMode.pojo.bienso"
+'readOnly="true"'/><br />
+
+<label>Xe</label> <@spring.formSingleSelect "pojoMode.pojo.type"
+mainTypeMap 'readOnly="true"'/><br />
+
+
+<label>Ngày cấp thẻ bảo hiểm</label> <@spring.formInput
+"pojoMode.pojo.sell_date" 'readOnly="true"'/><br />
+
+<label>Ngày bắt đầu có hiệu lực bảo hiểm</label> <@spring.formInput
+"pojoMode.pojo.sta_date" 'readOnly="true"'/><br />
+
+
+<label>Ngày hết hiệu lực bảo hiểm</label> <@spring.formInput
+"pojoMode.pojo.end_date" 'readOnly="true"'/><br />
+
+<label>Tiền TNDS</label> <@spring.formInput "pojoMode.pojo.mainFee"
+'readOnly="true"'/><br />
+
+<label>Thuế</label> <@spring.formInput "pojoMode.pojo.tax",
+'readOnly="true"'/><br />
+
+<label>Tiền người ngồi trên xe</label> <@spring.formInput
+"pojoMode.pojo.bs001" 'readOnly="true"'/><br />
+
+<label>Tổng phải nộp (đã có thuế)</label> <input type="text" id="phainop"
+	name="phainop"
+	value=${pojoMode.pojo.mainFee  +pojoMode.pojo.tax  + pojoMode.pojo.bs001}
+	readOnly="true"> <br />
+<label>Ngày nhập vào hệ thống</label> <@spring.formInput
+"pojoMode.pojo.anchi.act_date" 'readOnly="true"'/><br />
+</form>
+
+<#include "/footer.ftl">

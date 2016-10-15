@@ -1,0 +1,7 @@
+DBUrl=jdbc:oracle:thin:@192.168.131.20:1521:WEBTEAM
+UserName=TEST
+Password=TEST
+PortID=1309
+DatabaseExist=N
+MaxConnectionAllowed=3
+LoadingMethod=File

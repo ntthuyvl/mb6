@@ -1,0 +1,191 @@
+<#include "/header_bt.ftl">
+<SCRIPT>
+	var curtab = '#tab1';
+	var dataLoad = {
+		"#tab1" : 0
+	};
+	var app = 6;
+	var configpath = "";
+	// Get the <span> element that closes the modal
+
+	function load_configpath_list() {
+		var dataObj = {
+			"app" : app
+		};
+
+		dataObj = {
+			"json" : JSON.stringify(dataObj)
+		};
+		$.getJSON("/cntt/auto_report/configpaths", dataObj, function(data,
+				textStatus) {
+			$('select#configpath option').remove();
+			var row;
+			/*
+			 row = "<option value=\"" + "0" + "\">" + "Chọn đơn vị"							+ "</option>"
+			 $(row).appendTo("select#donvi");
+			 */
+			for (i = 1; i < data.length; i++) {
+				row = "<option value=\"" + data[i]['001'].replace('<td>', '')
+						+ "\">" + data[i]['002'] + "</option>";
+				$(row).appendTo("select#configpath");
+			}
+		});
+	}
+
+	function getData() {
+		configpath = $("select#configpath option:selected").text();
+		var dataObj = {
+			"app" : app,
+			"configpath" : configpath
+		}
+
+		dataObj = {
+			"json" : JSON.stringify(dataObj)
+		};
+
+		$.post("list", dataObj, function(data2, status) {
+			call_back_ajax(data2, status);
+			$("button#update").prop('disabled', false);
+		});
+	}
+
+	function update_click() {
+		var formData = new FormData();
+		/*
+		$('input.template').each(function() {
+			if ($(this)[0].files[0] != null)
+				formData.append($(this)[0].files[0].name, $(this)[0].files[0]);
+		});
+		 */
+		var results = [];
+		var id, org_id, name, classname, StartupType;
+		var o;
+
+		$('#datarp tr').each(
+				function() {
+					org_id = $(this).children().eq(0).attr('id');
+					if (org_id != null) {
+						var row_index = $(this).index();
+						$(this).find("td input:file").each(
+								function() {
+									if (this.files[0] != null) {
+										formData.append(FormatNumberLength(
+												row_index, 4)
+												+ this.files[0].name,
+												this.files[0]);
+										//					alert(this.files[0].name + ":" + row_index);
+									}
+
+								});
+
+						id = $(this).children().eq(0).text();
+						name = $(this).children().eq(1).text();
+						classname = $(this).children().eq(2).text();
+						startuptype = $(this).children().eq(4).text();
+
+						o = {
+							"id" : id,
+							"org_id" : org_id,
+							"name" : name.replace(/,/g, ""),
+							"classname" : classname.replace(/,/g, ""),
+							"startuptype" : startuptype.replace(/,/g, "")
+						}
+						results.push(o);
+					}
+				});
+		//alert(results.toString());
+		//alert(JSON.stringify(results));
+		//dataObj=JSON.stringify(results);
+		var dataObj = {
+			"updateparam" : results,
+			"configpath" : configpath,
+			"app" : app
+		};
+		formData.append("json", JSON.stringify(dataObj));//important: convert to JSON!		
+
+		$.ajax({
+			url : "/cntt/auto_report/add_modify_rp", // point to server-side			
+			cache : false,
+			contentType : false,
+			processData : false,
+			data : formData,
+			type : 'POST',
+			success : function(data2) {
+				call_back_ajax(data2, 1);
+
+			}
+		});
+
+	}
+
+	$(document).ready(function() {
+		$("button#update").attr('disabled', 'disabled');
+		load_configpath_list();
+		$('button#get_data').click(function() {
+			getData();
+		});
+
+		$(document).on('click', 'button#table2excel', function() {
+			$(curtab + ' table#datarp').table2excel({
+				// exclude CSS class			
+				exclude : ".noExl",
+				name : "TraThuong"
+			});
+		});
+		$('button#update').click(function() {
+			update_click();
+		});
+
+		$(document).on('click', '.up,.down,.clone', function() {
+			var row = $(this).parents("tr:first");
+			if ($(this).is(".clone")) {
+				newrow = row.clone();
+				newrow.children().eq(0).text("0");
+				newrow.insertAfter(row);
+			} else if ($(this).is(".up")) {
+				row.insertBefore(row.prev());
+			} else {
+				row.insertAfter(row.next());
+			}
+
+		});
+		$(document).on('change', 'select#configpath', function() {
+			var cur_contents = $("select#configpath option:selected").text();
+			if (configpath != cur_contents) {
+				$("button#update").attr('disabled', 'disabled');
+			}
+		});
+
+	})
+</SCRIPT>
+
+<section2 class="session" style="width: 98%"> <header>DANH
+	SÁCH CÁC TIẾN TRÌNH</header>
+<ul id="tabs">
+	<div class="container-fluid form-inline ">
+		<div class="form-group">
+			<label for="configpath">ConfigPath </label>
+			<div class="form-group">
+				<select id="configpath" class="form-control" value="">
+					<option value="666666">-- Chọn thư mục triển khai
+						service--</option>
+				</select>
+			</div>
+		</div>
+		<button type="button" class="btn btn-primary" id="get_data">Lấy
+			số liệu</button>
+		<button type="button" class="btn  btn-primary" id="update">Cập
+			nhật</button>
+	</div>
+	</div>
+</ul>
+
+<div id="content">
+	<div id="tab1">
+		<table id="datarp"
+			class="CSSTableGenerator table-condensed table-bordered">
+		</table>
+	</div>
+</div>
+</section2>
+<#include "/footer.ftl">

@@ -1,0 +1,12 @@
+eclipse.preferences.version=1
+encoding//src/main/webapp/WEB-INF/freemarker/care/header.ftl=UTF-8
+encoding//src/main/webapp/WEB-INF/freemarker/header.ftl=UTF-8
+encoding//src/main/webapp/WEB-INF/freemarker/header_bt.ftl=UTF-8
+encoding//src/main/webapp/WEB-INF/freemarker/khdn/header.ftl=UTF-8
+encoding//src/main/webapp/WEB-INF/freemarker/khdt/header.ftl=UTF-8
+encoding//src/main/webapp/WEB-INF/freemarker/sale/header.ftl=UTF-8
+encoding//src/main/webapp/WEB-INF/freemarker/ttcp/header.ftl=UTF-8
+encoding//src/main/webapp/WEB-INF/freemarker/ttcp/hoahongthucuoc/list.html=UTF-8
+encoding//src/main/webapp/styles/style.css=UTF-8
+encoding/<project>=UTF-8
+encoding/src=UTF-8

@@ -1,0 +1,80 @@
+<#include "/header_bt.ftl">
+<SCRIPT>
+	var curtab = '#tab1';
+	var type = 'bl';
+	var table_amar = 'div#list';
+	var isdn_list = '';
+	var app = $
+	{
+		app
+	};
+	function get_data() {
+		var dataObj = {
+			"tu_ngay" : $('input#tu_ngay').val(),
+			"den_ngay" : $('input#den_ngay').val(),
+			"isdn_list" : $('textarea#isdn_list').val(),
+			"app" : app,
+			"type" : type
+
+		};
+
+		dataObj = {
+			"json" : JSON.stringify(dataObj)
+		};
+		$.post("/sale/thongtintrathuong/trathuong", dataObj, function(data,
+				status) {
+			var x = window
+					.open("/sale/thongtintrathuong/trathuong", "MyWindow");
+			x.focus();
+		});
+
+	};
+
+	$(document).ready(function() {
+		tab_present();
+		// 						var today = new Date();
+		// 						var dd = today.getDate();
+		// 						var mm = today.getMonth() + 1; //January is 0!
+		// 						var yyyy = today.getFullYear();
+		// 						$('input#aliving_date').val(yyyy + "-" + mm + "-" + dd);
+		$('#trathuong_bl').click(function() {
+			type = 'bl';
+			get_data();
+		});
+		$('#trathuong_nt').click(function() {
+			type = 'nt';
+			get_data();
+		});
+
+	})
+</SCRIPT>
+<section2 class="session" style="width: 98%"> <header>THÔNG
+	TIN TRẢ THƯỞNG</header>
+<ul id="tabs">
+	<li><a href="#" name="tab1">Các số thuê bao cần kiểm tra</a></li>
+	<div class="container-fluid form-inline">
+		<div class="form-group">
+			<label for="tu_ngay">Từ ngày</label> <input type="date"
+				class="form-control" id="tu_ngay" value="${from_date?string["yyyy-MM-dd"]}" >
+		</div>
+		<div class="form-group">
+			<label for="den_ngay">Đến ngày</label> <input type="date"
+				class="form-control" id="den_ngay" value="${to_date?string["yyyy-MM-dd"] }">
+		</div>
+
+		<button type="button" class="btn btn-primary" id="trathuong_bl">Trả thưởng kích hoạt</button>
+		<button type="button" class="btn btn-primary" id="trathuong_nt">Trả thưởng nạp thẻ</button>	
+
+	</div>
+
+</ul>
+
+<div id="content">
+	<div id="tab1">
+		<table id="datarp"
+			class="CSSTableGenerator table-condensed table-bordered">
+		</table>
+		<textarea id="isdn_list"></textarea>
+	</div>
+</div>
+</section2>

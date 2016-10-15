@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+	<!--
+		The JasperReportsMultiFormatView allows for the report format to be
+		specified at runtime. The actual rendering of the report is delegated
+		to one of the other JasperReports view classes Mapping Key View Class
+		csv JasperReportsCsvView html JasperReportsHtmlView pdf
+		JasperReportsPdfView xls JasperReportsXlsView See
+		http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/view.html#view-jasper-reports-configuration-multiformat-view
+	-->
+	<!--
+		id: the name to be used as a reference in the controller url: the path
+		where the Jasper JRXML file is located reportDateKey: the name of the
+		datasource. This is passed by the controller
+	-->
+
+	<!--
+		bean id="multiReport"
+		class="org.springframework.web.servlet.view.jasperreports.JasperReportsMultiFormatView"
+		p:url="classpath:/resources/jrxml/tree-template.jrxml"
+		p:reportDataKey="datasource" /
+	-->
+	<bean id="bangkedacap" name="bangkedacap" class="CustomJasperReportsMultiFormatView">
+		<!-- The value _rep_name_ will be replaced with the report name -->
+		<property name="contentDispositionMappings">
+			<props>
+				<prop key="html">attachment; filename=_rep_name_.html</prop>
+				<prop key="pdf">attachment; filename=_rep_name_.pdf</prop>
+				<prop key="xls">attachment; filename=_rep_name_.xls</prop>
+				<prop key="csv">attachment; filename=_rep_name_.csv</prop>
+			</props>
+		</property>
+		<property name="url" value="/WEB-INF/jasperreport/bangkedacap.jrxml"></property>
+		<property name="reportDataKey" value="datasource1"></property>
+	</bean>
+
+	<bean id="phongReport" name="bangkephong" class="CustomJasperReportsMultiFormatView">
+		<!-- The value _rep_name_ will be replaced with the report name -->
+		<property name="contentDispositionMappings">
+			<props>
+				<prop key="html">attachment; filename=_rep_name_.html</prop>
+				<prop key="pdf">attachment; filename=_rep_name_.pdf</prop>
+				<prop key="xls">attachment; filename=_rep_name_.xls</prop>
+				<prop key="csv">attachment; filename=_rep_name_.csv</prop>
+			</props>
+		</property>
+		<property name="url" value="/WEB-INF/jasperreport/bangkephong.jrxml"></property>
+		<property name="reportDataKey" value="datasource"></property>
+	</bean>
+
+	<bean id="phongReportXm" name="bangkephongxm" class="CustomJasperReportsMultiFormatView">
+		<!-- The value _rep_name_ will be replaced with the report name -->
+		<property name="contentDispositionMappings">
+			<props>
+				<prop key="html">attachment; filename=_rep_name_.html</prop>
+				<prop key="pdf">attachment; filename=_rep_name_.pdf</prop>
+				<prop key="xls">attachment; filename=_rep_name_.xls</prop>
+				<prop key="csv">attachment; filename=_rep_name_.csv</prop>
+			</props>
+		</property>
+		<property name="url" value="/WEB-INF/jasperreport/bangkephongxm.jrxml"></property>
+		<property name="reportDataKey" value="datasource"></property>
+	</bean>
+
+	<bean id="multiReport" name="jasperReportsMultiFormatViewBean"
+		class="CustomJasperReportsMultiFormatView">
+		<!-- The value _rep_name_ will be replaced with the report name -->
+		<property name="contentDispositionMappings">
+			<props>
+				<prop key="html">attachment; filename=_rep_name_.html</prop>
+				<prop key="pdf">attachment; filename=_rep_name_.pdf</prop>
+				<prop key="xls">attachment; filename=_rep_name_.xls</prop>
+				<prop key="csv">attachment; filename=_rep_name_.csv</prop>
+			</props>
+		</property>
+		<property name="url" value="/WEB-INF/jasperreport/tree-template.jrxml"></property>
+		<property name="reportDataKey" value="datasource"></property>
+		<property name="subReportUrls">
+			<map>
+				<entry key="bangkedacap" value="/WEB-INF/jasperreport/bangkedacap.jrxml" />
+				<entry key="bangkemathong" value="/WEB-INF/jasperreport/bangkemathong.jrxml" />
+			</map>
+		</property>
+		<property name="subReportDataKeys">
+			<list>
+				<value>datasource1</value>
+				<value>datasource2</value>
+			</list>
+		</property>
+	</bean>
+
+
+
+
+</beans>

@@ -1,0 +1,159 @@
+<#include "/header_bt.ftl">
+<SCRIPT>
+    var curtab='#tab1';
+    var dataLoad= {"#tab1":0,"#tab2":0,"#tab3":0};
+    var province_count=0;
+    var province_code="";
+    var old_province_code="";    
+    
+    function load_tab_data (){
+    	if (dataLoad[curtab]==0){//Tab chua load du lieu
+    	var account = $('input#account').val();
+    	if (account !=null && account!=""){//khong can load du lieu neu account rong
+    	var dataObj = {
+                "account": account,                        
+                 "app": ${app_id},
+                 "province_code": province_code,
+                 "curtab": curtab
+            }
+        dataObj = {"json":JSON.stringify(dataObj)};
+    	$.post("/account",
+                dataObj,
+                function(data2,
+                    status) {                    
+            	call_back_ajax(data2,status);
+            	if (curtab=="#tab2"){//Tab 2 vua dc chon
+                	province_count = 0;    			
+                	$('input#pro_check:checked').each(function() {    				
+            			province_code = $(this).attr("province_code");
+            			//alert("province_code: "+province_code);
+            			if (province_code != "ALL")
+            				province_count = province_count + 1;
+                	 });
+                	if (province_count != 1 ) $('a[name="tab3"]').hide();
+                	//alert("province_count: "+province_count);
+                	province_count=0;
+                	}
+                });    	
+    	dataLoad[curtab]=1;
+    }}};
+    
+        $(document).ready(function() {        	
+        	tab_present();            
+            
+            $(document).on('click', 'button#chung', function() {
+            	dataLoad= {"#tab1":0,"#tab2":0,"#tab3":0};
+            	load_tab_data();            	            	
+            });
+            
+            $('button#update').click(function() {
+            	var roles = [];
+            	var provinces = [];
+            	var districts = [];            	
+            	var o;
+            	$('input#rolecheck:checked').each(function() {
+            		o = {"role":$(this).attr("role") };
+            	    roles.push(o);
+            	});
+            	
+            	$('input#pro_check:checked').each(function() {            		
+            	    o = {"province_code":$(this).attr("province_code"), 
+            	    		"province_number":$(this).attr("province_number"), 
+            	    		"msale_province_id":$(this).attr("msale_province_id") };
+            	    provinces.push(o);            		
+            	 });
+				$('input#dic_check:checked').each(function() {
+					o = {"district_code":$(this).attr("district_code"), 
+            	    		"district_number":$(this).attr("district_number"), 
+            	    		"msale_district_id":$(this).attr("msale_district_id") };
+					districts.push(o);            		
+            	});
+            	//alert(results.toString());
+            	//alert(JSON.stringify(results));
+            	//dataObj=JSON.stringify(results);
+            	
+            	dataObj={"account": $('input#account').val(),
+            			"roles": roles,
+            			"provinces": provinces,
+            			"districts": districts,
+            			"app": ${app_id},
+            			"curtab": curtab};
+            	dataObj={"json":JSON.stringify(dataObj)};            	
+                $.post("/accountupdate",
+                        dataObj,
+                        function(data,
+                            status) {
+                	call_back_ajax(data,status);
+                	alert ("Đã cập nhật thành công")
+                        });
+            	
+            });
+            $(document).on('click', 'input#pro_check', function() {
+            	$('input#dic_check').attr('checked',false);            
+                if ($(this).attr("province_code")=="ALL" && $(this).is(':checked')) {
+                	province_count = 0;                
+                	$('input#pro_check').attr('checked',false);
+                	$(this).prop('checked',true);
+                	//alert ($(this).attr("province_code"));
+                } else if ($(this).attr("province_code")!="ALL" && $(this).is(':checked')) {
+                	province_count = province_count +1 ;                
+                	$('input#pro_check[province_code="ALL"]').attr('checked',false);                	
+                } else if ($(this).attr("province_code")!="ALL" ){
+                	province_count = province_count -1; 
+                }
+                if (province_count==1){//Co 1 tinh duy nhat, can load thong tin huyen
+                	province_code=$('input#pro_check:checked').attr("province_code");
+                	if (old_province_code != province_code && dataLoad['#tab3']==1)
+                		//Thong tin tinh da thay doi can load lai
+                		dataLoad['#tab3']=0;                	
+                	$('a[name="tab3"]').fadeIn();
+                	old_province_code = province_code;
+            		
+                }            		
+            	else $('a[name="tab3"]').hide();
+            });
+            
+            
+        });
+    </SCRIPT>
+
+<section2 class="session" style="width: 98%"> <header>
+	Quản trị người dùng </header>
+<ul id="tabs">
+	<li><a href="#" name="tab1">Vai trò</a></li>
+	<li><a href="#" name="tab2">Tỉnh</a></li>
+	<li><a href="#" name="tab3">Huyện</a></li>
+	<div class="container-fluid form-inline">
+		<div class="form-group">
+			<label for="tu_ngay">Tài khoản</label> <input type="text"
+				class="form-control" id="account">
+		</div>
+		
+
+		<button type="button" class="btn btn-primary" id="chung">Tìm kiếm</button>
+		<button type="button" class="btn btn-primary" id="update">Cập nhật</button>	
+
+	</div>
+	
+
+</ul>
+
+<div id="content">
+	<div id="tab1">
+		<table id="datarp"
+			class="CSSTableGenerator table-condensed table-bordered">
+		</table>
+	</div>
+	<div id="tab2">
+		<table id="datarp"
+			class="CSSTableGenerator table-condensed table-bordered">
+		</table>
+	</div>
+	<div id="tab3">
+		<table id="datarp"
+			class="CSSTableGenerator table-condensed table-bordered">
+		</table>
+	</div>
+</div>
+</section2>
+<#include "/footer.ftl">

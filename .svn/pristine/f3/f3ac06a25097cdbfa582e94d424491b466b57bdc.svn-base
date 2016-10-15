@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/jdbc  http://www.springframework.org/schema/jdbc/spring-jdbc-3.0.xsd
+		http://www.springframework.org/schema/security 
+		http://www.springframework.org/schema/security/spring-security-3.0.xsd">
+
+	<global-method-security pre-post-annotations="enabled" />
+
+
+
+	<!-- <http auto-config="true" use-expressions="true"> <intercept-url pattern="/*" 
+		access="permitAll" /> <form-login login-page="/login" default-target-url="/homebuff" 
+		/> </http> -->
+
+	<!-- <http auto-config="true" use-expressions="true"> <intercept-url pattern="/accessdenied" 
+		access="permitAll" requires-channel="any" /> <intercept-url pattern="/login" 
+		access="permitAll" requires-channel="https" /> <intercept-url pattern="/user/*" 
+		access="hasRole('USER') and fullyAuthenticated" requires-channel="https" 
+		/> <intercept-url pattern="/admbase*" access="hasRole('DEVELOPER') and fullyAuthenticated" 
+		requires-channel="https" /> <intercept-url pattern="/*" access="permitAll" 
+		requires-channel="any" /> <form-login login-page="/login" /> <access-denied-handler 
+		error-page="/accessdenied" /> <logout invalidate-session="true" logout-success-url="/" 
+		/> <remember-me key="jbcpPetStore" services-ref="ipTokenBasedRememberMeServicesBean" 
+		/> </http> -->
+
+	<http auto-config="true" use-expressions="true">
+		<intercept-url pattern="/login" access="permitAll" />
+		<intercept-url pattern="/login-error" access="permitAll" />
+		<intercept-url pattern="/account"
+			access="hasAnyRole('BANHANGADMIN','CAREADMIN')	and fullyAuthenticated" />
+		<intercept-url pattern="/accountupdate"
+			access="hasAnyRole('BANHANGADMIN','CAREADMIN')	and fullyAuthenticated" />
+		<intercept-url pattern="/1/admin/*"
+			access="hasAnyRole('DEVELOPER','KHDNADMIN' )	and fullyAuthenticated" />
+		<intercept-url pattern="/2/admin/*"
+			access="hasAnyRole('DEVELOPER','BANHANGADMIN' )	and fullyAuthenticated" />
+		<intercept-url pattern="/3/admin/list"
+			access="hasAnyRole('DEVELOPER','CAREADMIN')	and fullyAuthenticated" />
+		<intercept-url pattern="/4/admin/list"
+			access="hasAnyRole('DEVELOPER','TTCPADMIN')	and fullyAuthenticated" />
+		<intercept-url pattern="/5/admin/list"
+			access="hasAnyRole('DEVELOPER','KHDT_KHSXKD_ADMIN')	and fullyAuthenticated" />
+
+
+		<intercept-url pattern="/khdn/**"
+			access="hasAnyRole('DEVELOPER','KHDNADMIN','KHDNMANCHINHANH','KHDNMANCONGTY','KHDNMANHUYEN' ,'KHDNREADONLY'   )	and fullyAuthenticated" />
+		<intercept-url pattern="/sale/chatluongdonhang/*"
+			access="fullyAuthenticated" />
+		<intercept-url pattern="/sale/**"
+			access="hasAnyRole('DEVELOPER','BANHANGADMIN','BANHANGMANCHINHANH','BANHANGMANCONGTY','BANHANGMANHUYEN','BANHANGREADONLY' )	and fullyAuthenticated" />
+		<intercept-url pattern="/care/khoso/donle" access="permitAll" />
+		<intercept-url pattern="/care/**"
+			access="hasAnyRole('DEVELOPER','CAREADMIN','CAREMANCONGTY','CAREMANCHINHANH','CAREMANHUYEN','CAREREADONLY')	and fullyAuthenticated" />
+
+		<intercept-url pattern="/ttcp/**"
+			access="hasAnyRole('DEVELOPER','TTCPMANCONGTY','TTCPMANCHINHANH','TTCPREADONLY')	and fullyAuthenticated" />
+
+		<intercept-url pattern="/khdt/khsxkd/donvi" access="fullyAuthenticated" />
+		<intercept-url pattern="/khdt/**"
+			access="hasAnyRole('KHDT_KHSXKD_NHAP','KHDT_KHSXKD_VIEW')	and fullyAuthenticated" />
+		<intercept-url pattern="/msale/reseller/gmap" access="fullyAuthenticated" />
+		<form-login login-page="/login" default-target-url="/homebuff"
+			authentication-failure-url="/login-error" />
+		<access-denied-handler error-page="/accessdenied" />
+		<logout invalidate-session="true" logout-success-url="/" />
+		<intercept-url pattern="/styles/**" access="permitAll" />
+		<intercept-url pattern="/scripts/**" access="permitAll" />
+		<intercept-url pattern="/images/**" access="permitAll" />
+		<intercept-url pattern="/favicon.ico" access="permitAll" />
+
+		<intercept-url pattern="/homebuff" access="fullyAuthenticated" />
+		<intercept-url pattern="/" access="fullyAuthenticated" />
+		<intercept-url pattern="/**"
+			access="hasAnyRole('DEVELOPER')	and fullyAuthenticated" />
+	</http>
+
+	<authentication-manager>
+		<authentication-provider ref='ldapAuthProvider' />
+	</authentication-manager>
+	<beans:bean id="contextSource"
+		class="org.springframework.security.ldap.DefaultSpringSecurityContextSource">
+		<beans:constructor-arg value="ldap://10.151.6.248" />
+	</beans:bean>
+
+
+	<beans:bean id="ldapAuthProvider" class="springsecurity.LdapAuthenticationProvider">
+		<beans:property name="authenticator" ref="ldapAuthenticator" />
+		<beans:property name="accountBase" ref="accountBase" />
+	</beans:bean>
+
+	<beans:bean id="ldapAuthenticator" class="springsecurity.LdapAuthenticatorImpl">
+		<beans:property name="contextFactory" ref="contextSource" />
+		<beans:property name="principalPrefix" value="QUESO\" />
+	</beans:bean>
+</beans:beans>
+		

@@ -1,0 +1,42 @@
+<#include "/header.ftl">
+<div id="map">
+	<#if (pojoModeList?size > 0)>
+	<script type="text/javascript"
+		src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA6MGtHPG1GTklAvaTJrgONuqu4TDPp3MU&sensor=true"></script>
+	<script type="text/javascript">
+    var locations = [
+     <#assign	lastGaddresss = "">                      
+	<#list pojoModeList as pojoMode>                     
+      ['${pojoMode.pojo.ten_cua_hang!""}-${pojoMode.pojo.so_ez_nhan_tien!""}-${pojoMode.pojo.dia_chi!""}', ${pojoMode.pojo.googelAddress!""}, ${(pojoMode_index+2)?c}],      
+      <#assign	lastGaddresss = pojoMode.pojo.googelAddress>   
+     </#list>
+      []
+    ];
+
+    var map = new google.maps.Map(document.getElementById('map'), {
+      zoom: 8,
+      center: new google.maps.LatLng(${lastGaddresss}),
+      mapTypeId: google.maps.MapTypeId.ROADMAP
+    });
+
+    var infowindow = new google.maps.InfoWindow();
+
+    var marker, i;
+
+    for (i = 0; i < locations.length; i++) {  
+      marker = new google.maps.Marker({
+        position: new google.maps.LatLng(locations[i][1], locations[i][2]),
+        map: map
+      });
+
+      google.maps.event.addListener(marker, 'click', (function(marker, i) {
+        return function() {
+          infowindow.setContent(locations[i][0]);
+          infowindow.open(map, marker);
+        }
+      })(marker, i));
+    }
+  </script>
+	</#if>
+</div>
+<#include "/footer.ftl">

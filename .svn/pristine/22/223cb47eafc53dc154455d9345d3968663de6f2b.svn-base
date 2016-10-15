@@ -1,0 +1,284 @@
+<#include "/header_bt.ftl">
+<SCRIPT>
+	var curtab = '#tab1';
+	var dataLoad = {
+		"#tab1" : 0
+	};
+	var app = 3;
+	var sub_id = "";
+	var input_date = "";
+	var act_date = "";
+	var act_des_element;
+	var user_name = "";
+	// Get the <span> element that closes the modal
+	var span = document.getElementsByClassName("close")[0];
+
+	function load_tab_data() {
+		if (dataLoad[curtab] == 0) {//Tab chua load du lieu
+			bcct();
+			dataLoad[curtab] = 1;
+
+		}
+	};
+
+	function resetSEE() {
+	}
+
+	function load_donvi_list() {
+		var dataObj = {
+			"app" : app
+		};
+
+		dataObj = {
+			"json" : JSON.stringify(dataObj)
+		};
+		$.getJSON("/khdt/khsxkd/donvi", dataObj, function(data, textStatus) {
+			$('select#donvi option').remove();
+			var row;
+			/*
+			 row = "<option value=\"" + "0" + "\">" + "Chọn đơn vị"							+ "</option>"
+			 $(row).appendTo("select#donvi");
+			 */
+			for (i = 1; i < data.length; i++) {
+				row = "<option value=\"" + data[i]['001'].replace('<td>', '')
+						+ "\">" + data[i]['002'] + "</option>";
+				$(row).appendTo("select#donvi");
+			}
+			getData();
+		});
+		load_act_list();
+	}
+
+	function load_act_list() {
+		var dataObj = {
+			"app" : app
+		};
+
+		dataObj = {
+			"json" : JSON.stringify(dataObj)
+		};
+		$.getJSON("/care/lncc_roimang/actlist", dataObj, function(data,
+				textStatus) {
+			$('select#act option').remove();
+			var row;
+			/*
+			 row = "<option value=\"" + "0" + "\">" + "Chọn đơn vị"							+ "</option>"
+			 $(row).appendTo("select#donvi");
+			 */
+			for (i = 1; i < data.length; i++) {
+				row = "<option value=\"" + data[i]['001'].replace('<td>', '')
+						+ "\">" + data[i]['002'] + "</option>";
+				$(row).appendTo("select#act");
+			}
+		});
+
+	}
+
+	function tracuu() {
+		$('input').attr('disabled', 'disabled');
+		$('section h').html("THUÊ BAO MOBITV SẮP HẾT HẠN");
+		var dataObj = {
+			"sub_id" : $('input#sub_id').val(),
+			"app" : app
+		}
+
+		dataObj = {
+			"json" : JSON.stringify(dataObj)
+		};
+
+		$.post("list", dataObj, function(data2, status) {
+			call_back_ajax(data2, status);
+		});
+	}
+
+	function getData() {
+		$('input').attr('disabled', 'disabled');
+		$('section h').html("THUÊ BAO MOBITV SẮP HẾT HẠN");
+		var dataObj = {
+			"donvi" : $('select#donvi').val(),
+			"app" : app
+		}
+
+		dataObj = {
+			"json" : JSON.stringify(dataObj)
+		};
+
+		$.post("list", dataObj, function(data2, status) {
+			call_back_ajax(data2, status);
+
+		});
+	}
+
+	function getCareHistory() {
+		var dataObj = {
+			"sub_id" : sub_id,
+			"input_date" : input_date,
+			"app" : app
+		}
+
+		dataObj = {
+			"json" : JSON.stringify(dataObj)
+		};
+
+		$.post("sub_care_history", dataObj, function(data2, status) {
+			call_back_ajax2(data2, status, '#myModal');
+		});
+	}
+
+	function addCareHistory() {
+		var dataObj = {
+			"act" : $('select#act').val(),
+			"status" : $('select#status_act_care').val(),
+			"comment" : $('input#comment').val(),
+			"sub_id" : sub_id,
+			"input_date" : input_date,
+			"app" : app
+		}
+
+		dataObj = {
+			"json" : JSON.stringify(dataObj)
+		};
+
+		$.post("add_care_history", dataObj, function(data, status) {
+			act_date = data[1]['001'].replace('<td>', '');
+			user_name = data[1]['002'].replace('<td>', '');
+			var act_des = act_date + "-" + user_name + "-"
+					+ $('select#act option:selected').text() + "-"
+					+ $('select#status_act_care option:selected').text()
+					+ "    " + $('input#comment').val()
+			act_des_element.text(act_des);
+		});
+
+	}
+
+	$(document).ready(
+			function() {
+				tab_present();
+				load_donvi_list();
+				$('button#find').click(function() {
+					tracuu();
+				});
+
+				$('button#get_data').click(function() {
+					getData();
+				});
+
+				$(document).on('click', 'button#table2excel', function() {
+					$(curtab + ' table#datarp').table2excel({
+						// exclude CSS class			
+						exclude : ".noExl",
+						name : "TraThuong"
+					});
+				});
+
+				$(document).on(
+						'click',
+						'td.canclick',
+						function() {
+							act_des_element = $(this);
+							sub_id = $(this).closest("tr") // Finds the closest row <tr> 
+							.find("td#sub_id") // Gets a descendent with id="id"
+							.text();
+							input_date = $(this).closest("tr") // Finds the closest row <tr> 
+							.find("td#input_date") // Gets a descendent with id="id"
+							.html();
+							getCareHistory();
+							$('h2#his_head').html(
+									"LỊCH SỬ HOẠT ĐỘNG CHĂM SÓC KHÁCH HÀNG "
+											+ sub_id);
+							$('#myModal').show();
+						});
+				$(document).on('click', 'span.close', function() {
+					$('#myModal').hide();
+				});
+
+				$('button#bcth').click(function() {
+					//var x = window.open("ketqua");	x.focus();
+					window.location.href = "ketqua"
+
+				});
+
+				$('button#ok').click(function() {
+					addCareHistory();
+					$('#myModal').hide();
+				});
+			})
+</SCRIPT>
+
+<section2 class="session" style="width: 98%"> <header>THUÊ
+	BAO MOBITV SẮP HẾT HẠN</header>
+<ul id="tabs">
+	<div class="container-fluid form-inline">
+		<div class="form-group">
+			<select id="donvi" class="form-control" value="">
+				<option value="666666">-- Chọn đơn vị--</option>
+			</select>
+		</div>
+
+		<button type="button" class="btn btn-primary" id="get_data">Lấy
+			số liệu</button>
+		<div class="form-group">
+			<label for="sub_id">SUB_ID </label> <input type="text"
+				class="form-control" id="sub_id" placeholder="40344427975001">
+		</div>
+		<button type="button" class="btn btn-primary" id="find">Tra
+			cứu</button>
+		<button type="button" class="btn btn-primary" id="table2excel">Excel</button>			
+	</div>
+</ul>
+
+<div id="content">
+	<div id="tab1">
+		<table id="datarp"
+			class="CSSTableGenerator table-condensed table-bordered">
+		</table>
+	</div>
+</div>
+</section2>
+<!-- The Modal -->
+<div id="myModal" class="modal">
+
+	<!-- Modal content -->
+	<div class="modal-content">
+		<div class="modal-header">
+			<span class="close">×</span>
+			<h2 id="his_head">LỊCH SỬ HOẠT ĐỘNG CSTB</h2>
+		</div>
+		<div class="modal-body">
+
+			<div class="container-fluid form-inline">
+				<div class="form-group">
+					<label for="act">Hành động </label> <select id="act" value="0"
+						class="form-control">
+						<option value="0">-- Thêm ghi chú--</option>
+					</select>
+				</div>
+				<div class="form-group">
+					<label for="status_act_care">Trạng thái </label> <select
+						id="status_act_care" value="0" class="form-control">
+						<option value="1">-- Đã xong--</option>
+						<option value="0">-- Đang thực hiện--</option>
+					</select>
+				</div>
+
+				<div class="form-group">
+					<label for="comment">Ghi chú </label> <input type="text"
+						class="form-control" id="comment" placeholder="">
+				</div>
+
+				<button type="button" class="btn btn-primary" id="ok">Thêm</button>
+
+			</div>
+
+
+			<table id="datarp"
+				class="CSSTableGenerator table-condensed table-bordered">
+			</table>
+		</div>
+		<div class="modal-footer">
+			<h3></h3>
+		</div>
+	</div>
+</div>
+
+<#include "/footer.ftl">

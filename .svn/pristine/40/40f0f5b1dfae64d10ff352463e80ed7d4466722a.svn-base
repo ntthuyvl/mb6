@@ -1,0 +1,67 @@
+<html>
+	<head>
+		<title>Quản lý tài chính cá nhân</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" href="../styles/jars.css" type="text/css">
+		<link rel="stylesheet" href="../styles/petclinic2.css" type="text/css">
+	</head>
+	<style type="text/css">
+table td,table th {
+	padding: 0;
+	border: 0px solid #e0e7d3;
+}
+</style>
+	<td align="center">
+		<font size="1" face="Arial, Helvetica,sans-serif">
+			<p>
+				<a href="..">Trang chủ</a> <#if user_logged_name??>
+				<a href="../j_spring_security_logout">Thoát
+					[${user_logged_name}]</a> </#if>
+				<a href="../admbase/account/changepassword">Đổi mật khẩu</a>
+				<a href="/ak_forum" target="_parent">forum</a>
+			</p> </font>
+		<br />
+	</td>
+	<br />
+	<table style="border: 1px solid #e0e7d3; width: 80%; height: 80%">
+		<th ALIGN=left style="width: 100px; margin-top: 20px; height: 100%">
+			<fieldset style="width: 110px">
+				<ul>
+					<li>
+						<a href="../jarsaccount/spend/list" target="jarsdetail">Chi</a>
+					</li>
+					<li>
+						<a href="../jarsaccount/income/list" target="jarsdetail">Thu</a>
+					</li>
+					<li>
+						<a href="../jarsaccount/transfer/list" target="jarsdetail">Chuyển
+							khoản</a>
+					</li>
+					<li>
+						<a href="list" target="jarsdetail">Phân bố JARS</a>
+					</li>
+					<li>
+						<a href="../jarsaccount/incomeplan/list" target="jarsdetail">Kế
+							hoach thu</a>
+					</li>
+					<li>
+						<a href="../jarsaccount/spendplan/list" target="jarsdetail">Kế
+							hoạch chi</a>
+					</li>
+					<li>
+						<a href="../jarsaccount/partner/list" target="jarsdetail">Đối
+							tác</a>
+					</li>
+					<li>
+						<a href="../jarsaccount/excunit/list" target="jarsdetail">Loại
+							tài sản</a>
+					</li>
+				</ul>
+			</fieldset>
+		</th>
+		<th ALIGN=left height=100% style="background: #fff">
+			<iframe frameborder="1" width="100%" height="100%" src=jarsintro
+				name="jarsdetail"></iframe>
+		</th>
+	</table>
+</html>

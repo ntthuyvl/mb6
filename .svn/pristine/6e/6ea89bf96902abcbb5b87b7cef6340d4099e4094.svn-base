@@ -1,0 +1,374 @@
+<#include "/header.ftl">
+<SCRIPT>
+	var curtab = '#tab1';
+	var donvi = '0';
+	var app = 5;
+	var dataLoad = {
+		"#tab1" : 0,
+		"#tab2" : 0
+	};
+
+	function load_tab_data() {
+		if (dataLoad[curtab] == 0) {//Tab chua load du lieu
+			if ($('select#donvi').val() != '0') {
+				donvi = $('select#donvi').val();
+
+				var dataObj = {
+					"tab" : curtab,
+					"donvi" : donvi,
+					"app" : app
+				}
+				dataObj = {
+					"json" : JSON.stringify(dataObj)
+				};
+				$.post("listdetail", dataObj, function(data2, status) {
+					call_back_ajax(data2, status);
+				});
+				dataLoad[curtab] = 1;
+			}
+
+		}
+	};
+
+	function bcth() {
+	}
+
+	$(document)
+			.ready(
+					function() {
+						var dataObj = {						
+								"app" : app
+							};
+
+							dataObj = {
+								"json" : JSON
+										.stringify(dataObj)
+							};
+						$.getJSON("/khdt/khsxkd/donvi", dataObj, function(data, textStatus) {
+							$('select#donvi option').remove();
+							var row;
+							row = "<option value=\"" + "0" + "\">"
+									+ "Chọn đơn vị" + "</option>"
+							$(row).appendTo("select#donvi");
+							for (i = 1; i < data.length; i++) {
+								row = "<option value=\""
+										+ data[i]['001'].replace('<td>', '')
+										+ "\">" + data[i]['002'] + "</option>";
+								$(row).appendTo("select#donvi");
+							}
+						});
+
+						$(document)
+								.on(
+										'change',
+										'select#donvi',
+										function() {
+											if (donvi != $('select#donvi')
+													.val()) {
+												donvi = $('select#donvi').val();
+												$('#datarp thead').html();
+												$('#datarp tbody').html();
+												dataLoad = {
+													"#tab1" : 0,
+													"#tab2" : 0
+												};
+												$('input').attr('disabled',
+														'disabled');
+
+												var dataObj = {
+													"tab" : curtab,
+													"donvi" : donvi,
+													"app" : app
+												}
+
+												dataObj = {
+													"json" : JSON
+															.stringify(dataObj)
+												};
+												$
+														.post(
+																"listdetail",
+																dataObj,
+																function(data2,
+																		status) {
+																	call_back_ajax(
+																			data2,
+																			status);
+																});
+												dataLoad[curtab] = 1;
+												$('section2 header')
+														.html(
+																"KẾ HOẠCH SẢN XUẤT KINH DOANH");
+
+											}
+										});
+						$(document).on('click', 'td.thc2', function() {
+							$(this).css("padding", "0px 0px 0px 0px");
+							//$(this).html("<input style =\"height:100%; margin: 0px 0px 0px 0px\" type=\"text\" class=\"ez_deal\" value=\""+$(this).html()+"\">");
+							$(this).attr('contenteditable', 'true');
+							contents = $(this).html();
+							$('input#update').fadeIn();
+
+						});
+
+						$('input#update')
+								.click(
+										function() {
+											var kh = [], khpd = [];
+											var ACT_TYPE = "", nam2016, thang1, thang2, thang3, thang4, thang5, thang6, thang7, thang8, thang9, thang10, thang11, thang12
+											var o;
+
+											$('div#tab1 tr')
+													.each(
+															function() {
+																ACT_TYPE = $(
+																		this)
+																		.find(
+																				"td#id")
+																		.attr(
+																				'act_type');
+																nam2016 = $(
+																		this)
+																		.find(
+																				"td#Nam2016")
+																		.text();
+
+																thang1 = $(this)
+																		.find(
+																				"td#Thang1")
+																		.text();
+																thang2 = $(this)
+																		.find(
+																				"td#Thang2")
+																		.text();
+																thang3 = $(this)
+																		.find(
+																				"td#Thang3")
+																		.text();
+																thang4 = $(this)
+																		.find(
+																				"td#Thang4")
+																		.text();
+																thang5 = $(this)
+																		.find(
+																				"td#Thang5")
+																		.text();
+																thang6 = $(this)
+																		.find(
+																				"td#Thang6")
+																		.text();
+																thang7 = $(this)
+																		.find(
+																				"td#Thang7")
+																		.text();
+																thang8 = $(this)
+																		.find(
+																				"td#Thang8")
+																		.text();
+																thang9 = $(this)
+																		.find(
+																				"td#Thang9")
+																		.text();
+																thang10 = $(
+																		this)
+																		.find(
+																				"td#Thang10")
+																		.text();
+																thang11 = $(
+																		this)
+																		.find(
+																				"td#Thang11")
+																		.text();
+																thang12 = $(
+																		this)
+																		.find(
+																				"td#Thang12")
+																		.text();
+																if (ACT_TYPE != null
+																		&& ACT_TYPE != "") {
+																	o = {
+																		"ACT_TYPE" : ACT_TYPE,
+																		"nam2016" : nam2016,
+																		"thang1" : thang1,
+																		"thang2" : thang2,
+																		"thang3" : thang3,
+																		"thang4" : thang4,
+																		"thang5" : thang5,
+																		"thang6" : thang6,
+																		"thang7" : thang7,
+																		"thang8" : thang8,
+																		"thang9" : thang9,
+																		"thang10" : thang10,
+																		"thang11" : thang11,
+																		"thang12" : thang12
+																	};
+																	kh.push(o);
+																}
+
+															});
+											$('div#tab2 tr')
+													.each(
+															function() {
+																ACT_TYPE = $(
+																		this)
+																		.find(
+																				"td#id")
+																		.attr(
+																				'act_type');
+																nam2016 = $(
+																		this)
+																		.find(
+																				"td#Nam2016")
+																		.text();
+
+																thang1 = $(this)
+																		.find(
+																				"td#Thang1")
+																		.text();
+																thang2 = $(this)
+																		.find(
+																				"td#Thang2")
+																		.text();
+																thang3 = $(this)
+																		.find(
+																				"td#Thang3")
+																		.text();
+																thang4 = $(this)
+																		.find(
+																				"td#Thang4")
+																		.text();
+																thang5 = $(this)
+																		.find(
+																				"td#Thang5")
+																		.text();
+																thang6 = $(this)
+																		.find(
+																				"td#Thang6")
+																		.text();
+																thang7 = $(this)
+																		.find(
+																				"td#Thang7")
+																		.text();
+																thang8 = $(this)
+																		.find(
+																				"td#Thang8")
+																		.text();
+																thang9 = $(this)
+																		.find(
+																				"td#Thang9")
+																		.text();
+																thang10 = $(
+																		this)
+																		.find(
+																				"td#Thang10")
+																		.text();
+																thang11 = $(
+																		this)
+																		.find(
+																				"td#Thang11")
+																		.text();
+																thang12 = $(
+																		this)
+																		.find(
+																				"td#Thang12")
+																		.text();
+																if (ACT_TYPE != null
+																		&& ACT_TYPE != "") {
+																	o = {
+																		"ACT_TYPE" : ACT_TYPE,
+																		"nam2016" : nam2016,
+																		"thang1" : thang1,
+																		"thang2" : thang2,
+																		"thang3" : thang3,
+																		"thang4" : thang4,
+																		"thang5" : thang5,
+																		"thang6" : thang6,
+																		"thang7" : thang7,
+																		"thang8" : thang8,
+																		"thang9" : thang9,
+																		"thang10" : thang10,
+																		"thang11" : thang11,
+																		"thang12" : thang12
+																	};
+																	khpd
+																			.push(o);
+																}
+															});
+
+											//alert(results.toString());
+											//alert(JSON.stringify(results));
+											//dataObj=JSON.stringify(results);
+											dataObj = {
+												"tab" : curtab,
+												"donvi" : donvi,
+												"kh" : kh,
+												"khpd" : khpd,
+												"app" : app
+											};
+
+											dataObj = {
+												"json" : JSON
+														.stringify(dataObj)
+											};
+
+											$
+													.post(
+															"listdetailupdate",
+															dataObj,
+															function(data,
+																	status) {
+																call_back_ajax(
+																		data,
+																		status);
+																$(
+																		'input#update')
+																		.hide();
+																$(
+																		'section2 header')
+																		.html(
+																				"KẾ HOẠCH SẢN XUẤT KINH DOANH");
+															});
+
+										});
+
+						tab_present();
+						bcth();
+
+						$('input#bcth').click(function() {
+							bcth();
+						});
+
+					})
+</SCRIPT>
+
+<section2 class="session" style="width: 98%"> <header>
+	NHẬP CHỈ TIÊU SẢN XUẤT KINH DOANH</header>
+<ul id="tabs">
+	<li><a href="#" name="tab1">Kế hoạch</a></li>
+	<li><a href="#" name="tab2">Kế hoạch phấn đấu</a></li>
+	<div>
+		<in id="donvi"> <label id="donvi" style="">Đơn vị </label> <select
+			id="donvi" value="">
+			<option value="">-- Chọn --</option>
+		</select> </in>
+
+		<input type="submit" id="table2excel" value="Excel"
+			style="width: 60px;" /> <input type="submit" id="update"
+			value="Cập nhật" style="width: 110px; float: right;" />
+	</div>
+</ul>
+
+<div id="content">
+	<div id="tab1">
+		<table id="datarp" class="CSSTableGenerator">
+			<tbody></tbody>
+		</table>
+	</div>
+	<div id="tab2">
+		<table id="datarp" class="CSSTableGenerator">
+			<tbody></tbody>
+		</table>
+	</div>
+</div>
+</section2>
+<#include "/footer.ftl">

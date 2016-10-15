@@ -1,0 +1,109 @@
+<#import "/spring.ftl" as spring /> <#assign
+datetimeformat="dd/MM/yyyy">
+<HTML>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" href="../../styles/petclinic3.css"
+			type="text/css">
+	</head>
+	<form action="" method="post">
+		<table align="center">
+			<caption class=caption_table_sub>
+				<h1>
+					Hồ Sơ Chuyển Khoản
+				</h1>
+				<a href=add>@Thêm mới</a>
+			</caption>
+			<tr>
+				<th ALIGN=left>
+					Chuyển từ
+				</th>
+				<td>
+					<@spring.formSingleSelect "pojoMode.search.srcAccount.id"
+					srcAccountMap/>
+				</td>
+				<th ALIGN=left>
+					Chuyển đến
+				</th>
+				<td>
+					<@spring.formSingleSelect "pojoMode.search.desAccount.id"
+					desAccountMap/>
+				</td>
+
+			</tr>
+			<tr>
+				<th>
+					Từ ngày:
+				</th>
+				<td>
+					<@spring.formInput "pojoMode.search.fromDate"/> <@spring.showErrors
+					"
+					</br>
+					"/>
+
+				</td>
+				<th>
+					Đến ngày:
+				</th>
+				<td>
+					<@spring.formInput "pojoMode.search.toDate"/> <@spring.showErrors "
+					</br>
+					"/>
+				</td>
+				<td align="center">
+					<input type="submit" value="Tìm kiếm">
+				</td>
+			</tr>
+		</table>
+		<hr />
+		<table class="table_sub">
+			<TR>
+				<th ALIGN=left>
+					Ngày giờ
+				</th>
+				<th ALIGN=left>
+					Diễn Giải
+				</th>
+				<th ALIGN=right>
+					Số lượng chuyển
+				</th>
+				<th ALIGN=left>
+					Từ
+				</th>
+				<th ALIGN=right>
+					Số lượng nhận
+				</th>
+				<th ALIGN=left>
+					Đến
+				</th>
+			</TR>
+			<@spring.bind "pojoModeList" />
+			<font size="1"> <#list pojoModeList as pojoMode> 
+			<TR>
+				<td ALIGN=left>
+					${pojoMode.pojo.actDate?string(datetimeformat)}
+				</td>
+				<td ALIGN=left>
+					${pojoMode.pojo.label}
+				</td>
+				<td ALIGN=left>
+					${pojoMode.pojo.srcAmount}
+				</td>
+				<td ALIGN=left>
+					${srcAccountMap[pojoMode.pojo.srcAccount.id?string]}
+				</td>
+				<td ALIGN=left>
+					${pojoMode.pojo.desAmount}
+				</td>
+				<td ALIGN=left>
+					${desAccountMap[pojoMode.pojo.desAccount.id?string]}
+				</td>
+				<td ALIGN=center>
+					<a href=update/${pojoMode.pojo.id}>Sửa</a>
+					<a href=delete/${pojoMode.pojo.id}>Xóa</a>
+				</td>
+			</TR>
+			</#list>
+		</table>
+	</form>
+</HTML>
