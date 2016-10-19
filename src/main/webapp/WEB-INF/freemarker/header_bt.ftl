@@ -89,6 +89,7 @@ ul.nav>li>a{
 				<li><a href="/sale/cell/list">Báo cáo theo cell</a></li>										
 				<!-- <li><a href="/sale/msale/list">Điểm bán lẻ Msale </a></li>  -->
 				<li><a href="/sale/msale/gmap">Điểm bán lẻ trên Gmap </a></li>
+				<li><a href="/sale/cell/gmap">Trạm phát sóng trên Gmap </a></li>				
 				<!-- <li><a href="/sale/trathuong/list">Hỗ trợ trả thưởng</a></li>  -->
 				<li role="separator" class="divider"></li>
 				<li><a href="/2/admin/list">Quản trị</a></li>

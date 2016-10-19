@@ -21,9 +21,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
+import pojo.GmapMarker;
 import pojo.Mb6Program;
 import pojo.MsaleReseller;
 import pojomode.ExceptionMode;
+import pojomode.GmapMarkerMode;
 import pojomode.Mb6ProgramMode;
 import pojomode.MsaleResellerMode;
 
@@ -48,6 +50,36 @@ public class QssSale extends BaseController {
 	public String getKhdn(ModelMap model, HttpServletRequest request) {
 		return "/khdn/welcome";
 	}
+
+	@RequestMapping(value = "/sale/cell/gmap", method = RequestMethod.GET)
+	public String getCellGoogleMap(ModelMap model, HttpServletRequest request) {
+		GmapMarkerMode pojoMode = new GmapMarkerMode();
+		List<GmapMarker> pojoList;
+		String user_name = getUserLoginName(this.getClass().getCanonicalName() + ".getCellGoogleMap", request);
+
+		if (!user_name.equals("anonymousUser")) {
+			try {
+				pojoList = msaleBase.getCellGmapMarkers(user_name);
+				Collection<GmapMarkerMode> pojoModeList = new ArrayList<GmapMarkerMode>();
+				if (pojoList != null && pojoList.size() > 0)
+					for (GmapMarker pojo : pojoList) {
+						if (pojo.getGoogelAddress() != null && !pojo.getGoogelAddress().equals("")) {
+							pojoMode = new GmapMarkerMode();
+							pojoMode.setPojo(pojo);
+							pojoModeList.add(pojoMode);
+						}
+					}
+				pojoMode = new GmapMarkerMode();
+				model.addAttribute("pojoModeList", pojoModeList);
+				model.addAttribute("pojoMode", pojoMode);
+				return "/sale/cell/gmap";
+			} catch (Exception e) {
+				return HomeController.getError(e, pojoMode, model);
+			}
+		} else
+			return "redirect:/login";
+	}
+	
 
 	@RequestMapping(value = "/sale/msale/gmap", method = RequestMethod.GET)
 	public String getGoogleMap(ModelMap model, HttpServletRequest request) {

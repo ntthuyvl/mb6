@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
+import pojo.GmapMarker;
 import pojo.HoaHongThuCuoc;
 import pojo.Mb6Program;
 import pojo.MsaleReseller;
@@ -171,4 +172,6 @@ public interface MsaleBase {
 	List<Map<String, String>> add_modify_rp(String user_name, String json, MultipartHttpServletRequest request);
 
 	File getTemplateDir();
+
+	List<GmapMarker> getCellGmapMarkers(String user_name);
 }

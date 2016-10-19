@@ -2,34 +2,23 @@ package springweb.controllers;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.Date;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.joda.time.DateTime;
 import org.json.JSONObject;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
-import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
-import com.lowagie.text.pdf.codec.Base64.InputStream;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import pojobase.oracle.MsaleOracleBase;
 import pojobase.oracle.OracleBase;
@@ -151,13 +140,13 @@ public class QssCntt extends BaseController {
 
 	}
 
-	@RequestMapping(value = "/*/download/**/", method = RequestMethod.GET)
+	@RequestMapping(value = "/{app}/download/**/", method = RequestMethod.GET)
 	@ResponseBody
-	public void getFile(HttpServletRequest request, HttpServletResponse response) {
+	public void getFile(HttpServletRequest request, @PathVariable("app") String app, HttpServletResponse response) {
 		try {
 
 			String[] path_array = request.getPathInfo().split("/");
-			File download_file = MsaleOracleBase.download_dir;
+			File download_file = new File(MsaleOracleBase.download_dir, app);
 			for (int i = 3; i < path_array.length; i++)
 				download_file = new File(download_file, path_array[i]);
 			OracleBase.syslog(download_file.getAbsolutePath());

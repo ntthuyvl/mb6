@@ -29,6 +29,7 @@ import com.fss.thread.ManageableThread;
 import com.fss.thread.ThreadConstant;
 import com.fss.thread.ThreadManager;
 
+import pojo.GmapMarker;
 import pojo.HoaHongThuCuoc;
 import pojo.HoaHongThuCuocTrongDs;
 import pojo.Mb6Fillter;
@@ -61,8 +62,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 	private static HashMap<String, Mb6Fillter> filterBuiledMap = new HashMap<String, Mb6Fillter>();
 	private static ArrayList<String> provinceNumberList = new ArrayList<String>();
 	public File template_dir;
-	public static File download_dir = new File(
-			BaseController.class.getClassLoader().getResource("").getPath() + "/../../../download");
+	public static File download_dir = new File("download");
 	CDRBinManagerTnt tntService;
 
 	@PostConstruct
@@ -124,9 +124,12 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 				buildFilter(user_name, app);
 			Mb6Fillter mb6Fillter = filterBuiledMap.get(user_name + ".." + app);
 			while (rs != null && rs.next()) {
-				if (mb6Fillter.isAllProvince() || mb6Fillter.getProvinceList().contains("" + rs.getString("province"))
-						&& (mb6Fillter.isAllDistrict()
-								|| mb6Fillter.getDistrictList().contains("" + rs.getString("district")))) {
+				if (mb6Fillter.isAllProvince() || rs.getString("province") == null
+						|| rs.getString("province").equals("")
+						|| mb6Fillter.getProvinceList().contains("" + rs.getString("province"))
+								&& (mb6Fillter.isAllDistrict() || rs.getString("district") == null
+										|| rs.getString("district").equals("")
+										|| mb6Fillter.getDistrictList().contains("" + rs.getString("district")))) {
 					rowcount = rowcount + 1;
 					pojo = new TreeMap<String, String>();
 					pojo.put("000", "<td>" + rowcount);
@@ -177,10 +180,12 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 				buildFilter(user_name, app);
 			Mb6Fillter mb6Fillter = filterBuiledMap.get(user_name + ".." + app);
 			while (rs != null && rs.next()) {
-				if (mb6Fillter.isAllProvince() || rs.getString("province") == null || mb6Fillter.getProvinceList()
-						.contains("" + rs.getString("province").substring(4))
-						&& (mb6Fillter.isAllDistrict() || rs.getString("district") == null
-								|| mb6Fillter.getDistrictList().contains("" + rs.getString("district").substring(4)))) {
+				if (mb6Fillter.isAllProvince() || rs.getString("province") == null
+						|| rs.getString("province").equals("")
+						|| mb6Fillter.getProvinceList().contains("" + rs.getString("province").substring(4))
+								&& (mb6Fillter.isAllDistrict() || rs.getString("district") == null
+										|| rs.getString("district").equals("") || mb6Fillter.getDistrictList()
+												.contains("" + rs.getString("district").substring(4)))) {
 					rowcount = rowcount + 1;
 					pojo = new TreeMap<String, String>();
 					pojo.put("000", "<td>" + rowcount);
@@ -5487,6 +5492,56 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 	public File getTemplateDir() {
 		// TODO Auto-generated method stub
 		return template_dir;
+	}
+
+	@Override
+	public List<GmapMarker> getCellGmapMarkers(String user_name) {
+		Connection conn;
+		try {
+			conn = getConnection();
+			Statement sttm = conn.createStatement();
+			String sql = "select distinct replace(cell_type ||' '||to_char(ngay_phat_song,'YYYYMMDD') || ' ' ||site_name||' '||address_detail,'\\','') description"
+					+ ",province,district,replace(replace(latitude,',','.')||',' ||replace(longitude,',','.'),'..','.') googeladdress"
+					+ ",case when sysdate - ngay_phat_song <60 then 1 else 0 end new_member"
+					+ " from out_data.cell_infor_v where province in ('THO','NAN','HTI','QBI')"
+					+ " and cell_id in (select distinct  '452-01-'||cell_id from OUT_DATA.luuluong_cell"
+					+ " where sum_date >= trunc(sysdate-10))";
+			ResultSet rs = sttm.executeQuery(sql);
+			/*
+			 * ResultSet rs = sttm.executeQuery(
+			 * "SELECT tinh_thanh_pho id_tinh,quan_huyen id_huyen,id,ten_cua_hang,dia_chi,so_ez_nhan_tien,vi_do ||',' || kinh_do googeladdress"
+			 * +
+			 * "  FROM out_data.diem_ban_hang_msale_v where tinh_thanh_pho in (370,380,390,520)"
+			 * +
+			 * "  and nvl(so_ez_nhan_tien,'0')<>'0' and is_active=1 and vi_do is not null and kinh_do is not null"
+			 * );
+			 */
+			List<GmapMarker> pojoList = new LinkedList<GmapMarker>();
+			String app = "2";
+			GmapMarker pojo;
+			if (filterBuiledMap.get(user_name + ".." + app) == null)
+				buildFilter(user_name, app);
+			Mb6Fillter mb6Fillter = filterBuiledMap.get(user_name + ".." + app);
+
+			while (rs != null && rs.next()) {
+				if (mb6Fillter.isAllProvince() || mb6Fillter.getProvinceList().contains("" + rs.getString("province"))
+						&& (mb6Fillter.isAllDistrict()
+								|| mb6Fillter.getDistrictList().contains("" + rs.getString("district")))) {
+					pojo = new GmapMarker();
+					pojo.setGoogelAddress(rs.getString("googeladdress"));
+					pojo.setNew_member(rs.getString("new_member"));
+					pojo.setDescription(rs.getString("description"));
+					pojoList.add(pojo);
+				}
+			}
+			// TODO Auto-generated method stub
+			conn.close();
+			return pojoList;
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 }
