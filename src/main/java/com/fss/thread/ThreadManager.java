@@ -272,9 +272,13 @@ public class ThreadManager extends Object implements Runnable {
 			pojo.put("001", "<td>" + strThreadName);
 			pojo.put("002", "<td>" + strClassName);
 			if (strClassName.equals("tnt.thread.ExportExcel")) {
-				File template_file = new File(nd.getChild("Parameter").getChild("TemplatePath").getValue());
-				pojo.put("003", "<td>" + "<a href=\"/cntt/download/template/" + template_file.getName() + "/\">"
-						+ template_file.getName() + "<input type=\"file\" class=\"template\">");
+				try {
+					File template_file = new File(nd.getChild("Parameter").getChild("TemplatePath").getValue());
+					pojo.put("003", "<td>" + "<a href=\"/cntt/download/template/" + template_file.getName() + "/\">"
+							+ template_file.getName() + "<input type=\"file\" class=\"template\">");
+				} catch (Exception e) {
+					pojo.put("003", "<td><input type=\"file\" class=\"template\">");
+				}
 			} else
 				pojo.put("003", "<td>");
 

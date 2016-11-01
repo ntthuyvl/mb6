@@ -38,7 +38,6 @@ import pojo.MsaleReseller;
 import pojo.SubReg;
 import pojobase.interfaces.MsaleBase;
 import springweb.controllers.AjaxController;
-import springweb.controllers.BaseController;
 import tool.Util;
 
 import java.io.File;
@@ -60,7 +59,7 @@ import java.text.SimpleDateFormat;
 
 public class MsaleOracleBase extends OracleBase implements MsaleBase {
 	private static HashMap<String, Mb6Fillter> filterBuiledMap = new HashMap<String, Mb6Fillter>();
-	private static ArrayList<String> provinceNumberList = new ArrayList<String>();
+	private ArrayList<String> provinceNumberList = new ArrayList<String>();
 	public File template_dir;
 	public static File download_dir = new File("download");
 	CDRBinManagerTnt tntService;
@@ -222,10 +221,10 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 				+ "A.MEMBER_ID ID_NV_QL, A.MEMBER_CODE MA_NV_QL, A.MEMBER_NAME TEN_NV_QL"
 				+ ",case when c.create_date >= trunc(sysdate-10,'MM') then 1 else 0 end new_member"
 				+ "    FROM MSALES.MEMBER@MSALES_NEW C"
-				+ "         LEFT JOIN MSALES.SALE_ROUTE@MSALES_NEW B ON B.MEMBER_ID = C.MEMBER_ID AND B.STATUS = 1"
-				+ "         LEFT JOIN MSALES.MEMBER@MSALES_NEW A ON B.STAFF_ID = A.MEMBER_ID"
-				+ "         LEFT JOIN MSALES.DISTRICT@MSALES_NEW E ON C.PROVINCE_ID = E.PROVINCE_ID AND C.DISTRICT_ID = E.DISTRICT_ID"
-				+ "          LEFT JOIN out_data.KPI_C6_CHANNEL K ON C.WEBSITE = K.CHANNEL_CODE"
+				+ " LEFT JOIN MSALES.SALE_ROUTE@MSALES_NEW B ON B.MEMBER_ID = C.MEMBER_ID AND B.STATUS = 1"
+				+ " LEFT JOIN MSALES.MEMBER@MSALES_NEW A ON B.STAFF_ID = A.MEMBER_ID"
+				+ " LEFT JOIN MSALES.DISTRICT@MSALES_NEW E ON C.PROVINCE_ID = E.PROVINCE_ID AND C.DISTRICT_ID = E.DISTRICT_ID"
+				+ "  LEFT JOIN out_data.KPI_C6_CHANNEL K ON C.WEBSITE = K.CHANNEL_CODE"
 				+ "    WHERE C.CHANNEL_PATH LIKE '>1>7>%' AND SUBSTR(E.DISTRICT_CODE,1,3) IN ('THO','NAN','HTI','QBI') AND C.MEMBER_TYPE !=7 AND C.STATUS  = 1"
 				+ " and c.longtitude is not null and c.latitude is not null";
 		ResultSet rs = sttm.executeQuery(sql);
@@ -529,7 +528,6 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 					type = String.valueOf(jsonObject.get("type")), app = String.valueOf(jsonObject.get("app"));
 			conn = getConnection();
 			conn.setAutoCommit(false);
-			List<Map<String, String>> pojoList = new LinkedList<Map<String, String>>();
 			if (ez == null || ez.equals(""))
 				ez = "-1";
 			if (type.equals("#tab1")) {
@@ -732,7 +730,6 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 		PreparedStatement prpStm = null;
 		JSONObject jsonObject = new JSONObject(json);
 		String district = null, province = null, chanel = null, macuahang = null;
-		String app = String.valueOf(jsonObject.get("app"));
 		try {
 			macuahang = String.valueOf(jsonObject.get("macuahang"));
 		} catch (Exception e) {
@@ -1152,10 +1149,8 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 				to_date = AjaxController.YYYYMMDD_FORMAT.format(new DateTime().plusDays(-2).toDate());
 			conn = getConnection();
 			List<Map<String, String>> pojoList = new LinkedList<Map<String, String>>();
-			Map<String, String> pojo;
 			if (filterBuiledMap.get(user_name + ".." + app) == null)
 				buildFilter(user_name, app);
-			Mb6Fillter mb6Fillter = filterBuiledMap.get(user_name + ".." + app);
 			if (danh_gia.equals("0")) {
 				prpStm = conn.prepareStatement(
 						"select isdn,to_char(active_date,'YYYYMMDD') active_date ,account,prosub_code "
@@ -1307,8 +1302,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 		PreparedStatement prpStm = null;
 		try {
 			JSONObject jsonObject = new JSONObject(json);
-			String id = "", name = "", end_date = "", sta_date = "", pro_type = "", delete = "0", cpkh = "0",
-					cptt = "0", confirmed = "0";
+			String id = "", name = "", pro_type = "", delete = "0", confirmed = "0";
 			id = String.valueOf(jsonObject.get("id"));
 			pro_type = String.valueOf(jsonObject.get("pro_type"));
 			try {
@@ -1396,7 +1390,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 		ResultSet rs = null;
 		PreparedStatement prpStm = null;
 		try {
-			conn = this.getConnection();
+			conn = getConnection();
 			prpStm = conn.prepareStatement(" SELECT province, so_ez_nhan_tien, ma_cua_hang, ten_cua_hang"
 					+ " , COUNT(CASE WHEN tien_kk > 0 THEN 1 ELSE NULL END) so_luong, SUM(tien_kk) tien_kk"
 					+ "  FROM (SELECT /*+ index(b SCRATCH_DAILY_ID) index(a pre_vms_active_id2) */"
@@ -1456,7 +1450,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 		ResultSet rs = null;
 		PreparedStatement prpStm = null;
 		try {
-			conn = this.getConnection();
+			conn = getConnection();
 			prpStm = conn.prepareStatement(" SELECT a.province, a.reg_by"
 					+ " , b.ma_cua_hang, b.ten_cua_hang, a.dau_9, a.dau_1, a.don_gia10, a.don_gia11, a.thanh_tien"
 					+ "  FROM ( SELECT province, district, reg_by, mshop_id"
@@ -1511,7 +1505,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 		ResultSet rs = null;
 		PreparedStatement prpStm = null;
 		try {
-			conn = this.getConnection();
+			conn = getConnection();
 			prpStm = conn.prepareStatement("SELECT province, so_ez_nhan_tien, ma_cua_hang, ten_cua_hang"
 					+ " , COUNT(isdn), SUM(tien_kk) FROM ( SELECT isdn, active_date, province, district"
 					+ " , ma_cua_hang, ten_cua_hang, SUM(psc) psc, SUM(psc_kk) psc_kk, CASE"
@@ -1573,16 +1567,15 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 			String donvi = (String) jsonObject.get("donvi");
 			String level = (String) jsonObject.get("level");
 			String app = String.valueOf(jsonObject.get("app"));
-			conn = this.getConnection();
+			conn = getConnection();
 			String sql;
 			String sql_fix = ",SUM (NVL (hsrm_a, 0)) hsrm_a,SUM (NVL (hsrm_b, 0)) hsrm_b,"
-					+ "           SUM (NVL (hsrm_c, 0)) hsrm_c,SUM (NVL (hsrm_d, 0)) hsrm_d," + "           ROUND ( 100"
-					+ "               * (SUM (NVL (hsrm_a, 0)) - SUM (NVL (hsrm_b, 0)))"
-					+ "               / DECODE (SUM (NVL (hsrm_a, 0)), 0, 1, SUM (NVL (hsrm_a, 0))),"
-					+ "               2) hsrm_n, ROUND ( 100"
-					+ "               * (SUM (NVL (hsrm_c, 0)) - SUM (NVL (hsrm_d, 0)))"
-					+ "               / DECODE (SUM (NVL (hsrm_c, 0)), 0, 1, SUM (NVL (hsrm_c, 0))),"
-					+ "               2) hsrm_n1 FROM   out_data.hsrm_v";
+					+ "   SUM (NVL (hsrm_c, 0)) hsrm_c,SUM (NVL (hsrm_d, 0)) hsrm_d," + "   ROUND ( 100"
+					+ "       * (SUM (NVL (hsrm_a, 0)) - SUM (NVL (hsrm_b, 0)))"
+					+ "       / DECODE (SUM (NVL (hsrm_a, 0)), 0, 1, SUM (NVL (hsrm_a, 0))),"
+					+ "       2) hsrm_n, ROUND ( 100" + "       * (SUM (NVL (hsrm_c, 0)) - SUM (NVL (hsrm_d, 0)))"
+					+ "       / DECODE (SUM (NVL (hsrm_c, 0)), 0, 1, SUM (NVL (hsrm_c, 0))),"
+					+ "       2) hsrm_n1 FROM   out_data.hsrm_v";
 			if (donvi.equals("666666")) {
 				if (level.equals("0")) {
 					sql = "  SELECT   TYPE" + sql_fix + " GROUP BY   TYPE order by type";
@@ -1633,7 +1626,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 		ResultSet rs = null;
 		PreparedStatement prpStm = null;
 		try {
-			conn = this.getConnection();
+			conn = getConnection();
 			prpStm = conn.prepareStatement("SELECT * FROM hsrm_v WHERE vlr_3k3d is null and status =1");
 			rs = prpStm.executeQuery();
 			return getData(rs, 1, user_name, "3");
@@ -1655,7 +1648,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 					to_date = String.valueOf(jsonObject.get("to_date")), type = String.valueOf(jsonObject.get("type")),
 					donvi = String.valueOf(jsonObject.get("donvi")), level = String.valueOf(jsonObject.get("level"));
 			String app = String.valueOf(jsonObject.get("app"));
-			conn = this.getConnection();
+			conn = getConnection();
 			String sql = "";
 			if (app.equals("1")) {
 				if (type.equals("#tab1")) {// tab tra sau
@@ -1810,7 +1803,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 								+ "					,sub_type,emp_code_reg FROM	 out_data.mc_subscriber_mv"
 								+ "			 WHERE		(delete_datetime IS NULL OR delete_datetime >= TO_DATE(?, 'YYYY-MM-DD'))"
 								+ "					 AND cen_reg = 6 AND(kit_id = 4 OR sub_type = 'ETK')"
-								+ "		             AND get_district_number(province_reg||district_reg) = ? "
+								+ "		     AND get_district_number(province_reg||district_reg) = ? "
 								+ "					 AND shop_code_reg IS NOT NULL"
 								+ "					 AND active_datetime >= TO_DATE(?, 'YYYY-MM-DD')"
 								+ "					 AND active_datetime < TO_DATE(?, 'YYYY-MM-DD') + 1 )"
@@ -2392,7 +2385,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 					sub_type = "ALL";
 				if (area == null || area.equals(""))
 					area = "ALL";
-				conn = this.getConnection();
+				conn = getConnection();
 				if (type.equals("tt")) {
 					sql = "BEGIN delete sub_analyze_tmp;INSERT INTO sub_analyze_tmp(sub_id) SELECT DISTINCT sub_id"
 							+ "  FROM out_data.mc_subscriber_mv "
@@ -2445,7 +2438,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 					area_clause = " and province||district like'" + area + "%'";
 				else
 					area_clause = " AND province IN ('THO', 'NAN', 'QBI', 'HTI')";
-				conn = this.getConnection();
+				conn = getConnection();
 
 				if (type.equals("ts")) {
 
@@ -2518,7 +2511,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 			String month = String.valueOf(jsonObject.get("month")) + "-01";
 			String app = String.valueOf(jsonObject.get("app"));
 			String donvi = String.valueOf(jsonObject.get("donvi")), level = String.valueOf(jsonObject.get("level"));
-			conn = this.getConnection();
+			conn = getConnection();
 			String sql = " SELECT province"
 					+ " , COUNT(CASE WHEN act_chan = '2C_DEPT' THEN sub_id ELSE NULL END) \"chan 2c nocuoc\" "
 					+ " , COUNT(CASE WHEN act_chan = '2C_KHAC' THEN sub_id ELSE NULL END) \"chan 2c khac\""
@@ -2650,8 +2643,8 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 			JSONObject jsonObject = new JSONObject(json);
 			String month = String.valueOf(jsonObject.get("month")) + "-01";
 			String app = String.valueOf(jsonObject.get("app"));
-			String donvi = String.valueOf(jsonObject.get("donvi")), level = String.valueOf(jsonObject.get("level"));
-			conn = this.getConnection();
+			String donvi = String.valueOf(jsonObject.get("donvi"));
+			conn = getConnection();
 			String sql = "";
 			if (donvi.equals("666666")) {
 				sql = " SELECT * FROM cntt_c6.chan_mo_monthly"
@@ -2751,7 +2744,6 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 		Connection conn = null;
 		ResultSet rs = null;
 		PreparedStatement prpStm = null;
-		String separator = ";";
 		// Cau lenh lay thue bao tra truoc
 		String resultSql = " SELECT * from sub_analyze_tmp_v ORDER BY serial, isdn";
 
@@ -2844,7 +2836,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 		PreparedStatement prpStm = null;
 		try {
 			JSONObject jsonObject = new JSONObject(json);
-			conn = this.getConnection();
+			conn = getConnection();
 			buildIsdnTmp(jsonObject, conn, 0);
 			String app = String.valueOf(jsonObject.get("app"));
 			String sql = "select * from out_data.stock_isdn_donle_v WHERE isdn in (select isdn from sub_act_temp)";
@@ -2870,7 +2862,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 					province = String.valueOf(jsonObject.get("province")),
 					sub_type = String.valueOf(jsonObject.get("sub_type"));
 			String app = String.valueOf(jsonObject.get("app"));
-			conn = this.getConnection();
+			conn = getConnection();
 
 			prpStm = conn.prepareStatement(
 					"BEGIN delete sub_analyze_tmp;INSERT INTO sub_analyze_tmp(sub_id) SELECT DISTINCT sub_id"
@@ -2972,7 +2964,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 		try {
 			JSONObject jsonObject = new JSONObject(json);
 			String donvi = String.valueOf(jsonObject.get("donvi")), tab = String.valueOf(jsonObject.get("tab"));
-			conn = this.getConnection();
+			conn = getConnection();
 			String sql;
 			if (tab.equals("#tab1"))
 				sql = "select a.act_type,a.html_des chi_tieu,Nam2016, THANG1, THANG2, THANG3, THANG4, THANG5, THANG6, THANG7,"
@@ -3374,7 +3366,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 		ResultSet rs = null;
 		PreparedStatement prpStm = null;
 		try {
-			conn = this.getConnection();
+			conn = getConnection();
 			String sql;
 			sql = "  SELECT   '<td id=\"id\">' || id id ,'<td>' || pro_name \"TÊN CHƯƠNG TRÌNH\""
 					+ "		  ,'<td class=\"editable cnumber\" id=\"cpkh\">' || cpkh \"CHI PHÍ KẾ HOẠCH\""
@@ -3406,8 +3398,6 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 			String sql = "update mbf6_program set cpkh=?,cptt=? where id=?";
 			prpStm = conn.prepareStatement(sql);
 
-			TreeMap<String, TreeMap<String, String>> khAray = new TreeMap<String, TreeMap<String, String>>();
-			TreeMap<String, String> khMap;
 			String id_update = "";
 			if (cp.length() > 0) {
 				for (int i = 0; i < cp.length(); i++) {
@@ -3993,7 +3983,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 					bill_cycle_id = String.valueOf(jsonObject.get("bill_cycle_id")),
 					param = String.valueOf(jsonObject.get("param"));
 			String app = String.valueOf(jsonObject.get("app"));
-			conn = this.getConnection();
+			conn = getConnection();
 			String sql;
 			if (tonghop == 1) {
 				prpStm = conn.prepareStatement("BEGIN hoa_hong_ttcp.tonghop(to_date(?,'YYYY-MM-DD'), ?); END;");
@@ -4126,10 +4116,8 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 		try {
 			JSONObject jsonObject = new JSONObject(json);
 			String month = String.valueOf(jsonObject.get("month")),
-					bill_cycle_id = String.valueOf(jsonObject.get("bill_cycle_id")),
-					param = String.valueOf(jsonObject.get("param"));
-			String app = String.valueOf(jsonObject.get("app"));
-			conn = this.getConnection();
+					bill_cycle_id = String.valueOf(jsonObject.get("bill_cycle_id"));
+			conn = getConnection();
 
 			prpStm = conn.prepareStatement("BEGIN hoa_hong_ttcp.close_cycle(to_date(?,'YYYY-MM-DD'), ?); END;");
 			prpStm.setString(1, month + "-01");
@@ -4152,11 +4140,9 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 		try {
 			JSONObject jsonObject = new JSONObject(json);
 			String month = String.valueOf(jsonObject.get("month")),
-					bill_cycle_id = String.valueOf(jsonObject.get("bill_cycle_id")),
-					param = String.valueOf(jsonObject.get("param"));
+					bill_cycle_id = String.valueOf(jsonObject.get("bill_cycle_id"));
 			String app = String.valueOf(jsonObject.get("app"));
-			conn = this.getConnection();
-			String sql;
+			conn = getConnection();
 
 			prpStm = conn.prepareStatement(
 					"SELECT COUNT(1) closed FROM hhtc_cycle WHERE month = to_date(?,'YYYY-MM-DD') AND bill_cycle_id = ? AND status = 1");
@@ -4188,8 +4174,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 			// tien_nop_nh, ma_nv, ma_ez_daily, pay_area_code_man,end_date =
 			// null;
 
-			String id, kh_90, kh_no_dong_n, kh_no_dong_n1, no_dk, tien_nop_nh, ma_nv, ma_ez_daily, end_date = "",
-					pay_area_code_man, kh_tttd, hscl, dg_nds, dg_ndn, dg_ndn1;
+			String id, ma_nv, ma_ez_daily, end_date = "", pay_area_code_man, hscl, dg_nds, dg_ndn, dg_ndn1;
 			String app = String.valueOf(jsonObject.get("app"));
 			String id_where = "and a.collection_group_id in (";
 			prpStm = conn.prepareStatement("UPDATE hhtc_dl_thu_cuoc SET   ma_nv = ?,ma_ez_daily =?"
@@ -4319,8 +4304,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 			// String id, kh_90, kh_no_dong_n, kh_no_dong_n1, no_dk,
 			// tien_nop_nh, kh_tttd, hscl, end_date = null;
 
-			String id, kh_90, kh_no_dong_n, kh_no_dong_n1, no_dk, tien_nop_nh, ma_nv, ma_ez_daily, end_date = "",
-					pay_area_code_man, kh_tttd, hscl, dg_nds, dg_ndn, dg_ndn1;
+			String id, kh_90, kh_no_dong_n, kh_no_dong_n1, no_dk, tien_nop_nh, end_date = "", kh_tttd;
 
 			String id_where = "and a.collection_group_id in (";
 			for (int i = 0; i < jsonArray.length(); i++) {
@@ -4613,7 +4597,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 		PreparedStatement prpStm = null;
 		try {
 			JSONObject jsonObject = new JSONObject(json);
-			conn = this.getConnection();
+			conn = getConnection();
 			conn.setAutoCommit(false);
 			buildIsdnTmp(jsonObject, conn, 0);
 			String app = String.valueOf(jsonObject.get("app"));
@@ -4671,69 +4655,35 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 				donvi = "";
 			}
 
-			conn = this.getConnection();
+			conn = getConnection();
 			String sql;
+			String sql_fix = "SELECT /*+DRIVING_SITE(b)*/ distinct '<td id = \"province\" >' || b.PROVINCE PROVINCE"
+					+ ",'<td id = \"district\" >' || b.district district,"
+					+ "'<td id = \"sub_id\" > <a target=\"_blank\" href=\"http://qlkh.mobifone.vn/1090/mobifone.jsp?txtSubID='||b.sub_id ||'&chkCheck=ACT&frmAction=SearchSub\">'||b.sub_id sub_id"
+					+ ",'<td id = \"isdn\" >'||b.isdn isdn,'<td id = \"name\" >'||b.name name"
+					+ ",'<td id = \"address\" >'||b.pay_full_address address"
+					+ ",'<td id = \"last_act\" class = \"canclick\" >'||a.last_act last_act"
+					+ ",'<td id = \"input_type\" >'||decode(a.input_type,1,'Chặn 2 chiều',2,'Chặn 1 chiều',3,'7 ngày ko psc',4) input_type"
+					+ ",'<td id = \"status\" >' ||b.status status"
+					+ ",'<td id = \"act_status\" >'||b.act_status act_status"
+					+ ",'<td id = \"input_date\" >'||to_char(a.input_date,'YYYY-MM-DD') input_date"
+					+ " FROM cskh_detai_sub_v a INNER JOIN (SELECT * FROM out_data.subscriber_v "
+					+ " WHERE sub_id IN (SELECT sub_id FROM cskh_detai_sub WHERE close_date IS NULL)) b ON a.sub_id = b.sub_id";
 			if (donvi.equals("666666")) {
-				sql = "SELECT /*+DRIVING_SITE(b)*/ '<td id = \"province\" >' || b.PROVINCE PROVINCE"
-						+ ",'<td id = \"district\" >' || b.district district,"
-						+ "'<td id = \"sub_id\" > <a target=\"_blank\" href=\"http://qlkh.mobifone.vn/1090/mobifone.jsp?txtSubID='||b.sub_id ||'&chkCheck=ACT&frmAction=SearchSub\">'||b.sub_id sub_id"
-						+ ",'<td id = \"isdn\" >'||b.isdn isdn,'<td id = \"name\" >'||b.name name"
-						+ ",'<td id = \"address\" >'||b.pay_full_address address"
-						+ ",'<td id = \"last_act\" class = \"canclick\" >'||a.last_act last_act"
-						+ ",'<td id = \"input_type\" >'||decode(a.input_type,1,'Chặn 2 chiều',2,'Chặn 1 chiều',3,'7 ngày ko psc',4) input_type"
-						+ ",'<td id = \"status\" >' ||b.status status"
-						+ ",'<td id = \"act_status\" >'||b.act_status act_status"
-						+ ",'<td id = \"input_date\" >'||to_char(a.input_date,'YYYY-MM-DD') input_date"
-						+ " FROM cskh_detai_sub_v a INNER JOIN"
-						+ " out_data.subscriber_v b ON a.sub_id = b.sub_id where close_date is null"
-						+ " order by a.input_type,a.input_date";
+				sql = sql_fix + " where close_date is null order by last_act,input_type,input_date";
 				prpStm = conn.prepareStatement(sql);
 			} else if (provinceNumberList.contains(donvi)) {
-				sql = "SELECT /*+DRIVING_SITE(b)*/ '<td id = \"province\" >' || b.PROVINCE PROVINCE"
-						+ ",'<td id = \"district\" >' || b.district district,"
-						+ "'<td id = \"sub_id\" > <a target=\"_blank\" href=\"http://qlkh.mobifone.vn/1090/mobifone.jsp?txtSubID='||b.sub_id ||'&chkCheck=ACT&frmAction=SearchSub\">'||b.sub_id sub_id"
-						+ ",'<td id = \"isdn\" >'||b.isdn isdn,'<td id = \"name\" >'||b.name name"
-						+ ",'<td id = \"address\" >'||b.pay_full_address address"
-						+ ",'<td id = \"last_act\" class = \"canclick\" >'||a.last_act last_act"
-						+ ",'<td id = \"input_type\" >'||decode(a.input_type,1,'Chặn 2 chiều',2,'Chặn 1 chiều',3,'7 ngày ko psc',4) input_type"
-						+ ",'<td id = \"status\" >' ||b.status status"
-						+ ",'<td id = \"act_status\" >'||b.act_status act_status"
-						+ ",'<td id = \"input_date\" >'||to_char(a.input_date,'YYYY-MM-DD') input_date"
-						+ " FROM cskh_detai_sub_v a INNER JOIN"
-						+ " out_data.subscriber_v b ON a.sub_id = b.sub_id where close_date is null and b.province=get_province_code(?)"
-						+ " order by a.input_type,a.input_date";
+				sql = sql_fix
+						+ " where close_date is null and b.province=get_province_code(?) order by last_act,input_type,input_date";
 				prpStm = conn.prepareStatement(sql);
 				prpStm.setString(1, donvi);
 			} else if (isdn.equals("")) {
-				sql = "SELECT /*+DRIVING_SITE(b)*/ '<td id = \"province\" >' || b.PROVINCE PROVINCE"
-						+ ",'<td id = \"district\" >' || b.district district,"
-						+ "'<td id = \"sub_id\" > <a target=\"_blank\" href=\"http://qlkh.mobifone.vn/1090/mobifone.jsp?txtSubID='||b.sub_id ||'&chkCheck=ACT&frmAction=SearchSub\">'||b.sub_id sub_id"
-						+ ",'<td id = \"isdn\" >'||b.isdn isdn,'<td id = \"name\" >'||b.name name"
-						+ ",'<td id = \"address\" >'||b.pay_full_address address"
-						+ ",'<td id = \"last_act\" class = \"canclick\" >'||a.last_act last_act"
-						+ ",'<td id = \"input_type\" >'||decode(a.input_type,1,'Chặn 2 chiều',2,'Chặn 1 chiều',3,'7 ngày ko psc',4) input_type"
-						+ ",'<td id = \"status\" >' ||b.status status"
-						+ ",'<td id = \"act_status\" >'||b.act_status act_status"
-						+ ",'<td id = \"input_date\" >'||to_char(a.input_date,'YYYY-MM-DD') input_date"
-						+ " FROM cskh_detai_sub_v a INNER JOIN"
-						+ " out_data.subscriber_v b ON a.sub_id = b.sub_id where close_date is null and get_district_number(b.province||b.district) = ?"
-						+ " order by a.input_type,a.input_date";
+				sql = sql_fix + " where close_date is null and get_district_number(b.province||b.district) = ?"
+						+ " order by  last_act,input_type,input_date";
 				prpStm = conn.prepareStatement(sql);
 				prpStm.setString(1, donvi);
 			} else {
-				sql = "SELECT /*+DRIVING_SITE(b)*/ '<td id = \"province\" >' || b.PROVINCE PROVINCE"
-						+ ",'<td id = \"district\" >' || b.district district,"
-						+ "'<td id = \"sub_id\" > <a target=\"_blank\" href=\"http://qlkh.mobifone.vn/1090/mobifone.jsp?txtSubID='||b.sub_id ||'&chkCheck=ACT&frmAction=SearchSub\">'||b.sub_id sub_id"
-						+ ",'<td id = \"isdn\" >'||b.isdn isdn,'<td id = \"name\" >'||b.name name"
-						+ ",'<td id = \"address\" >'||b.pay_full_address address"
-						+ ",'<td id = \"last_act\" class = \"canclick\" >'||a.last_act last_act"
-						+ ",'<td id = \"input_type\" >'||decode(a.input_type,1,'Chặn 2 chiều',2,'Chặn 1 chiều',3,'7 ngày ko psc',4) input_type"
-						+ ",'<td id = \"status\" >' ||b.status status"
-						+ ",'<td id = \"act_status\" >'||b.act_status act_status"
-						+ ",'<td id = \"input_date\" >'||to_char(a.input_date,'YYYY-MM-DD') input_date"
-						+ " FROM cskh_detai_sub_v a INNER JOIN"
-						+ " out_data.subscriber_v b ON a.sub_id = b.sub_id where b.isdn = ?"
-						+ " order by a.input_type,a.input_date";
+				sql = sql_fix + " where b.isdn = ?" + " order by last_act";
 				prpStm = conn.prepareStatement(sql);
 				prpStm.setString(1, isdn);
 			}
@@ -4758,11 +4708,11 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 			String sub_id = (String) jsonObject.get("sub_id");
 			String input_date = (String) jsonObject.get("input_date");
 			String app = String.valueOf(jsonObject.get("app"));
-			conn = this.getConnection();
+			conn = getConnection();
 			String sql;
 			sql = "select cskh_detai.get_act_label(act) act"
 					+ " ,decode(act_status,'0','Đang thực hiện','1','Đã xong') act_status"
-					+ " ,act_comment, act_time, user_name  from cskh_detai_care_history_v"
+					+ " ,act_comment, act_time, user_name  from cskh_detai_sub_v"
 					+ " where sub_id = ? and input_date >= to_date(?,'YYYY-MM-DD')"
 					+ " and input_date < to_date(?,'YYYY-MM-DD')+1 and act_time is not null"
 					+ " order by act_time desc";
@@ -4794,7 +4744,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 			String comment = (String) jsonObject.get("comment");
 			String app = String.valueOf(jsonObject.get("app"));
 			String act_date = new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date());
-			conn = this.getConnection();
+			conn = getConnection();
 			String sql;
 
 			/*
@@ -4838,7 +4788,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 					donvi = String.valueOf(jsonObject.get("donvi"));
 			String level = String.valueOf(jsonObject.get("level"));
 			String app = String.valueOf(jsonObject.get("app"));
-			conn = this.getConnection();
+			conn = getConnection();
 			prpStm = conn.prepareStatement(
 					"begin set_mb6_program_ctx_pkg.setFromAndToDate(to_date(?,'YYYY-MM-DD'),to_date(?,'YYYY-MM-DD')) ; end;");
 			prpStm.setString(1, from_date);
@@ -4847,127 +4797,43 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 			prpStm.close();
 
 			String sql;
+			String sql_fix = "'<td id = \"sltb\" class = \"canclick cnumber\" >'||count (distinct sub_id||close_date) sltb"
+					+ ",'<td id = \"sltb_het_nguy_co\" class = \"canclick cnumber\" >'||count (distinct case when close_date is not null and close_date < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 then sub_id||close_date else null end) sltb_het_nguy_co"
+					+ ",'<td id = \"sltb_binh_thuong\" class = \"canclick cnumber\" >'||count (distinct case when close_date is not null and close_date < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 and close_status = 1 then sub_id||close_date else null end) sltb_binh_thuong"
+					+ ",'<td id = \"sltb_bt_co_cham_soc\" class = \"canclick cnumber\" >'||count (distinct case when close_date is not null and close_date < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 and close_status = 1 and act_time is not null and to_date(act_time,'YYYYMMDD-HH24MISS') >=TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'fromDate'), 'YYYYMMDD') and to_date(act_time,'YYYYMMDD-HH24MISS') < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 and act <>'0' then sub_id||close_date else null end) sltb_bt_co_cham_soc"
+					+ ",'<td id = \"co_hanh_dong\" class = \"canclick cnumber\" >'||count (distinct case when act_time is not null and to_date(act_time,'YYYYMMDD-HH24MISS') >=TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'fromDate'), 'YYYYMMDD') and to_date(act_time,'YYYYMMDD-HH24MISS') < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 then sub_id||close_date else null end) co_hanh_dong"
+					+ ",'<td id = \"co_hanh_dong_cham_soc\" class = \"canclick cnumber\" >'||count (distinct case when act_time is not null and to_date(act_time,'YYYYMMDD-HH24MISS') >=TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'fromDate'), 'YYYYMMDD') and to_date(act_time,'YYYYMMDD-HH24MISS') < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 and act <>'0' then sub_id||close_date else null end) co_hanh_dong_cham_soc"
+					+ ",'<td id = \"chua_co_hanh_dong\" class = \"canclick cnumber\" >'||count (distinct case when act_time is null or to_date(min_act_time,'YYYYMMDD-HH24MISS') > TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 then sub_id||close_date else null end) chua_co_hanh_dong "
+					+ ",'<td id = \"can_co_hanh_dong\" class = \"canclick cnumber\" >'||count (distinct case when (close_date is null or close_date > TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1) and (act_time is null or to_date(min_act_time,'YYYYMMDD-HH24MISS') > TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1) then sub_id||close_date else null end) can_co_hanh_dong "
+					+ " from cskh_detai_sub_v "
+					+ " where input_date < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')  +1 and (close_date is null or close_date >= TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'fromDate'), 'YYYYMMDD'))";
 			if (donvi.equals("666666")) {
 				if (level.equals("0")) {
-					sql = "select '<td id = \"sltb\" class = \"canclick cnumber\" >'||count (distinct sub_id||close_date) sltb"
-							+ ",'<td id = \"sltb_het_nguy_co\" class = \"canclick cnumber\" >'||count (distinct case when close_date is not null and close_date < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 then sub_id||close_date else null end) sltb_het_nguy_co"
-							+ ",'<td id = \"sltb_binh_thuong\" class = \"canclick cnumber\" >'||count (distinct case when close_date is not null and close_date < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 and close_status = 1 then sub_id||close_date else null end) sltb_binh_thuong"
-							+ ",'<td id = \"sltb_bt_co_cham_soc\" class = \"canclick cnumber\" >'||count (distinct case when close_date is not null and close_date < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 and close_status = 1 and act_time is not null and to_date(act_time,'YYYYMMDD-HH24MISS') >=TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'fromDate'), 'YYYYMMDD') and to_date(act_time,'YYYYMMDD-HH24MISS') < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 and act <>'0' then sub_id||close_date else null end) sltb_bt_co_cham_soc"
-							+ ",'<td id = \"co_hanh_dong\" class = \"canclick cnumber\" >'||count (distinct case when act_time is not null and to_date(act_time,'YYYYMMDD-HH24MISS') >=TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'fromDate'), 'YYYYMMDD') and to_date(act_time,'YYYYMMDD-HH24MISS') < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 then sub_id||close_date else null end) co_hanh_dong"
-							+ ",'<td id = \"co_hanh_dong_cham_soc\" class = \"canclick cnumber\" >'||count (distinct case when act_time is not null and to_date(act_time,'YYYYMMDD-HH24MISS') >=TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'fromDate'), 'YYYYMMDD') and to_date(act_time,'YYYYMMDD-HH24MISS') < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 and act <>'0' then sub_id||close_date else null end) co_hanh_dong_cham_soc"
-							+ " from cskh_detai_sub a LEFT JOIN XMLTABLE('/acts/act'"
-							+ "                                      PASSING a.care_history"
-							+ "                                      COLUMNS act_time VARCHAR2(16) PATH '@t'"
-							+ "                                             ,user_name VARCHAR2(100) PATH '@u'"
-							+ "                                             ,act VARCHAR2(100) PATH '@a'"
-							+ "                                             ,act_status VARCHAR2(100) PATH '@s'"
-							+ "                                             ,act_comment VARCHAR2(4000) PATH '@c'"
-							+ "                                             ) x ON (1 = 1)"
-							+ " where input_date < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')  +1 and (close_date is null or close_date >= TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'fromDate'), 'YYYYMMDD'))";
-
+					sql = "select " + sql_fix;
 				} else if (level.equals("1")) {
-					sql = "select '<td id = \"province\">'|| province province"
-							+ ",'<td id = \"sltb\" class = \"canclick cnumber\" >'||count (distinct sub_id||close_date) sltb"
-							+ ",'<td id = \"sltb_het_nguy_co\" class = \"canclick cnumber\" >'||count (distinct case when close_date is not null and close_date < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 then sub_id||close_date else null end) sltb_het_nguy_co"
-							+ ",'<td id = \"sltb_binh_thuong\" class = \"canclick cnumber\" >'||count (distinct case when close_date is not null and close_date < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 and close_status = 1 then sub_id||close_date else null end) sltb_binh_thuong"
-							+ ",'<td id = \"sltb_bt_co_cham_soc\" class = \"canclick cnumber\" >'||count (distinct case when close_date is not null and close_date < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 and close_status = 1 and act_time is not null and to_date(act_time,'YYYYMMDD-HH24MISS') >=TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'fromDate'), 'YYYYMMDD') and to_date(act_time,'YYYYMMDD-HH24MISS') < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 and act <>'0' then sub_id||close_date else null end) sltb_bt_co_cham_soc"
-							+ ",'<td id = \"co_hanh_dong\" class = \"canclick cnumber\" >'||count (distinct case when act_time is not null and to_date(act_time,'YYYYMMDD-HH24MISS') >=TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'fromDate'), 'YYYYMMDD') and to_date(act_time,'YYYYMMDD-HH24MISS') < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 then sub_id||close_date else null end) co_hanh_dong"
-							+ ",'<td id = \"co_hanh_dong_cham_soc\" class = \"canclick cnumber\" >'||count (distinct case when act_time is not null and to_date(act_time,'YYYYMMDD-HH24MISS') >=TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'fromDate'), 'YYYYMMDD') and to_date(act_time,'YYYYMMDD-HH24MISS') < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 and act <>'0' then sub_id||close_date else null end) co_hanh_dong_cham_soc"
-							+ " from cskh_detai_sub a LEFT JOIN XMLTABLE('/acts/act'"
-							+ "                                      PASSING a.care_history"
-							+ "                                      COLUMNS act_time VARCHAR2(16) PATH '@t'"
-							+ "                                             ,user_name VARCHAR2(100) PATH '@u'"
-							+ "                                             ,act VARCHAR2(100) PATH '@a'"
-							+ "                                             ,act_status VARCHAR2(100) PATH '@s'"
-							+ "                                             ,act_comment VARCHAR2(4000) PATH '@c'"
-							+ "                                             ) x ON (1 = 1)"
-							+ " where input_date < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')  +1 and (close_date is null or close_date >= TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'fromDate'), 'YYYYMMDD'))"
-							+ " group by province";
-
+					sql = "select '<td id = \"province\">'|| province province," + sql_fix + " group by province";
 				} else {
 					sql = "select '<td id = \"province\">'|| province province"
-							+ ",'<td id = \"district\">'|| district district"
-							+ ",'<td id = \"sltb\" class = \"canclick cnumber\" >'||count (distinct sub_id||close_date) sltb"
-							+ ",'<td id = \"sltb_het_nguy_co\" class = \"canclick cnumber\" >'||count (distinct case when close_date is not null and close_date < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 then sub_id||close_date else null end) sltb_het_nguy_co"
-							+ ",'<td id = \"sltb_binh_thuong\" class = \"canclick cnumber\" >'||count (distinct case when close_date is not null and close_date < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 and close_status = 1 then sub_id||close_date else null end) sltb_binh_thuong"
-							+ ",'<td id = \"sltb_bt_co_cham_soc\" class = \"canclick cnumber\" >'||count (distinct case when close_date is not null and close_date < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 and close_status = 1 and act_time is not null and to_date(act_time,'YYYYMMDD-HH24MISS') >=TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'fromDate'), 'YYYYMMDD') and to_date(act_time,'YYYYMMDD-HH24MISS') < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 and act <>'0' then sub_id||close_date else null end) sltb_bt_co_cham_soc"
-							+ ",'<td id = \"co_hanh_dong\" class = \"canclick cnumber\" >'||count (distinct case when act_time is not null and to_date(act_time,'YYYYMMDD-HH24MISS') >=TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'fromDate'), 'YYYYMMDD') and to_date(act_time,'YYYYMMDD-HH24MISS') < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 then sub_id||close_date else null end) co_hanh_dong"
-							+ ",'<td id = \"co_hanh_dong_cham_soc\" class = \"canclick cnumber\" >'||count (distinct case when act_time is not null and to_date(act_time,'YYYYMMDD-HH24MISS') >=TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'fromDate'), 'YYYYMMDD') and to_date(act_time,'YYYYMMDD-HH24MISS') < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 and act <>'0' then sub_id||close_date else null end) co_hanh_dong_cham_soc"
-							+ " from cskh_detai_sub a LEFT JOIN XMLTABLE('/acts/act'"
-							+ "                                      PASSING a.care_history"
-							+ "                                      COLUMNS act_time VARCHAR2(16) PATH '@t'"
-							+ "                                             ,user_name VARCHAR2(100) PATH '@u'"
-							+ "                                             ,act VARCHAR2(100) PATH '@a'"
-							+ "                                             ,act_status VARCHAR2(100) PATH '@s'"
-							+ "                                             ,act_comment VARCHAR2(4000) PATH '@c'"
-							+ "                                             ) x ON (1 = 1)"
-							+ " where input_date < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')  +1 and (close_date is null or close_date >= TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'fromDate'), 'YYYYMMDD'))"
+							+ ",'<td id = \"district\">'|| district district," + sql_fix
 							+ " GROUP BY   province,district";
 				}
 				prpStm = conn.prepareStatement(sql);
 
 			} else if (provinceNumberList.contains(donvi)) {
 				if (level.equals("0") || level.equals("1")) {
-					sql = "select '<td id = \"province\">'|| province province"
-							+ ",'<td id = \"sltb\" class = \"canclick cnumber\" >'||count (distinct sub_id||close_date) sltb"
-							+ ",'<td id = \"sltb_het_nguy_co\" class = \"canclick cnumber\" >'||count (distinct case when close_date is not null and close_date < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 then sub_id||close_date else null end) sltb_het_nguy_co"
-							+ ",'<td id = \"sltb_binh_thuong\" class = \"canclick cnumber\" >'||count (distinct case when close_date is not null and close_date < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 and close_status = 1 then sub_id||close_date else null end) sltb_binh_thuong"
-							+ ",'<td id = \"sltb_bt_co_cham_soc\" class = \"canclick cnumber\" >'||count (distinct case when close_date is not null and close_date < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 and close_status = 1 and act_time is not null and to_date(act_time,'YYYYMMDD-HH24MISS') >=TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'fromDate'), 'YYYYMMDD') and to_date(act_time,'YYYYMMDD-HH24MISS') < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 and act <>'0' then sub_id||close_date else null end) sltb_bt_co_cham_soc"
-							+ ",'<td id = \"co_hanh_dong\" class = \"canclick cnumber\" >'||count (distinct case when act_time is not null and to_date(act_time,'YYYYMMDD-HH24MISS') >=TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'fromDate'), 'YYYYMMDD') and to_date(act_time,'YYYYMMDD-HH24MISS') < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 then sub_id||close_date else null end) co_hanh_dong"
-							+ ",'<td id = \"co_hanh_dong_cham_soc\" class = \"canclick cnumber\" >'||count (distinct case when act_time is not null and to_date(act_time,'YYYYMMDD-HH24MISS') >=TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'fromDate'), 'YYYYMMDD') and to_date(act_time,'YYYYMMDD-HH24MISS') < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 and act <>'0' then sub_id||close_date else null end) co_hanh_dong_cham_soc"
-							+ " from cskh_detai_sub a LEFT JOIN XMLTABLE('/acts/act'"
-							+ "                                      PASSING a.care_history"
-							+ "                                      COLUMNS act_time VARCHAR2(16) PATH '@t'"
-							+ "                                             ,user_name VARCHAR2(100) PATH '@u'"
-							+ "                                             ,act VARCHAR2(100) PATH '@a'"
-							+ "                                             ,act_status VARCHAR2(100) PATH '@s'"
-							+ "                                             ,act_comment VARCHAR2(4000) PATH '@c'"
-							+ "                                             ) x ON (1 = 1)"
-							+ " where input_date < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')  +1 and (close_date is null or close_date >= TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'fromDate'), 'YYYYMMDD'))"
+					sql = "select '<td id = \"province\">'|| province province," + sql_fix
 							+ "	 AND province =get_province_code(?) group by province";
-
 				} else {
 					sql = "select '<td id = \"province\">'|| province province"
-							+ ",'<td id = \"district\">'|| district district"
-							+ ",'<td id = \"sltb\" class = \"canclick cnumber\" >'||count (distinct sub_id||close_date) sltb"
-							+ ",'<td id = \"sltb_het_nguy_co\" class = \"canclick cnumber\" >'||count (distinct case when close_date is not null and close_date < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 then sub_id||close_date else null end) sltb_het_nguy_co"
-							+ ",'<td id = \"sltb_binh_thuong\" class = \"canclick cnumber\" >'||count (distinct case when close_date is not null and close_date < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 and close_status = 1 then sub_id||close_date else null end) sltb_binh_thuong"
-							+ ",'<td id = \"sltb_bt_co_cham_soc\" class = \"canclick cnumber\" >'||count (distinct case when close_date is not null and close_date < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 and close_status = 1 and act_time is not null and to_date(act_time,'YYYYMMDD-HH24MISS') >=TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'fromDate'), 'YYYYMMDD') and to_date(act_time,'YYYYMMDD-HH24MISS') < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 and act <>'0' then sub_id||close_date else null end) sltb_bt_co_cham_soc"
-							+ ",'<td id = \"co_hanh_dong\" class = \"canclick cnumber\" >'||count (distinct case when act_time is not null and to_date(act_time,'YYYYMMDD-HH24MISS') >=TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'fromDate'), 'YYYYMMDD') and to_date(act_time,'YYYYMMDD-HH24MISS') < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 then sub_id||close_date else null end) co_hanh_dong"
-							+ ",'<td id = \"co_hanh_dong_cham_soc\" class = \"canclick cnumber\" >'||count (distinct case when act_time is not null and to_date(act_time,'YYYYMMDD-HH24MISS') >=TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'fromDate'), 'YYYYMMDD') and to_date(act_time,'YYYYMMDD-HH24MISS') < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 and act <>'0' then sub_id||close_date else null end) co_hanh_dong_cham_soc"
-							+ " from cskh_detai_sub a LEFT JOIN XMLTABLE('/acts/act'"
-							+ "                                      PASSING a.care_history"
-							+ "                                      COLUMNS act_time VARCHAR2(16) PATH '@t'"
-							+ "                                             ,user_name VARCHAR2(100) PATH '@u'"
-							+ "                                             ,act VARCHAR2(100) PATH '@a'"
-							+ "                                             ,act_status VARCHAR2(100) PATH '@s'"
-							+ "                                             ,act_comment VARCHAR2(4000) PATH '@c'"
-							+ "                                             ) x ON (1 = 1)"
-							+ " where input_date < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')  +1 and (close_date is null or close_date >= TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'fromDate'), 'YYYYMMDD'))"
+							+ ",'<td id = \"district\">'|| district district," + sql_fix
 							+ "  AND province =get_province_code(?) GROUP BY   province,district";
-
 				}
 				prpStm = conn.prepareStatement(sql);
 				prpStm.setString(1, donvi);
 			} else {
 				sql = "select '<td id = \"province\">'|| province province"
-						+ ",'<td id = \"district\">'|| district district"
-						+ ",'<td id = \"sltb\" class = \"canclick cnumber\" >'||count (distinct sub_id||close_date) sltb"
-						+ ",'<td id = \"sltb_het_nguy_co\" class = \"canclick cnumber\" >'||count (distinct case when close_date is not null and close_date < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 then sub_id||close_date else null end) sltb_het_nguy_co"
-						+ ",'<td id = \"sltb_binh_thuong\" class = \"canclick cnumber\" >'||count (distinct case when close_date is not null and close_date < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 and close_status = 1 then sub_id||close_date else null end) sltb_binh_thuong"
-						+ ",'<td id = \"sltb_bt_co_cham_soc\" class = \"canclick cnumber\" >'||count (distinct case when close_date is not null and close_date < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 and close_status = 1 and act_time is not null and to_date(act_time,'YYYYMMDD-HH24MISS') >=TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'fromDate'), 'YYYYMMDD') and to_date(act_time,'YYYYMMDD-HH24MISS') < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 and act <>'0' then sub_id||close_date else null end) sltb_bt_co_cham_soc"
-						+ ",'<td id = \"co_hanh_dong\" class = \"canclick cnumber\" >'||count (distinct case when act_time is not null and to_date(act_time,'YYYYMMDD-HH24MISS') >=TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'fromDate'), 'YYYYMMDD') and to_date(act_time,'YYYYMMDD-HH24MISS') < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 then sub_id||close_date else null end) co_hanh_dong"
-						+ ",'<td id = \"co_hanh_dong_cham_soc\" class = \"canclick cnumber\" >'||count (distinct case when act_time is not null and to_date(act_time,'YYYYMMDD-HH24MISS') >=TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'fromDate'), 'YYYYMMDD') and to_date(act_time,'YYYYMMDD-HH24MISS') < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 and act <>'0' then sub_id||close_date else null end) co_hanh_dong_cham_soc"
-						+ " from cskh_detai_sub a LEFT JOIN XMLTABLE('/acts/act'"
-						+ "                                      PASSING a.care_history"
-						+ "                                      COLUMNS act_time VARCHAR2(16) PATH '@t'"
-						+ "                                             ,user_name VARCHAR2(100) PATH '@u'"
-						+ "                                             ,act VARCHAR2(100) PATH '@a'"
-						+ "                                             ,act_status VARCHAR2(100) PATH '@s'"
-						+ "                                             ,act_comment VARCHAR2(4000) PATH '@c'"
-						+ "                                             ) x ON (1 = 1)"
-						+ " where input_date < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD') +1 and (close_date is null or close_date >= TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'fromDate'), 'YYYYMMDD'))"
-						+ "		   AND get_district_number(province||district) = ? GROUP BY   province,district";
+						+ ",'<td id = \"district\">'|| district district," + sql_fix
+						+ " AND get_district_number(province||district) = ? GROUP BY   province,district";
 				prpStm = conn.prepareStatement(sql);
 				prpStm.setString(1, donvi);
 			}
@@ -5000,7 +4866,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 				area_clause = " and a.province||a.district like'" + area + "%'";
 			else
 				area_clause = "";
-			conn = this.getConnection();
+			conn = getConnection();
 			String sql;
 
 			prpStm = conn.prepareStatement(
@@ -5020,10 +4886,19 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 				column_clause = " and act_time is not null and to_date(act_time,'YYYYMMDD-HH24MISS') >=TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'fromDate'), 'YYYYMMDD') and to_date(act_time,'YYYYMMDD-HH24MISS') < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1";
 			else if (column.equals("co_hanh_dong_cham_soc"))
 				column_clause = " and act_time is not null and to_date(act_time,'YYYYMMDD-HH24MISS') >=TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'fromDate'), 'YYYYMMDD') and to_date(act_time,'YYYYMMDD-HH24MISS') < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1 and act <>'0'";
+			else if (column.equals("chua_co_hanh_dong"))
+				column_clause = " and  act_time is null or to_date(min_act_time,'YYYYMMDD-HH24MISS') > TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD') +1";
+			else if (column.equals("can_co_hanh_dong"))
+				column_clause = " and (close_date is null or close_date > TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1) and (act_time is null or to_date(min_act_time,'YYYYMMDD-HH24MISS') > TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD')+1)";
 
 			sql = "select distinct b.PROVINCE, b.DISTRICT, b.ISDN, b.SUB_ID, decode(a.input_type,1,'Chặn 2 chiều',2,'Chặn 1 chiều',3,'7 ngày ko psc',4) INPUT_TYPE, a.INPUT_DATE "
-					+ ", a.CLOSE_STATUS, a.CLOSE_DATE,a.last_act"
-					+ " FROM CSKH_DETAI_CARE_HISTORY_V a INNER JOIN out_data.subscriber_v b ON a.sub_id = b.sub_id"
+					+ ", a.CLOSE_STATUS, a.CLOSE_DATE,a.last_act" + " FROM cskh_detai_sub_v a INNER JOIN  (SELECT *"
+					+ "  FROM out_data.subscriber_v" + "  WHERE sub_id IN" + "        (SELECT sub_id"
+					+ " FROM cskh_detai_sub" + " WHERE input_date <" + "   TO_DATE("
+					+ "       SYS_CONTEXT('mb6_program_ctx', 'toDate')" + "      ,'YYYYMMDD')" + "   + 1"
+					+ "   AND (close_date IS NULL" + "     OR close_date >=" + "    TO_DATE("
+					+ "        SYS_CONTEXT('mb6_program_ctx'" + "   ,'fromDate')"
+					+ "       ,'YYYYMMDD')))) b ON a.sub_id = b.sub_id"
 					+ " where input_date < TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'toDate'), 'YYYYMMDD') +1 and (close_date is null or close_date >= TO_DATE(SYS_CONTEXT('mb6_program_ctx', 'fromDate'), 'YYYYMMDD')) "
 					+ column_clause + area_clause;
 			prpStm = conn.prepareStatement(sql);
@@ -5084,7 +4959,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 				donvi = "";
 			}
 
-			conn = this.getConnection();
+			conn = getConnection();
 			String sql;
 			if (donvi.equals("666666")) {
 				// sql = "select SUB_ID, NAME, ADDRESS, PHONE, STATUS,
@@ -5165,7 +5040,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 			JSONObject jsonObject = new JSONObject(json);
 			String sub_id = (String) jsonObject.get("sub_id");
 			String app = String.valueOf(jsonObject.get("app"));
-			conn = this.getConnection();
+			conn = getConnection();
 			String sql;
 			sql = "select cskh_detai.get_act_label(act) act"
 					+ " ,decode(act_status,'0','Đang thực hiện','1','Đã xong') act_status"
@@ -5196,7 +5071,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 			String comment = (String) jsonObject.get("comment");
 			String app = String.valueOf(jsonObject.get("app"));
 			String act_date = new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date());
-			conn = this.getConnection();
+			conn = getConnection();
 			String sql;
 
 			/*
@@ -5282,7 +5157,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 					+ ",round(SUM(MULTIMEDIA_B)/count(distinct ngay_tong_hop)) MULTIMEDIA_B"
 					+ ",round(SUM(VOLUMN_DATA)/count(distinct ngay_tong_hop),2) VOLUMN_DATA"
 					+ ",round(SUM(VOLUMN_SMS)/count(distinct ngay_tong_hop)) VOLUMN_SMS"
-					+ ",round(SUM(VOLUMN_VOICE)/count(distinct ngay_tong_hop)) VOLUMN_VOICE                "
+					+ ",round(SUM(VOLUMN_VOICE)/count(distinct ngay_tong_hop)) VOLUMN_VOICE        "
 					+ " FROM RPT_CELLDATA_V";
 			if (rptype.equals("0"))
 				if (donvi.equals("666666")) {
@@ -5311,7 +5186,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 					prpStm = conn.prepareStatement(sql);
 					prpStm.setString(1, donvi);
 				} else {
-					sql = "SELECT SITE_NAME,ngay_phat_song, province,district ,loai_cell,level_time," + sql_fix
+					sql = "SELECT SITE_NAME,ngay_phat_song, province,district ,loai_cell,level_time" + sql_fix
 							+ " where get_district_number(province||district) = ?"
 							+ " GROUP BY SITE_NAME,ngay_phat_song,province,district ,loai_cell,level_time ORDER BY site_name";
 					prpStm = conn.prepareStatement(sql);
@@ -5384,7 +5259,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 		String vlr3k3dLatday = "";
 		try {
 
-			conn = this.getConnection();
+			conn = getConnection();
 			String sql = "select substr(file_name,-15,8) from (select * from out_data.process_file_history_v"
 					+ " where file_name like '3k3d_vlr_lk%'" + " order by process_date desc) where rownum=1";
 			prpStm = conn.prepareStatement(sql);
@@ -5414,11 +5289,9 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public List<Map<String, String>> add_modify_rp(String user_name, String json, MultipartHttpServletRequest request) {
-		Connection conn = null;
-		ResultSet rs = null;
-		PreparedStatement prpStm = null;
 		try {
 			JSONObject jsonObject = new JSONObject(json);
 			String configpath = String.valueOf(jsonObject.get("configpath"));
@@ -5444,7 +5317,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 				// do something with the file.....
 			}
 
-			String id, org_id, name, classname, startuptype;
+			String id, org_id;
 
 			Dictionary dicThreadList = ManageableThread
 					.loadThreadConfig(configpath + File.separator + ThreadConstant.THREAD_CONFIG_FILE);
@@ -5457,10 +5330,6 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 				jsonObject = new JSONObject(jsonArray.get(i).toString());
 				id = String.valueOf(jsonObject.get("id"));
 				org_id = String.valueOf(jsonObject.get("org_id"));
-				name = String.valueOf(jsonObject.get("name"));
-				classname = String.valueOf(jsonObject.get("classname"));
-				startuptype = String.valueOf(jsonObject.get("startuptype"));
-
 				for (int iIndex = 0; iIndex < vtThreadList.size(); iIndex++) {
 					// Get thread info
 					DictionaryNode node = (DictionaryNode) vtThreadList.elementAt(iIndex);
@@ -5541,6 +5410,85 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return null;
+		}
+	}
+
+	@Override
+	public List<Map<String, String>> getStockSimDetail(String user_name, String json) {
+		Connection conn = null;
+		ResultSet rs = null;
+		PreparedStatement prpStm = null;
+		try {
+			JSONObject jsonObject = new JSONObject(json);
+			conn = getConnection();
+			String separator = ";";
+			String isdn_list = String.valueOf(jsonObject.get("isdn_list")).replaceAll("[^\\d.]", separator);
+			String aliving_date;
+			try {
+				aliving_date = String.valueOf(jsonObject.get("aliving_date"));
+				if (aliving_date == null || aliving_date.equals(""))
+					aliving_date = "4000-01-01";
+
+			} catch (Exception e) {
+				aliving_date = "4000-01-01";
+			}
+			String[] subArray = isdn_list.split(separator);
+
+			if (aliving_date == null || aliving_date.equals(""))
+				aliving_date = "4000-01-01";
+
+			int k = subArray.length / 15000;
+			int d = subArray.length % 15000;
+			prpStm = conn.prepareStatement("BEGIN delete sub_act_temp; END;");
+			prpStm.execute();
+
+			for (int j = 0; j < k; j++) {
+				prpStm = conn.prepareStatement("BEGIN INSERT INTO sub_act_temp(isdn) "
+						+ "VALUES (?);EXCEPTION WHEN OTHERS THEN	NULL; END;");
+
+				for (int i = j * 15000; i < j * 15000 + 14999; i++) {
+					try {
+						prpStm.setString(1, subArray[i]);
+
+						prpStm.addBatch();
+					} catch (Exception e) {
+						syslog(subArray[i] + " Loi o so nay " + e.toString());
+					}
+				}
+				prpStm.executeBatch();
+				prpStm.close();
+			}
+
+			prpStm = conn.prepareStatement(
+					"BEGIN INSERT INTO sub_act_temp(isdn) " + "VALUES (?);EXCEPTION WHEN OTHERS THEN	NULL; END;");
+
+			for (int i = k * 15000; i < k * 15000 + d; i++) {
+				try {
+					prpStm.setString(1, subArray[i]);
+					prpStm.addBatch();
+				} catch (Exception e) {
+					syslog(subArray[i] + " Loi o so nay " + e.toString());
+				}
+			}
+			prpStm.executeBatch();
+			prpStm.close();
+
+			String app = String.valueOf(jsonObject.get("app"));
+			String sql = "WITH seri_sim AS (SELECT * FROM out_data.stock_sim_v"
+					+ " WHERE serial IN (SELECT isdn FROM sub_act_temp))"
+					+ " SELECT a.isdn serial,c.auc_status,nvl(b.hlr_isdn,d.isdn) isdn,b.hlr_status"
+					+ " ,b.center_code,nvl(b.active_datetime,d.sta_datetime)  active_datetime"
+					+ " ,case when b.hlr_isdn is not null then 'TT' when d.isdn is not null then 'TS' else null end Loai_TB"
+					+ " FROM sub_act_temp a LEFT JOIN  seri_sim c ON a.isdn = c.serial"
+					+ "     LEFT JOIN out_data.mc_subscriber_v b ON c.imsi = b.hlr_imsi AND b.hlr_status = 1"
+					+ "     LEFT JOIN out_data.subscriber_v d ON c.imsi = d.imsi AND d.status = 1 ORDER BY serial";
+			prpStm = conn.prepareStatement(sql);
+			rs = prpStm.executeQuery();
+			return getData(rs, 0, user_name, app);
+		} catch (Exception e) {
+			return getError(e);
+		} finally {
+			clean(conn, prpStm, rs);
 		}
 	}
 

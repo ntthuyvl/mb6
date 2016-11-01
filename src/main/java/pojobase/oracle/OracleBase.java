@@ -8,11 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import javax.annotation.PostConstruct;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -78,8 +74,8 @@ public class OracleBase {
 	}
 
 	@Autowired
-	public OracleBase(org.apache.tomcat.jdbc.pool.DataSource dataSource) {
-		this.dataSource = dataSource;
+	public OracleBase(org.apache.tomcat.jdbc.pool.DataSource p_dataSource) {
+		dataSource = p_dataSource;
 	}
 
 }

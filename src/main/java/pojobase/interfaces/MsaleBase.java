@@ -174,4 +174,6 @@ public interface MsaleBase {
 	File getTemplateDir();
 
 	List<GmapMarker> getCellGmapMarkers(String user_name);
+
+	List<Map<String, String>> getStockSimDetail(String user_name, String json);
 }

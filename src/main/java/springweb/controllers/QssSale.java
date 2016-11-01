@@ -79,7 +79,6 @@ public class QssSale extends BaseController {
 		} else
 			return "redirect:/login";
 	}
-	
 
 	@RequestMapping(value = "/sale/msale/gmap", method = RequestMethod.GET)
 	public String getGoogleMap(ModelMap model, HttpServletRequest request) {
@@ -701,4 +700,39 @@ public class QssSale extends BaseController {
 		model.getModel().put("combo", combo);
 		return model;
 	}
+
+	@RequestMapping(value = "/sale/khosim/donle", method = RequestMethod.GET)
+	public String getStockSim(ModelMap model, HttpServletRequest request) {
+		// TODO Auto-generated method stub
+		try {
+			getUserLoginName(this.getClass().getCanonicalName() + ".getStockSim", request);
+			return "/sale/khosim/donle";
+
+		} catch (Exception e) {
+			ExceptionMode pojoMode = new ExceptionMode();
+			return HomeController.getError(e, pojoMode, model);
+
+		}
+	}
+
+	@RequestMapping(value = "/sale/khosim/khosim", method = RequestMethod.POST)
+	public @ResponseBody String postStockSimDetail(@RequestParam String json, HttpServletRequest request) {
+		getUserLoginName(this.getClass().getCanonicalName() + ".postStockSimDetail" + json, request);
+		jsonDataMap.put(request.getSession().getId(), json);
+		return "OK";
+	}
+
+	@RequestMapping(value = "/sale/khosim/khosim", method = RequestMethod.GET)
+	public ModelAndView getStockSimDetail(HttpServletRequest request) {
+		// TODO Auto-generated method stub
+		String user_name = getUserLoginName(this.getClass().getCanonicalName() + ".getStockSimDetail", request);
+		List<Map<String, String>> list = msaleBase.getStockSimDetail(user_name,
+				jsonDataMap.get(request.getSession().getId()));
+		jsonDataMap.remove(request.getSession().getId());
+		ModelAndView model = new ModelAndView("ProAnalyzeExcel", "list", list);
+		model.getModel().put("file_name", "khosim.xlsx");
+		return model;
+
+	}
+
 }

@@ -1,0 +1,69 @@
+<#include "/header_bt.ftl">
+<SCRIPT>
+	var curtab = '#tab1';
+	var type = 1;
+	var table_amar = 'div#list';
+	var isdn_list = '';
+	var id_changeds = [];
+	var contents
+	var app = 3;
+
+	function getData() {
+		$('input').attr('disabled', 'disabled');
+
+		var dataObj = {
+			"isdn_list" : $('textarea#isdns').val(),
+			"app" : app
+		}
+		dataObj = {
+			"json" : JSON.stringify(dataObj)
+		};
+		$.post("/sale/khosim/khosim", dataObj, function(data, status) {
+			var x = window.open("/sale/khosim/khosim", "MyWindow");
+			x.focus();
+			$('textarea#isdns').val("");
+		});
+
+	}
+
+	$(document).ready(function() {
+		$('table, button#reload,  button#table2excel').hide();
+		$('button#getdata').click(function() {
+			getData();
+		});
+		$('button#reload').click(function() {
+			location.reload();
+		});
+		$(document).on('click', 'button#table2excel', function() {
+			$(curtab + ' table#datarp').table2excel({
+				// exclude CSS class			
+				exclude : ".noExl",
+				name : "TraThuong"
+			});
+		});
+
+	})
+</SCRIPT>
+<section2 class="session" style="width: 98%"> <header>
+	CÁC THÔNG TIN TRONG KHO SIM </header>
+<ul id="tabs">
+	<li><a href="#" name="tab1">Lô serial cần tra cứu thông tin</a></li>
+	<div class="container-fluid form-inline">
+		<button type="button" class="btn  btn-primary" id="table2excel">Excel</button>
+		<button type="button" class="btn btn-primary" id="getdata">Tra
+			cứu</button>
+		<button type="button" class="btn btn-primary" id="reload">Tìm
+			lô khác</button>
+	</div>
+</ul>
+
+<div id="content">
+	<div id="tab1">
+		<table id="datarp"
+			class="CSSTableGenerator table-condensed table-bordered">
+		</table>
+		<textarea id="isdns"></textarea>
+	</div>
+</div>
+</section2>
+<#include "/footer.ftl">
