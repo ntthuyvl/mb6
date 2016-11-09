@@ -21,9 +21,42 @@
 		}
 	};
 
-	function resetSEE() {
-	}
+	function upload(filetype) {
+		var formData = new FormData();
+		var file = null;
+		if (filetype == "reg_file") {
+			file = $('input#reg_file')[0].files[0];
+			formData.append('reg_file', file);
+		} else {
+			file = $('input#update_file')[0].files[0];
+			formData.append('update_file', $('input#update_file')[0].files[0]);
+		}
+		if (file != null) {
+			if (!file.name.endsWith(".xls"))
+				alert("Chi xư ly file .xls");
+			else {
+				var dataObj = {
+					"donvi" : $('select#donvi').val(),
+					"sub_id" : $('input#sub_id').val(),
+					"app" : app
+				}
+				formData.append("json", JSON.stringify(dataObj));//important: convert to JSON!		
 
+				$.ajax({
+					url : "/care/mobitv/import", // point to server-side			
+					cache : false,
+					contentType : false,
+					processData : false,
+					data : formData,
+					type : 'POST',
+					success : function(data2) {
+						call_back_ajax(data2, 1);
+						$('section2 header').html("CÁC BẢN GHI");
+					}
+				});
+			}
+		}
+	}
 	function load_donvi_list() {
 		var dataObj = {
 			"app" : app
@@ -51,6 +84,7 @@
 
 	function load_act_list() {
 		var dataObj = {
+			"act_group" : 'GENERAL',
 			"app" : app
 		};
 
@@ -74,27 +108,12 @@
 
 	}
 
-	function tracuu() {		
-		$('section h').html("THUÊ BAO MOBITV SẮP HẾT HẠN");
-		var dataObj = {
-			"sub_id" : $('input#sub_id').val(),
-			"app" : app
-		}
-
-		dataObj = {
-			"json" : JSON.stringify(dataObj)
-		};
-
-		$.post("list", dataObj, function(data2, status) {
-			call_back_ajax(data2, status);
-		});
-	}
-
 	function getData() {
 		$('#alertModal').show();
 		$('section h').html("THUÊ BAO MOBITV SẮP HẾT HẠN");
 		var dataObj = {
 			"donvi" : $('select#donvi').val(),
+			"sub_id" : $('input#sub_id').val(),
 			"app" : app
 		}
 
@@ -154,15 +173,16 @@
 			function() {
 				tab_present();
 				load_donvi_list();
-				$('button#find').click(function() {
-					tracuu();
-				});
 
-				$('button#get_data').click(function() {
+				$('#get_data').click(function() {
 					getData();
 				});
 
-				$(document).on('click', 'button#table2excel', function() {
+				$("#reg_file_click").click(function() {
+					upload("reg_file");
+				});
+
+				$(document).on('click', '#table2excel', function() {
 					$(curtab + ' table#datarp').table2excel({
 						// exclude CSS class			
 						exclude : ".noExl",
@@ -206,25 +226,40 @@
 
 <section2 class="session" style="width: 98%"> <header>THUÊ
 	BAO MOBITV SẮP HẾT HẠN</header>
-<ul id="tabs">
-	<div class="container-fluid form-inline">
-		<div class="form-group">
-			<select id="donvi" class="form-control" value="">
-				<option value="666666">-- Chọn đơn vị--</option>
-			</select>
-		</div>
 
+<div class="container-fluid form-inline">
+	<div class="form-group">
+		<select id="donvi" class="form-control" value="">
+			<option value="666666">-- Chọn đơn vị--</option>
+		</select>
+	</div>
+	<div class="form-group">
+		<input type="text" class="form-control" id="sub_id"
+			placeholder="SUB_ID">
+	</div>
+
+	<div class="btn-group">
 		<button type="button" class="btn btn-primary" id="get_data">Lấy
 			số liệu</button>
-		<div class="form-group">
-			<label for="sub_id">SUB_ID </label> <input type="text"
-				class="form-control" id="sub_id" placeholder="40344427975001">
-		</div>
-		<button type="button" class="btn btn-primary" id="find">Tra
-			cứu</button>
-		<button type="button" class="btn btn-primary" id="table2excel">Excel</button>			
+
+		<button type="button" class="btn btn-primary dropdown-toggle"
+			data-toggle="dropdown">
+			<span class="caret"></span> <span class="sr-only">Toggle
+				Dropdown</span>
+		</button>
+
+		<ul class="dropdown-menu" role="menu">
+			<li><a href="#" id="table2excel">Excel</a></li>
+			<li><a href="#" id="reg_file_click"><input type="file"
+					class="form-control" id="reg_file"> Upload file đăng ký</a></li>
+			<li><a href="#"><input type="file" class="form-control"
+					id="update_file"> Upload file cập nhật</a></li>
+		</ul>
 	</div>
-</ul>
+
+
+</div>
+
 
 <div id="content">
 	<div id="tab1">

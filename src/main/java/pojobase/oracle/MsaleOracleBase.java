@@ -14,7 +14,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -28,7 +32,6 @@ import com.fss.dictionary.DictionaryNode;
 import com.fss.thread.ManageableThread;
 import com.fss.thread.ThreadConstant;
 import com.fss.thread.ThreadManager;
-
 import pojo.GmapMarker;
 import pojo.HoaHongThuCuoc;
 import pojo.HoaHongThuCuocTrongDs;
@@ -40,7 +43,9 @@ import pojobase.interfaces.MsaleBase;
 import springweb.controllers.AjaxController;
 import tool.Util;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -49,6 +54,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 
 /**
@@ -60,7 +66,7 @@ import java.text.SimpleDateFormat;
 public class MsaleOracleBase extends OracleBase implements MsaleBase {
 	private static HashMap<String, Mb6Fillter> filterBuiledMap = new HashMap<String, Mb6Fillter>();
 	private ArrayList<String> provinceNumberList = new ArrayList<String>();
-	public File template_dir;
+	public File template_dir, temp_dir = new File("download");
 	public static File download_dir = new File("download");
 	CDRBinManagerTnt tntService;
 
@@ -68,6 +74,8 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 	public void init() throws Exception {
 		if (!download_dir.exists())
 			download_dir.mkdirs();
+		if (!temp_dir.exists())
+			temp_dir.mkdirs();
 
 		// tntService = new CDRBinManagerTnt();
 		// tntService.start();
@@ -313,7 +321,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 		Connection conn = getConnection();
 		PreparedStatement prpStm = conn.prepareStatement(
 				"SELECT role,province,province_number,province_msale,district,district_number,district_msale"
-						+ "  FROM account_action_v where name=? and app=?");
+						+ "  FROM account_action_v where name=? and (app=? or role = 'DEVELOPER')");
 		prpStm.setString(1, user_name);
 		prpStm.setString(2, app);
 		ResultSet rs = prpStm.executeQuery();
@@ -4921,11 +4929,11 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 		ResultSet rs = null;
 		PreparedStatement prpStm = null;
 		JSONObject jsonObject = new JSONObject(json);
-		String app = String.valueOf(jsonObject.get("app"));
+		String app = String.valueOf(jsonObject.get("app")), act_group = String.valueOf(jsonObject.get("act_group"));
 		try {
 			conn = getConnection();
 			conn.setAutoCommit(false);
-			String sql = "select act_id,label from cskh_detai_act";
+			String sql = "select act_id,label from cskh_detai_act where act_group = '" + act_group + "'";
 			syslog(sql);
 			prpStm = conn.prepareStatement(sql);
 			rs = prpStm.executeQuery();
@@ -4961,64 +4969,39 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 
 			conn = getConnection();
 			String sql;
-			if (donvi.equals("666666")) {
+			String sql_fix = "SELECT distinct '<td id = \"province\" >' || PROVINCE PROVINCE"
+					+ ",'<td id = \"district\" >' || DISTRICT district,'<td id = \"sub_id\" >'||sub_id sub_id"
+					+ ",'<td id = \"isdn\" >'||PHONE isdn,'<td id = \"name\" >'||name name"
+					+ ",'<td id = \"SUB_TYPE\" >'||SUB_TYPE SUB_TYPE,'<td id = \"address\" >'||address address"
+					+ ",'<td id = \"last_act\" class = \"canclick\" >'||last_act last_act"
+					+ ",'<td id = \"status\" >' ||status status"
+					+ ",'<td id = \"SERVICE_PKG\" >'||SERVICE_PKG SERVICE_PKG"
+					+ ",'<td id = \"ACTIVE_DATE\" >'||TO_CHAR(active_date, 'YYYY-MM-DD') ACTIVE_DATE"
+					+ ",'<td id = \"EXPIRE_DATE\" >'||TO_CHAR(EXPIRE_DATE, 'YYYY-MM-DD') EXPIRE_DATE"
+					+ " FROM mobitv_v";
+			if (!sub_id.equals("")) {
+				sql = sql_fix + " WHERE sub_id = ?";
+				prpStm = conn.prepareStatement(sql);
+				prpStm.setString(1, sub_id);
+			} else if (donvi.equals("666666")) {
 				// sql = "select SUB_ID, NAME, ADDRESS, PHONE, STATUS,
 				// SERVICE_PKG, ACTIVE_DATE, EXPIRE_DATE,SUB_TYPE, LAST_ACT from
 				// mobitv_v";
 
-				sql = "SELECT '<td id = \"province\" >' || PROVINCE PROVINCE"
-						+ ",'<td id = \"district\" >' || DISTRICT district" + ",'<td id = \"sub_id\" >'||sub_id sub_id"
-						+ ",'<td id = \"isdn\" >'||PHONE isdn" + ",'<td id = \"name\" >'||name name"
-						+ ",'<td id = \"SUB_TYPE\" >'||SUB_TYPE SUB_TYPE,'<td id = \"address\" >'||address address"
-						+ ",'<td id = \"last_act\" class = \"canclick\" >'||last_act last_act"
-						+ ",'<td id = \"status\" >' ||status status"
-						+ ",'<td id = \"SERVICE_PKG\" >'||SERVICE_PKG SERVICE_PKG"
-						+ ",'<td id = \"ACTIVE_DATE\" >'||TO_CHAR(active_date, 'YYYY-MM-DD') ACTIVE_DATE"
-						+ ",'<td id = \"EXPIRE_DATE\" >'||TO_CHAR(EXPIRE_DATE, 'YYYY-MM-DD') EXPIRE_DATE"
-						+ " FROM mobitv_v WHERE expire_date >= trunc(SYSDATE) AND expire_date < trunc(SYSDATE) + 5"
-						+ " order by EXPIRE_DATE";
+				sql = sql_fix
+						+ " WHERE 1=2 and expire_date >= trunc(SYSDATE) AND expire_date < trunc(SYSDATE) + 5 ORDER BY last_act,expire_date";
 				prpStm = conn.prepareStatement(sql);
 			} else if (provinceNumberList.contains(donvi)) {
-				sql = "SELECT '<td id = \"province\" >' || PROVINCE PROVINCE"
-						+ ",'<td id = \"district\" >' || DISTRICT district" + ",'<td id = \"sub_id\" >'||sub_id sub_id"
-						+ ",'<td id = \"isdn\" >'||PHONE isdn" + ",'<td id = \"name\" >'||name name"
-						+ ",'<td id = \"SUB_TYPE\" >'||SUB_TYPE SUB_TYPE,'<td id = \"address\" >'||address address"
-						+ ",'<td id = \"last_act\" class = \"canclick\" >'||last_act last_act"
-						+ ",'<td id = \"status\" >' ||status status"
-						+ ",'<td id = \"SERVICE_PKG\" >'||SERVICE_PKG SERVICE_PKG"
-						+ ",'<td id = \"ACTIVE_DATE\" >'||TO_CHAR(active_date, 'YYYY-MM-DD') ACTIVE_DATE"
-						+ ",'<td id = \"EXPIRE_DATE\" >'||TO_CHAR(EXPIRE_DATE, 'YYYY-MM-DD') EXPIRE_DATE"
-						+ " FROM mobitv_v WHERE expire_date >= trunc(SYSDATE) AND expire_date < trunc(SYSDATE) + 5"
-						+ " and province=get_province_code(?) order by EXPIRE_DATE";
-				prpStm = conn.prepareStatement(sql);
-				prpStm.setString(1, donvi);
-			} else if (sub_id.equals("")) {
-				sql = "SELECT '<td id = \"province\" >' || PROVINCE PROVINCE"
-						+ ",'<td id = \"district\" >' || DISTRICT district" + ",'<td id = \"sub_id\" >'||sub_id sub_id"
-						+ ",'<td id = \"isdn\" >'||PHONE isdn" + ",'<td id = \"name\" >'||name name"
-						+ ",'<td id = \"SUB_TYPE\" >'||SUB_TYPE SUB_TYPE,'<td id = \"address\" >'||address address"
-						+ ",'<td id = \"last_act\" class = \"canclick\" >'||last_act last_act"
-						+ ",'<td id = \"status\" >' ||status status"
-						+ ",'<td id = \"SERVICE_PKG\" >'||SERVICE_PKG SERVICE_PKG"
-						+ ",'<td id = \"ACTIVE_DATE\" >'||TO_CHAR(active_date, 'YYYY-MM-DD') ACTIVE_DATE"
-						+ ",'<td id = \"EXPIRE_DATE\" >'||TO_CHAR(EXPIRE_DATE, 'YYYY-MM-DD') EXPIRE_DATE"
-						+ " FROM mobitv_v WHERE expire_date >= trunc(SYSDATE) AND expire_date < trunc(SYSDATE) + 5 and get_district_number(province||district) = ?"
-						+ " order by EXPIRE_DATE";
+				sql = sql_fix
+						+ " WHERE expire_date >= trunc(SYSDATE) AND expire_date < trunc(SYSDATE) + 5 and province=get_province_code(?) order by last_act,EXPIRE_DATE";
 				prpStm = conn.prepareStatement(sql);
 				prpStm.setString(1, donvi);
 			} else {
-				sql = "SELECT '<td id = \"province\" >' || PROVINCE PROVINCE"
-						+ ",'<td id = \"district\" >' || DISTRICT district" + ",'<td id = \"sub_id\" >'||sub_id sub_id"
-						+ ",'<td id = \"isdn\" >'||PHONE isdn" + ",'<td id = \"name\" >'||name name"
-						+ ",'<td id = \"SUB_TYPE\" >'||SUB_TYPE SUB_TYPE,'<td id = \"address\" >'||address address"
-						+ ",'<td id = \"last_act\" class = \"canclick\" >'||last_act last_act"
-						+ ",'<td id = \"status\" >' ||status status"
-						+ ",'<td id = \"SERVICE_PKG\" >'||SERVICE_PKG SERVICE_PKG"
-						+ ",'<td id = \"ACTIVE_DATE\" >'||TO_CHAR(active_date, 'YYYY-MM-DD') ACTIVE_DATE"
-						+ ",'<td id = \"EXPIRE_DATE\" >'||TO_CHAR(EXPIRE_DATE, 'YYYY-MM-DD') EXPIRE_DATE"
-						+ " FROM mobitv_v WHERE sub_id = ?";
+				sql = sql_fix
+						+ " WHERE expire_date >= trunc(SYSDATE) AND expire_date < trunc(SYSDATE) + 5 and get_district_number(province||district) = ? order by last_act,EXPIRE_DATE";
 				prpStm = conn.prepareStatement(sql);
-				prpStm.setString(1, sub_id);
+				prpStm.setString(1, donvi);
+
 			}
 
 			syslog(sql);
@@ -5485,6 +5468,139 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 			prpStm = conn.prepareStatement(sql);
 			rs = prpStm.executeQuery();
 			return getData(rs, 0, user_name, app);
+		} catch (Exception e) {
+			return getError(e);
+		} finally {
+			clean(conn, prpStm, rs);
+		}
+	}
+
+	@Override
+	public List<Map<String, String>> importFromUploadFile(String user_name, String json,
+			MultipartHttpServletRequest request) {
+		Connection conn = null;
+		ResultSet rs = null;
+		PreparedStatement prpStm = null;
+		try {
+			JSONObject jsonObject = new JSONObject(json);
+
+			// String app = String.valueOf(jsonObject.get("app"));
+			String filetype = "";
+			Iterator<String> iterator = request.getFileNames();
+			MultipartFile file = null;
+
+			File file2 = null;
+			// template_dir = new File(configpath + File.separator +
+			// "template");
+			while (iterator.hasNext()) {
+				file = request.getFile(iterator.next());
+				filetype = file.getName();
+				syslog(file.getName());
+				file2 = new File(temp_dir, request.getRequestedSessionId() + ".xls");
+				file.transferTo(file2);
+			}
+
+			BufferedInputStream bi = new BufferedInputStream(new FileInputStream(file2));
+			Workbook w = new HSSFWorkbook(bi);
+
+			// w = Workbook .getWorkbook(file2);
+			// Get the first sheet
+			Sheet sheet = w.getSheetAt(0);
+			String sql = "";
+			conn = getConnection();
+			Row row;
+			Map<String, String> pojo;
+			List<Map<String, String>> pojoList = new LinkedList<Map<String, String>>();
+
+			if (filetype.equals("reg_file")) {
+				pojo = new TreeMap<String, String>();
+				// put header
+				String[] header = { "Mã thuê bao", "Tên KH", "Địa chỉ", "Xã Phường", "Quận/Huyện", "Tỉnh/Thành",
+						"Ngày kích hoạt", "Mã chương trình", "Loại STB", "Số chíp", "Số thẻ", "Mã kho", "Tên kho",
+						"Kho MBF DV", "Kho MBF CN", "Kho MBF C1", "Số đthoại kích hoạt", "MBF KV kích hoạt",
+						"MBF CN kích hoạt", "DLC1 kích  hoạt", "Tên đơn vị kích hoạt", "Loại Đơn vị" };
+
+				pojo.put("000", "<th>ROW");
+				row = sheet.getRow(2);
+				for (int j = 0; j < 22; j++)
+					pojo.put(String.format("%03d", j + 1), "<th>" + header[j]);
+				pojo.put(String.format("%03d", 23), "<th>ERROR");
+				pojoList.add(pojo);
+
+				sql = "MERGE INTO mobitv_subscriber_reg USING DUAL ON (sub_id = ?) WHEN MATCHED THEN"
+						+ "    UPDATE SET name = ?, address = ?, precinct = ?, district = ?,"
+						+ "               province = ?, active_date = ?, program_code = ?,"
+						+ "               device_type = ?, ic_number = ?, card_number = ?,"
+						+ "               stock_code = ?, stock_name = ?, stock_mbf_dv = ?,"
+						+ "               stock_mbf_cn = ?, stock_mbf_c1 = ?, phone_reg = ?,"
+						+ "               mbf_kv_reg = ?, mbf_cn_reg = ?, dlc1_reg = ?,"
+						+ "               unit_reg = ?, unit_reg_type = ? 							"
+						+ " WHEN NOT MATCHED THEN"
+						+ "    INSERT(sub_id, name, address, precinct,district, province, active_date,"
+						+ "           program_code, device_type, ic_number, card_number, stock_code,"
+						+ "           stock_name, stock_mbf_dv, stock_mbf_cn, stock_mbf_c1, phone_reg,"
+						+ "           mbf_kv_reg, mbf_cn_reg, dlc1_reg, unit_reg, unit_reg_type)"
+						+ "    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+				prpStm = conn.prepareStatement(sql);
+				for (int i = 3; i < sheet.getLastRowNum(); i++) {
+					try {
+						row = sheet.getRow(i);
+						for (int j = 0; j <= 22; j++) {
+							if (j <= 2) {
+								prpStm.setString(j + 1, row.getCell(j).getStringCellValue());
+								// syslog("col " + j + ": " +
+								// row.getCell(j).getStringCellValue());
+							} else if (j >= 4) {
+								if (j == 7) {
+									prpStm.setDate(j, new java.sql.Date(row.getCell(j).getDateCellValue().getTime()));
+								} else {
+									prpStm.setString(j, row.getCell(j).getStringCellValue());
+									// syslog("col " + (j - 1) + ": " +
+									// row.getCell(j).getStringCellValue());
+								}
+							}
+						}
+						for (int j = 0; j <= 22; j++) {
+							if (j <= 2) {
+								prpStm.setString(j + 1 + 22, row.getCell(j).getStringCellValue());
+								// syslog("col " + j + ": " +
+								// row.getCell(j).getStringCellValue());
+							} else if (j >= 4) {
+								if (j == 7) {
+									prpStm.setDate(j + 22,
+											new java.sql.Date(row.getCell(j).getDateCellValue().getTime()));
+								} else {
+									prpStm.setString(j + 22, row.getCell(j).getStringCellValue());
+									// syslog("col " + (j - 1) + ": " +
+									// row.getCell(j).getStringCellValue());
+								}
+							}
+						}
+
+						prpStm.execute();
+						conn.commit();
+					} catch (Exception e) {
+						pojo = new TreeMap<String, String>();
+						pojo.put("000", "<td>" + i);
+						for (int j = 0; j <= 22; j++) {
+							pojo = new TreeMap<String, String>();
+							if (j <= 2)
+								pojo.put(String.format("%03d", j + 1), "<td>" + row.getCell(j).getStringCellValue());
+							else if (j >= 4) {
+								if (j == 7) {
+									pojo.put(String.format("%03d", j), "<th>" + row.getCell(j).getDateCellValue());
+								} else {
+									pojo.put(String.format("%03d", j), "<td>" + row.getCell(j).getStringCellValue());
+								}
+							}
+
+						}
+						pojo.put(String.format("%03d", 23), "<td>" + e.toString());
+						pojoList.add(pojo);
+					}
+				}
+			}
+			return pojoList;
 		} catch (Exception e) {
 			return getError(e);
 		} finally {

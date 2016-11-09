@@ -51,6 +51,7 @@
 
 	function load_act_list() {
 		var dataObj = {
+			"act_group" : 'GENERAL',
 			"app" : app
 		};
 
@@ -74,7 +75,7 @@
 
 	}
 
-	function tracuu() {		
+	function tracuu() {
 		var dataObj = {
 			"isdn" : $('input#isdn').val(),
 			"app" : app
@@ -90,7 +91,7 @@
 	}
 
 	function getData() {
-		$('#alertModal').show();		
+		$('#alertModal').show();
 		var dataObj = {
 			"donvi" : $('select#donvi').val(),
 			"app" : app
@@ -220,8 +221,9 @@
 			<label for="isdn">Isdn </label> <input type="text"
 				class="form-control" id="isdn" placeholder="903456789">
 		</div>
-		<button type="button" class="btn btn-primary" id="find">Tra cứu</button>
-		<button type="button" class="btn  btn-primary" id="table2excel">Excel</button>			
+		<button type="button" class="btn btn-primary" id="find">Tra
+			cứu</button>
+		<button type="button" class="btn  btn-primary" id="table2excel">Excel</button>
 		<button type="button" class="btn  btn-primary" id="bcth">Báo
 			cáo tổng hợp</button>
 
