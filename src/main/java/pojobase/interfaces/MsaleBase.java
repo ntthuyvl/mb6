@@ -177,5 +177,6 @@ public interface MsaleBase {
 
 	List<Map<String, String>> getStockSimDetail(String user_name, String json);
 
+	@PreAuthorize("hasAnyRole('CAREMANHUYEN')")
 	List<Map<String, String>> importFromUploadFile(String user_name, String json, MultipartHttpServletRequest request);
 }

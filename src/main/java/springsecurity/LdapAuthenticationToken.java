@@ -30,7 +30,7 @@ import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.authority.GrantedAuthorityImpl;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import pojobase.interfaces.AccountBase;
 
 public class LdapAuthenticationToken extends AbstractAuthenticationToken {
@@ -71,7 +71,7 @@ public class LdapAuthenticationToken extends AbstractAuthenticationToken {
 	 * @param defaultAuthority
 	 */
 	public LdapAuthenticationToken(AccountBase accountBase, Authentication auth, String defaultAuthority) {
-		this(accountBase, auth, new GrantedAuthorityImpl(defaultAuthority));
+		this(accountBase, auth, new SimpleGrantedAuthority(defaultAuthority));
 	}
 
 	public Collection<GrantedAuthority> getAuthorities() {
@@ -82,7 +82,7 @@ public class LdapAuthenticationToken extends AbstractAuthenticationToken {
 		if (roleList != null && roleList.size() > 0) {
 
 			for (String role : roleList) {
-				authorities.add(new GrantedAuthorityImpl(role));
+				authorities.add(new SimpleGrantedAuthority(role));
 			}
 		} else
 			authorities.addAll(AuthorityUtils.NO_AUTHORITIES);

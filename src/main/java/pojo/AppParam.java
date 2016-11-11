@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
-import org.apache.commons.lang.time.DateUtils;
+//import org.apache.commons.lang.time.DateUtils;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.usermodel.HSSFRow;
@@ -33,13 +33,13 @@ public class AppParam {
 		return cal;
 	}
 
-	public static Date getFirstDayOfLastWeek() {
-		Calendar cal = Calendar.getInstance();
-		cal.set(Calendar.DAY_OF_WEEK, cal.getFirstDayOfWeek());
-		cal.setTime(DateUtils.truncate(cal.getTime(), Calendar.DATE));
-		cal.add(Calendar.DATE, -6);
-		return cal.getTime();
-	}
+	// public static Date getFirstDayOfLastWeek() {
+	// Calendar cal = Calendar.getInstance();
+	// cal.set(Calendar.DAY_OF_WEEK, cal.getFirstDayOfWeek());
+	// cal.setTime(DateUtils.truncate(cal.getTime(), Calendar.DATE));
+	// cal.add(Calendar.DATE, -6);
+	// return cal.getTime();
+	// }
 
 	public static DateTime getVnNow() {
 		DateTimeZone zone = DateTimeZone.forTimeZone(TimeZone.getTimeZone("GMT+7:00"));
@@ -49,13 +49,13 @@ public class AppParam {
 		return dt.withChronology(gregorianJuian);
 	}
 
-	public static Date getLastDayOfWeek() {
-		Calendar cal = Calendar.getInstance();
-		cal.set(Calendar.DAY_OF_WEEK, cal.getFirstDayOfWeek());
-		cal.setTime(DateUtils.truncate(cal.getTime(), Calendar.DATE));
-		cal.add(Calendar.DATE, +8);
-		return cal.getTime();
-	}
+	// public static Date getLastDayOfWeek() {
+	// Calendar cal = Calendar.getInstance();
+	// cal.set(Calendar.DAY_OF_WEEK, cal.getFirstDayOfWeek());
+	// cal.setTime(DateUtils.truncate(cal.getTime(), Calendar.DATE));
+	// cal.add(Calendar.DATE, +8);
+	// return cal.getTime();
+	// }
 
 	public static boolean isNumeric(String str) {
 		try {
