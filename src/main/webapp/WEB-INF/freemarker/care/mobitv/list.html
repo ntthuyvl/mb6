@@ -22,26 +22,24 @@
 	};
 
 	function upload(filetype) {
-		var formData = new FormData();
-		var file = null;
-		if (filetype == "reg_file") {
-			file = $('input#reg_file')[0].files[0];
-			formData.append('reg_file', file);
-		} else {
-			file = $('input#update_file')[0].files[0];
-			formData.append('update_file', $('input#update_file')[0].files[0]);
-		}
+		var file = $('input#file_upload')[0].files[0];
 		if (file != null) {
 			if (!file.name.endsWith(".xls"))
-				alert("Chi xư ly file .xls");
+				alert("Chỉ xử lý file excel .xls");
 			else {
+				var formData = new FormData();
+				if (filetype == "reg_file") {
+					formData.append('reg_file', file);
+				} else {
+					formData.append('update_file', file);
+				}
 				var dataObj = {
 					"donvi" : $('select#donvi').val(),
 					"sub_id" : $('input#sub_id').val(),
 					"app" : app
 				}
 				formData.append("json", JSON.stringify(dataObj));//important: convert to JSON!		
-
+				$('#alertModal').show();
 				$.ajax({
 					url : "/care/mobitv/import", // point to server-side			
 					cache : false,
@@ -51,12 +49,13 @@
 					type : 'POST',
 					success : function(data2) {
 						call_back_ajax(data2, 1);
-						$('section2 header').html("CÁC BẢN GHI");
+						$('section2 header').html("CÁC BẢN GHI LỖI");
 					}
 				});
 			}
 		}
-	}
+	};
+
 	function load_donvi_list() {
 		var dataObj = {
 			"app" : app
@@ -77,14 +76,14 @@
 						+ "\">" + data[i]['002'] + "</option>";
 				$(row).appendTo("select#donvi");
 			}
-			getData();
+			get_Data("expire");
 		});
 		load_act_list();
-	}
+	};
 
 	function load_act_list() {
 		var dataObj = {
-			"act_group" : 'GENERAL',
+			"act_group" : 'GENERAL-MBTV',
 			"app" : app
 		};
 
@@ -108,12 +107,20 @@
 
 	}
 
-	function getData() {
+	function get_Data(type) {
+		if (type == "expire")
+			$('section2 header').html("THUÊ BAO MOBITV SẮP HẾT HẠN");
+		else if (type == "unconfirm")
+			$('section2 header').html("THUÊ BAO MOBITV CẦN XÁC NHẬN HỒ SƠ");
+		else
+			$('section2 header').html(
+					"THÔNG TIN THUÊ BAO " + $('input#sub_id').val());
+
 		$('#alertModal').show();
-		$('section h').html("THUÊ BAO MOBITV SẮP HẾT HẠN");
 		var dataObj = {
 			"donvi" : $('select#donvi').val(),
 			"sub_id" : $('input#sub_id').val(),
+			"type" : type,
 			"app" : app
 		}
 
@@ -174,11 +181,17 @@
 				tab_present();
 				load_donvi_list();
 
-				$('#get_data').click(function() {
-					getData();
+				$('#get_expire').click(function() {
+					get_Data("expire");
+				});
+				$('#get_unconfirm').click(function() {
+					get_Data("unconfirm");
+				});
+				$('#find_sub').click(function() {
+					get_Data("find_sub");
 				});
 
-				$("#reg_file_click").click(function() {
+				$("#reg_file").click(function() {
 					upload("reg_file");
 				});
 
@@ -237,10 +250,13 @@
 		<input type="text" class="form-control" id="sub_id"
 			placeholder="SUB_ID">
 	</div>
+	<div class="form-group" id="file_upload">
+		<input type="file" class="form-control" id="file_upload"">
+	</div>
 
 	<div class="btn-group">
-		<button type="button" class="btn btn-primary" id="get_data">Lấy
-			số liệu</button>
+		<button type="button" class="btn btn-primary" id="get_expire">Thuê
+			bao sắp hết hạn</button>
 
 		<button type="button" class="btn btn-primary dropdown-toggle"
 			data-toggle="dropdown">
@@ -249,11 +265,11 @@
 		</button>
 
 		<ul class="dropdown-menu" role="menu">
+			<li><a href="#" id="get_unconfirm">Thuê bao cần xác nhận hồ
+					sơ</a></li>
+			<li><a href="#" id="find_sub">Tìm kiếm theo sub_id</a></li>
+			<li><a href="#" id="reg_file">Upload file mới đăng ký</a></li>
 			<li><a href="#" id="table2excel">Excel</a></li>
-			<li><a href="#" id="reg_file_click"><input type="file"
-					class="form-control" id="reg_file"> Upload file đăng ký</a></li>
-			<li><a href="#"><input type="file" class="form-control"
-					id="update_file"> Upload file cập nhật</a></li>
 		</ul>
 	</div>
 

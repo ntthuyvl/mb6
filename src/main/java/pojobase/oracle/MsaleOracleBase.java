@@ -32,6 +32,8 @@ import com.fss.dictionary.DictionaryNode;
 import com.fss.thread.ManageableThread;
 import com.fss.thread.ThreadConstant;
 import com.fss.thread.ThreadManager;
+
+import pojo.AppParam;
 import pojo.GmapMarker;
 import pojo.HoaHongThuCuoc;
 import pojo.HoaHongThuCuocTrongDs;
@@ -183,16 +185,25 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 		int rowcount = 0;
 
 		if (filter_type == 1) {
+			String province = null, district = null;
 			if (filterBuiledMap.get(user_name + ".." + app) == null)
 				buildFilter(user_name, app);
 			Mb6Fillter mb6Fillter = filterBuiledMap.get(user_name + ".." + app);
 			while (rs != null && rs.next()) {
-				if (mb6Fillter.isAllProvince() || rs.getString("province") == null
-						|| rs.getString("province").equals("")
-						|| mb6Fillter.getProvinceList().contains("" + rs.getString("province").substring(4))
-								&& (mb6Fillter.isAllDistrict() || rs.getString("district") == null
-										|| rs.getString("district").equals("") || mb6Fillter.getDistrictList()
-												.contains("" + rs.getString("district").substring(4)))) {
+				try {
+					province = rs.getString("province");
+				} catch (Exception e) {
+					province = null;
+				}
+				try {
+					district = rs.getString("district");
+				} catch (Exception e) {
+					district = null;
+				}
+				if (mb6Fillter.isAllProvince() || province == null || province.equals("") || mb6Fillter
+						.getProvinceList().contains(province.substring(province.length() - 3))
+						&& (mb6Fillter.isAllDistrict() || district == null || district.equals("")
+								|| mb6Fillter.getDistrictList().contains(district.substring(district.length() - 3)))) {
 					rowcount = rowcount + 1;
 					pojo = new TreeMap<String, String>();
 					pojo.put("000", "<td>" + rowcount);
@@ -359,7 +370,6 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 				&& (mb6Fillter.getProvinceList().size() > 1 || mb6Fillter.getDistrictList().isEmpty()))
 			mb6Fillter.setAllDistrict(true);
 		conn.close();
-		filterBuiledMap.remove(user_name + ".." + app);
 		filterBuiledMap.put(user_name + ".." + app, mb6Fillter);
 	}
 
@@ -883,7 +893,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 			prpStm.executeBatch();
 			prpStm.close();
 			conn.commit();
-			buildFilter(user_name, app);
+			buildFilter(account, app);
 			return null;
 		} catch (Exception e) {
 			return getError(e);
@@ -2434,10 +2444,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 					prpStm.setString(7, to_date);
 					prpStm.execute();
 					prpStm.close();
-					sql = "select isdn,PROSUB_CODE,to_char(sta_datetime,'dd/mm/yyyy') sta_datetime,"
-							+ " to_char(end_datetime,'dd/mm/yyyy') end_datetime,act_status"
-							+ " ,charge,prom_amount, to_char(last_bill_date,'dd/mm/yyyy') last_bill_date, "
-							+ "  shop_code, province, district,bare_audit,vasp_reg_audit,cha_pkg_audit, name, pay_full_address from mb6_subscriber_v order by isdn";
+					sql = "select * from mb6_subscriber_v order by isdn";
 					prpStm = conn.prepareStatement(sql);
 				}
 			} else {
@@ -4933,9 +4940,14 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 		try {
 			conn = getConnection();
 			conn.setAutoCommit(false);
-			String sql = "select act_id,label from cskh_detai_act where act_group = '" + act_group + "'";
+			String sql = "select act_id,label from cskh_detai_act a where instr(?,act_group) >= 1 "
+					+ " and (role_list IS NULL OR EXISTS (SELECT 1 FROM account_action_v"
+					+ "  WHERE name = ? AND INSTR(a.role_list, role) >= 1))";
+
 			syslog(sql);
 			prpStm = conn.prepareStatement(sql);
+			prpStm.setString(1, act_group);
+			prpStm.setString(2, user_name);
 			rs = prpStm.executeQuery();
 			return getData(rs, 0, user_name, app);
 		} catch (Exception e) {
@@ -4955,18 +4967,7 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 			JSONObject jsonObject = new JSONObject(json);
 
 			String app = String.valueOf(jsonObject.get("app"));
-
-			try {
-				sub_id = String.valueOf(jsonObject.get("sub_id"));
-			} catch (Exception e) {
-				sub_id = "";
-			}
-			try {
-				donvi = String.valueOf(jsonObject.get("donvi"));
-			} catch (Exception e) {
-				donvi = "";
-			}
-
+			String type = String.valueOf(jsonObject.get("type"));
 			conn = getConnection();
 			String sql;
 			String sql_fix = "SELECT distinct '<td id = \"province\" >' || PROVINCE PROVINCE"
@@ -4974,39 +4975,60 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 					+ ",'<td id = \"isdn\" >'||PHONE isdn,'<td id = \"name\" >'||name name"
 					+ ",'<td id = \"SUB_TYPE\" >'||SUB_TYPE SUB_TYPE,'<td id = \"address\" >'||address address"
 					+ ",'<td id = \"last_act\" class = \"canclick\" >'||last_act last_act"
-					+ ",'<td id = \"status\" >' ||status status"
 					+ ",'<td id = \"SERVICE_PKG\" >'||SERVICE_PKG SERVICE_PKG"
+					+ ",'<td id = \"dlc1_reg\" >'||dlc1_reg dlc1_reg" + ",'<td id = \"unit_reg\" >'||unit_reg unit_reg"
+					+ ",'<td id = \"contract_date\" >'||TO_CHAR(contract_date, 'YYYY-MM-DD') contract_date"
 					+ ",'<td id = \"ACTIVE_DATE\" >'||TO_CHAR(active_date, 'YYYY-MM-DD') ACTIVE_DATE"
 					+ ",'<td id = \"EXPIRE_DATE\" >'||TO_CHAR(EXPIRE_DATE, 'YYYY-MM-DD') EXPIRE_DATE"
-					+ " FROM mobitv_v";
-			if (!sub_id.equals("")) {
+					+ " FROM mobitv_v a";
+			if (type.equals("expire")) {
+				donvi = String.valueOf(jsonObject.get("donvi"));
+				if (donvi.equals("666666")) {
+					sql = sql_fix
+							+ " WHERE expire_date >= trunc(SYSDATE) AND expire_date < trunc(SYSDATE) + 5 ORDER BY last_act,expire_date";
+					prpStm = conn.prepareStatement(sql);
+				} else if (provinceNumberList.contains(donvi)) {
+					sql = sql_fix
+							+ " WHERE expire_date >= trunc(SYSDATE) AND expire_date < trunc(SYSDATE) + 5 and province=get_province_code(?) order by last_act,EXPIRE_DATE";
+					prpStm = conn.prepareStatement(sql);
+					prpStm.setString(1, donvi);
+				} else {
+					sql = sql_fix
+							+ " WHERE expire_date >= trunc(SYSDATE) AND expire_date < trunc(SYSDATE) + 5 and get_district_number(province||district) = ? order by last_act,EXPIRE_DATE";
+					prpStm = conn.prepareStatement(sql);
+					prpStm.setString(1, donvi);
+
+				}
+			} else if (type.equals("find_sub")) {
+				sub_id = String.valueOf(jsonObject.get("sub_id"));
 				sql = sql_fix + " WHERE sub_id = ?";
 				prpStm = conn.prepareStatement(sql);
 				prpStm.setString(1, sub_id);
-			} else if (donvi.equals("666666")) {
-				// sql = "select SUB_ID, NAME, ADDRESS, PHONE, STATUS,
-				// SERVICE_PKG, ACTIVE_DATE, EXPIRE_DATE,SUB_TYPE, LAST_ACT from
-				// mobitv_v";
 
-				sql = sql_fix
-						+ " WHERE 1=2 and expire_date >= trunc(SYSDATE) AND expire_date < trunc(SYSDATE) + 5 ORDER BY last_act,expire_date";
-				prpStm = conn.prepareStatement(sql);
-			} else if (provinceNumberList.contains(donvi)) {
-				sql = sql_fix
-						+ " WHERE expire_date >= trunc(SYSDATE) AND expire_date < trunc(SYSDATE) + 5 and province=get_province_code(?) order by last_act,EXPIRE_DATE";
-				prpStm = conn.prepareStatement(sql);
-				prpStm.setString(1, donvi);
 			} else {
-				sql = sql_fix
-						+ " WHERE expire_date >= trunc(SYSDATE) AND expire_date < trunc(SYSDATE) + 5 and get_district_number(province||district) = ? order by last_act,EXPIRE_DATE";
-				prpStm = conn.prepareStatement(sql);
-				prpStm.setString(1, donvi);
-
+				donvi = String.valueOf(jsonObject.get("donvi"));
+				if (donvi.equals("666666")) {
+					sql = sql_fix + " WHERE contract_status is null AND NOT EXISTS "
+							+ "(SELECT 1 FROM mobitv_v WHERE sub_id = a.sub_id AND act = 6 AND act_status = 1)";
+					prpStm = conn.prepareStatement(sql);
+				} else if (provinceNumberList.contains(donvi)) {
+					sql = sql_fix + "  WHERE contract_status is null AND NOT EXISTS "
+							+ "(SELECT 1 FROM mobitv_v WHERE sub_id = a.sub_id AND act = 6 AND act_status = 1)"
+							+ " and province=get_province_code(?) order by last_act";
+					prpStm = conn.prepareStatement(sql);
+					prpStm.setString(1, donvi);
+				} else {
+					sql = sql_fix + "  WHERE contract_status is null AND NOT EXISTS "
+							+ "(SELECT 1 FROM mobitv_v WHERE sub_id = a.sub_id AND act = 6 AND act_status = 1)"
+							+ " and get_district_number(province||district) = ? order by last_act";
+					prpStm = conn.prepareStatement(sql);
+					prpStm.setString(1, donvi);
+				}
 			}
 
 			syslog(sql);
 			rs = prpStm.executeQuery();
-			return getData2(rs, 0, user_name, app);
+			return getData2(rs, 1, user_name, app);
 		} catch (Exception e) {
 			return getError(e);
 		} finally {
@@ -5519,71 +5541,84 @@ public class MsaleOracleBase extends OracleBase implements MsaleBase {
 						"Ngày kích hoạt", "Mã chương trình", "Loại STB", "Số chíp", "Số thẻ", "Mã kho", "Tên kho",
 						"Kho MBF DV", "Kho MBF CN", "Kho MBF C1", "Số đthoại kích hoạt", "MBF KV kích hoạt",
 						"MBF CN kích hoạt", "DLC1 kích  hoạt", "Tên đơn vị kích hoạt", "Loại Đơn vị" };
+				String[] header_source = new String[header.length];
+				row = sheet.getRow(2);
+				for (int j = 0; j <= 22; j++) {
+					if (j <= 2) {
+						header_source[j] = row.getCell(j).getStringCellValue();
+					} else if (j >= 4) {
+						header_source[j - 1] = row.getCell(j).getStringCellValue();
+					}
+				}
+				for (int j = 0; j < header.length; j++) {
+					if (!header_source[j].equals(header[j]))
+						throw new Exception("Header không khớp");
+				}
 
 				pojo.put("000", "<th>ROW");
-				row = sheet.getRow(2);
+
 				for (int j = 0; j < 22; j++)
 					pojo.put(String.format("%03d", j + 1), "<th>" + header[j]);
 				pojo.put(String.format("%03d", 23), "<th>ERROR");
 				pojoList.add(pojo);
 
-				sql = "MERGE INTO mobitv_subscriber_reg USING DUAL ON (sub_id = ?) WHEN MATCHED THEN"
+				String[] headerArray = "SUB_ID,NAME,ADDRESS,PRECINCT,DISTRICT,PROVINCE,ACTIVE_DATE,PROGRAM_CODE,DEVICE_TYPE,IC_NUMBER,CARD_NUMBER,STOCK_CODE,STOCK_NAME,STOCK_MBF_DV,STOCK_MBF_CN,STOCK_MBF_C1,PHONE,MBF_KV_REG,MBF_CN_REG,DLC1_REG,UNIT_REG,UNIT_REG_TYPE"
+						.split(",");
+				String insertField = "SUB_ID,NAME,ADDRESS,PRECINCT,DISTRICT,PROVINCE,ACTIVE_DATE,PROGRAM_CODE,DEVICE_TYPE,IC_NUMBER,CARD_NUMBER,STOCK_CODE,STOCK_NAME,STOCK_MBF_DV,STOCK_MBF_CN,STOCK_MBF_C1,PHONE,MBF_KV_REG,MBF_CN_REG,DLC1_REG,UNIT_REG,UNIT_REG_TYPE,SUB_ID,NAME,ADDRESS,PRECINCT,DISTRICT,PROVINCE,ACTIVE_DATE,PROGRAM_CODE,DEVICE_TYPE,IC_NUMBER,CARD_NUMBER,STOCK_CODE,STOCK_NAME,STOCK_MBF_DV,STOCK_MBF_CN,STOCK_MBF_C1,PHONE,MBF_KV_REG,MBF_CN_REG,DLC1_REG,UNIT_REG,UNIT_REG_TYPE,ACTIVE_DATE";
+				String[] bindInsertHeaderArray = insertField.split(",");
+				int[] locationValue = new int[bindInsertHeaderArray.length];
+
+				for (int j = 0; j < bindInsertHeaderArray.length; j++) {
+					for (int i = 0; i < headerArray.length; i++) {
+						if (bindInsertHeaderArray[j].equals(headerArray[i])) {
+							locationValue[j] = i;
+						}
+					}
+				}
+
+				String[] valueArray = new String[headerArray.length];
+
+				sql = "MERGE INTO mobitv USING DUAL ON (sub_id = ?) WHEN MATCHED THEN"
 						+ "    UPDATE SET name = ?, address = ?, precinct = ?, district = ?,"
-						+ "               province = ?, active_date = ?, program_code = ?,"
+						+ "               province = ?, active_date = to_date(?,'yyyy-MM-dd'), program_code = ?,"
 						+ "               device_type = ?, ic_number = ?, card_number = ?,"
 						+ "               stock_code = ?, stock_name = ?, stock_mbf_dv = ?,"
-						+ "               stock_mbf_cn = ?, stock_mbf_c1 = ?, phone_reg = ?,"
+						+ "               stock_mbf_cn = ?, stock_mbf_c1 = ?, phone = ?,"
 						+ "               mbf_kv_reg = ?, mbf_cn_reg = ?, dlc1_reg = ?,"
-						+ "               unit_reg = ?, unit_reg_type = ? 							"
-						+ " WHEN NOT MATCHED THEN"
+						+ "               unit_reg = ?, unit_reg_type = ?,apply_date=sysdate,apply_user = '" + user_name
+						+ "' WHEN NOT MATCHED THEN"
 						+ "    INSERT(sub_id, name, address, precinct,district, province, active_date,"
 						+ "           program_code, device_type, ic_number, card_number, stock_code,"
-						+ "           stock_name, stock_mbf_dv, stock_mbf_cn, stock_mbf_c1, phone_reg,"
-						+ "           mbf_kv_reg, mbf_cn_reg, dlc1_reg, unit_reg, unit_reg_type)"
-						+ "    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+						+ "           stock_name, stock_mbf_dv, stock_mbf_cn, stock_mbf_c1, phone,"
+						+ "           mbf_kv_reg, mbf_cn_reg, dlc1_reg, unit_reg, unit_reg_type,contract_date,apply_date,apply_user)"
+						+ "    VALUES (?,?,?,?,?,?,to_date(?,'yyyy-MM-dd'),?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,to_date(?,'yyyy-MM-dd'),sysdate,'"
+						+ user_name + "')";
 				prpStm = conn.prepareStatement(sql);
 				for (int i = 3; i < sheet.getLastRowNum(); i++) {
 					try {
 						row = sheet.getRow(i);
 						for (int j = 0; j <= 22; j++) {
 							if (j <= 2) {
+								valueArray[j] = row.getCell(j).getStringCellValue();
 								prpStm.setString(j + 1, row.getCell(j).getStringCellValue());
-								// syslog("col " + j + ": " +
-								// row.getCell(j).getStringCellValue());
 							} else if (j >= 4) {
 								if (j == 7) {
-									prpStm.setDate(j, new java.sql.Date(row.getCell(j).getDateCellValue().getTime()));
+									valueArray[j - 1] = AppParam.YYYY_MM_FORMAT
+											.format(row.getCell(j).getDateCellValue().getTime());
 								} else {
-									prpStm.setString(j, row.getCell(j).getStringCellValue());
-									// syslog("col " + (j - 1) + ": " +
-									// row.getCell(j).getStringCellValue());
+									valueArray[j - 1] = row.getCell(j).getStringCellValue();
 								}
 							}
 						}
-						for (int j = 0; j <= 22; j++) {
-							if (j <= 2) {
-								prpStm.setString(j + 1 + 22, row.getCell(j).getStringCellValue());
-								// syslog("col " + j + ": " +
-								// row.getCell(j).getStringCellValue());
-							} else if (j >= 4) {
-								if (j == 7) {
-									prpStm.setDate(j + 22,
-											new java.sql.Date(row.getCell(j).getDateCellValue().getTime()));
-								} else {
-									prpStm.setString(j + 22, row.getCell(j).getStringCellValue());
-									// syslog("col " + (j - 1) + ": " +
-									// row.getCell(j).getStringCellValue());
-								}
-							}
+						for (int j = 0; j < bindInsertHeaderArray.length; j++) {
+							prpStm.setString(j + 1, valueArray[locationValue[j]]);
 						}
-
 						prpStm.execute();
 						conn.commit();
 					} catch (Exception e) {
 						pojo = new TreeMap<String, String>();
 						pojo.put("000", "<td>" + i);
 						for (int j = 0; j <= 22; j++) {
-							pojo = new TreeMap<String, String>();
 							if (j <= 2)
 								pojo.put(String.format("%03d", j + 1), "<td>" + row.getCell(j).getStringCellValue());
 							else if (j >= 4) {
