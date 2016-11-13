@@ -55,6 +55,6 @@ http://www.springframework.org/schema/aop http://www.springframework.org/schema/
 	<bean id="msaleBase" class="pojobase.oracle.MsaleOracleBase" />
 
 	<!-- bean id="userService" class="springsecurity.HibernateUserBase" > </bean -->
-	<bean id="formattingConverters" class="formater.FormattingConverters" />
+	<bean id="formattingConverters" class="org.springframework.format.support.FormattingConversionServiceFactoryBean" />
 
 </beans>

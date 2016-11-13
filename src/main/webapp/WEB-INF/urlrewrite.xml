@@ -5,12 +5,12 @@
 		<from>/images/**</from>
 		<to>/images/$1</to>
 	</rule>
-	
+
 	<rule>
 		<from>/favicon.ico</from>
 		<to>/images/favicon.ico</to>
-	</rule>	
-	
+	</rule>
+
 	<rule>
 		<from>/scripts/**</from>
 		<to>/scripts/$1</to>
