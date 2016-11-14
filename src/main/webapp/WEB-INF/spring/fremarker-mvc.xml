@@ -6,7 +6,7 @@
 		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd">
 
 	<!-- Configures the @Controller programming model -->
-	<mvc:annotation-driven />
+
 
 	<!-- Forwards requests to the "/" resource to the "welcome" view -->
 	<!-- mvc:view-controller path="/" view-name="/reseller/anchi/add" / -->

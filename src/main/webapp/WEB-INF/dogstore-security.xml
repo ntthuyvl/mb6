@@ -73,9 +73,9 @@
 			password-parameter="j_password" default-target-url="/homebuff"
 			login-processing-url="/j_spring_security_check"
 			authentication-failure-url="/login-error" />
-
 		<access-denied-handler error-page="/accessdenied" />
-		<logout invalidate-session="true" logout-success-url="/" />
+		<logout invalidate-session="true" logout-success-url="/login"
+			logout-url="/j_spring_security_logout" />
 		<intercept-url pattern="/styles/**" access="permitAll" />
 		<intercept-url pattern="/scripts/**" access="permitAll" />
 		<intercept-url pattern="/images/**" access="permitAll" />
@@ -84,6 +84,7 @@
 		<intercept-url pattern="/" access="fullyAuthenticated" />
 		<intercept-url pattern="/**"
 			access="hasAnyRole('DEVELOPER')	and fullyAuthenticated" />
+		<csrf disabled="true" />
 	</http>
 
 	<authentication-manager>

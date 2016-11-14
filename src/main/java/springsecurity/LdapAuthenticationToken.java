@@ -75,14 +75,13 @@ public class LdapAuthenticationToken extends AbstractAuthenticationToken {
 	}
 
 	public Collection<GrantedAuthority> getAuthorities() {
-		System.out.println("user: " + auth.getName());
+		// System.out.println("user: " + auth.getName());
 		// Account account = accountBase.get(auth.getName());
 		List<String> roleList = accountBase.getRoleList(auth.getName());
 		Set<GrantedAuthority> authorities = new HashSet<GrantedAuthority>();
 		if (roleList != null && roleList.size() > 0) {
-
 			for (String role : roleList) {
-				authorities.add(new SimpleGrantedAuthority(role));
+				authorities.add(new SimpleGrantedAuthority("ROLE_" + role));
 			}
 		} else
 			authorities.addAll(AuthorityUtils.NO_AUTHORITIES);

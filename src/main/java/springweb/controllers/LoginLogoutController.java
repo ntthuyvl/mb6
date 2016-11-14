@@ -2,8 +2,12 @@ package springweb.controllers;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Collection;
+
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.access.AccessDeniedHandlerImpl;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
